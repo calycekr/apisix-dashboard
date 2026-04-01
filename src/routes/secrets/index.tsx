@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -31,7 +30,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function SecretList() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useSecretList();
 
   const columns = useMemo<
@@ -47,13 +45,13 @@ function SecretList() {
       },
       {
         dataIndex: ['value', 'manager'],
-        title: t('form.secrets.manager'),
+        title: 'Secret Manager',
         key: 'manager',
         valueType: 'text',
         width: 120,
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -68,7 +66,7 @@ function SecretList() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('secrets.singular')}
+            name={'Secret'}
             target={record.value.id}
             api={`${API_SECRETS}/${record.value.manager}/${record.value.id}`}
             onSuccess={refetch}
@@ -76,7 +74,7 @@ function SecretList() {
         ],
       },
     ];
-  }, [t, refetch]);
+  }, [refetch]);
 
   return (
     <AntdConfigProvider>
@@ -99,7 +97,7 @@ function SecretList() {
                   <ToAddPageBtn
                     key="add"
                     to="/secrets/add"
-                    label={t('info.add.title', { name: t('secrets.singular') })}
+                    label={`Add ${'Secret'}`}
                   />
                 ),
               },
@@ -112,11 +110,10 @@ function SecretList() {
 }
 
 function RouteComponent() {
-  const { t } = useTranslation();
 
   return (
     <>
-      <PageHeader title={t('sources.secrets')} />
+      <PageHeader title={'Secrets'} />
       <SecretList />
     </>
   );

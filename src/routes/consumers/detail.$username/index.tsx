@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { putConsumerReq } from '@/apis/consumers';
@@ -48,7 +47,6 @@ type Props = {
 
 const ConsumerDetailForm = (props: Props) => {
   const { readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const { username } = useParams({ from: '/consumers/detail/$username' });
 
   const consumerQuery = useSuspenseQuery(getConsumerQueryOptions(username));
@@ -72,7 +70,7 @@ const ConsumerDetailForm = (props: Props) => {
     mutationFn: (d: APISIXType['ConsumerPut']) => putConsumerReq(req, d),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('consumers.singular') }),
+        message: `Edit ${'Consumer'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -95,9 +93,9 @@ const ConsumerDetailForm = (props: Props) => {
         <FormPartConsumer />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -107,7 +105,6 @@ const ConsumerDetailForm = (props: Props) => {
 };
 
 const ConsumerDetailTab = () => {
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const { username } = useParams({ from: '/consumers/detail/$username' });
   const navigate = useNavigate();
@@ -115,9 +112,9 @@ const ConsumerDetailTab = () => {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('consumers.singular') })}
+        title={`Edit ${'Consumer'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('consumers.singular') }),
+          title: `${'Consumer'} Detail`,
           extra: (
             <Space>
               <Button
@@ -125,11 +122,11 @@ const ConsumerDetailTab = () => {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('consumers.singular')}
+                name={'Consumer'}
                 target={username}
                 api={`${API_CONSUMERS}/${username}`}
                 onSuccess={() => navigate({ to: '/consumer_groups' })}

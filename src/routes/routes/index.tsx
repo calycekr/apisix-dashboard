@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -46,7 +45,6 @@ export const RouteList = (props: RouteListProps) => {
     routeKey,
     defaultParams
   );
-  const { t } = useTranslation();
 
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
@@ -58,13 +56,13 @@ export const RouteList = (props: RouteListProps) => {
       },
       {
         dataIndex: ['value', 'name'],
-        title: t('form.basic.name'),
+        title: 'Name',
         key: 'name',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
@@ -75,7 +73,7 @@ export const RouteList = (props: RouteListProps) => {
         valueType: 'text',
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -83,7 +81,7 @@ export const RouteList = (props: RouteListProps) => {
           <ToDetailBtn key="detail" record={record} />,
           <DeleteResourceBtn
             key="delete"
-            name={t('routes.singular')}
+            name={'Route'}
             target={record.value.id}
             api={`${API_ROUTES}/${record.value.id}`}
             onSuccess={refetch}
@@ -91,7 +89,7 @@ export const RouteList = (props: RouteListProps) => {
         ],
       },
     ];
-  }, [t, ToDetailBtn, refetch]);
+  }, [ToDetailBtn, refetch]);
 
   return (
     <AntdConfigProvider>
@@ -113,9 +111,7 @@ export const RouteList = (props: RouteListProps) => {
                 label: (
                   <ToAddPageBtn
                     key="add"
-                    label={t('info.add.title', {
-                      name: t('routes.singular'),
-                    })}
+                    label={`Add ${'Route'}`}
                     to={`${routeKey}add`}
                   />
                 ),
@@ -129,10 +125,9 @@ export const RouteList = (props: RouteListProps) => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('sources.routes')} />
+      <PageHeader title={'Routes'} />
       <RouteList
         routeKey="/routes/"
         ToDetailBtn={({ record }) => (

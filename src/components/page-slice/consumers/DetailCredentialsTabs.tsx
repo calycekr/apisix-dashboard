@@ -16,12 +16,10 @@
  */
 import { useLocation, useNavigate, useParams } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { Tabs, type TabsItem } from '@/components/page/Tabs';
 
 export const DetailCredentialsTabs = () => {
-  const { t } = useTranslation();
   const { username } = useParams({ strict: false });
   const navigate = useNavigate();
   const pathname = useLocation({
@@ -32,14 +30,14 @@ export const DetailCredentialsTabs = () => {
     (): TabsItem[] => [
       {
         value: 'detail',
-        label: t('info.detail.title', { name: t('consumers.singular') }),
+        label: 'Consumer Detail',
       },
       {
         value: 'credentials',
-        label: t('sources.credentials'),
+        label: 'Credentials',
       },
     ],
-    [t]
+    []
   );
   return (
     <Tabs

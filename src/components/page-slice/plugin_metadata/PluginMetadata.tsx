@@ -19,7 +19,6 @@ import { useMutation } from '@tanstack/react-query';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { difference } from 'rambdax';
-import { useTranslation } from 'react-i18next';
 import { useDeepCompareEffect } from 'react-use';
 
 import { deletePluginMetadataReq, putPluginMetadataReq } from '@/apis/plugins';
@@ -37,16 +36,12 @@ import { SelectPluginsDrawer } from '@/components/form-slice/FormItemPlugins/Sel
 import { type PluginInfo, usePluginMetadataList } from './hooks';
 
 export const PluginMetadata = () => {
-  const { t } = useTranslation();
-
   const getMetadataListReq = usePluginMetadataList();
   const putMetadata = useMutation({
     mutationFn: putPluginMetadataReq,
     onSuccess(_, variables) {
       showNotification({
-        message: t('info.edit.success', {
-          name: `${t('pluginMetadata.singular')} of ${variables.name}`,
-        }),
+        message: `Edit Plugin Metadata Successfully of ${variables.name}`,
         type: 'success',
       });
       getMetadataListReq.refetch();
@@ -56,9 +51,7 @@ export const PluginMetadata = () => {
     mutationFn: (name: string) => deletePluginMetadataReq(name),
     onSuccess(_, name) {
       showNotification({
-        message: t('info.delete.success', {
-          name: `${t('pluginMetadata.singular')} of ${name}`,
-        }),
+        message: `Delete Plugin Metadata Successfully of ${name}`,
         type: 'success',
       });
       getMetadataListReq.refetch();
@@ -148,7 +141,7 @@ export const PluginMetadata = () => {
       </div>
       <PluginCardList
         mode="edit"
-        placeholder={t('pluginMetadata.search')}
+        placeholder="Search Plugin Metadata"
         mah="60vh"
         search={pluginsOb.search}
         plugins={pluginsOb.selected}

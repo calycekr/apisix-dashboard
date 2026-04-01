@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getPluginConfigQueryOptions } from '@/apis/hooks';
@@ -49,7 +48,6 @@ type Props = {
 
 const PluginConfigDetailForm = (props: Props) => {
   const { id, readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
 
   const pluginConfigQuery = useSuspenseQuery(getPluginConfigQueryOptions(id));
   const { data } = pluginConfigQuery;
@@ -60,7 +58,7 @@ const PluginConfigDetailForm = (props: Props) => {
       putPluginConfigReq(req, pipeProduce()({ ...d, id })),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('pluginConfigs.singular') }),
+        message: `Edit ${'Plugin Config'} Successfully`,
         type: 'success',
       });
       pluginConfigQuery.refetch();
@@ -90,9 +88,9 @@ const PluginConfigDetailForm = (props: Props) => {
         <FormPartPluginConfig />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -103,16 +101,15 @@ const PluginConfigDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/plugin_configs/detail/$id' });
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('pluginConfigs.singular') })}
+        title={`Edit ${'Plugin Config'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('pluginConfigs.singular') }),
+          title: `${'Plugin Config'} Detail`,
           extra: (
             <Space>
               <Button
@@ -120,11 +117,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('pluginConfigs.singular')}
+                name={'Plugin Config'}
                 target={id}
                 api={`${API_PLUGIN_CONFIGS}/${id}`}
                 onSuccess={() => navigate({ to: '/plugin_configs' })}

@@ -14,14 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { t } from 'i18next';
 
 import { FormItemPlugins } from './FormItemPlugins';
 import { FormSection } from './FormSection';
 
 export const FormPartGlobalRules = () => {
   return (
-    <FormSection legend={t('form.plugins.label')}>
+    <FormSection legend={'Plugins'}>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );

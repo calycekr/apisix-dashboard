@@ -30,7 +30,6 @@ import {
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import type { ZodObject, ZodRawShape } from 'zod';
 
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -121,7 +120,6 @@ export const FormItemNodes = <T extends FieldValues>(
     () => genControllerProps(props),
     [props]
   );
-  const { t } = useTranslation();
   const {
     field: { value, onChange: fOnChange, name: fName, disabled },
     fieldState,
@@ -134,13 +132,13 @@ export const FormItemNodes = <T extends FieldValues>(
         hidden: true,
       },
       {
-        title: t('form.upstreams.nodes.host.title'),
+        title: 'Host',
         dataIndex: 'host',
         valueType: 'text',
         formItemProps: genProps('host'),
       },
       {
-        title: t('form.upstreams.nodes.port.title'),
+        title: 'Port',
         dataIndex: 'port',
         valueType: 'digit',
         formItemProps: genProps('port'),
@@ -149,7 +147,7 @@ export const FormItemNodes = <T extends FieldValues>(
         },
       },
       {
-        title: t('form.upstreams.nodes.weight.title'),
+        title: 'Weight',
         dataIndex: 'weight',
         valueType: 'digit',
         formItemProps: genProps('weight'),
@@ -158,7 +156,7 @@ export const FormItemNodes = <T extends FieldValues>(
         },
       },
       {
-        title: t('form.upstreams.nodes.priority.title'),
+        title: 'Priority',
         dataIndex: 'priority',
         valueType: 'digit',
         formItemProps: genProps('priority'),
@@ -167,14 +165,14 @@ export const FormItemNodes = <T extends FieldValues>(
         },
       },
       {
-        title: t('form.upstreams.nodes.action.title'),
+        title: 'Action',
         valueType: 'option',
         width: 100,
         hidden: disabled,
         render: () => null,
       },
     ],
-    [disabled, t]
+    [disabled]
   );
   const { label, required, withAsterisk } = props;
   const ob = useLocalObservable(() => ({
@@ -245,7 +243,7 @@ export const FormItemNodes = <T extends FieldValues>(
                   style={{ padding: 0 }}
                   onClick={() => ob.remove(row.id)}
                 >
-                  {t('form.btn.delete')}
+                  Delete
                 </Button>,
               ];
             },
@@ -257,7 +255,7 @@ export const FormItemNodes = <T extends FieldValues>(
         size="small"
         onClick={() => ob.append(genRecord())}
       >
-        {t('form.upstreams.nodes.add')}
+        Add a Node
       </Button>
     </InputWrapper>
   );

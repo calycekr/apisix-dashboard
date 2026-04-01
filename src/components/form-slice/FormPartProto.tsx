@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { type FieldValues,useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import type { APISIXType } from '@/types/schema/apisix';
 
@@ -28,13 +27,12 @@ const fileTypes = '.proto,.pb';
 export const FormPartProto = <T extends FieldValues>(
   props: Pick<FormItemTextareaWithUploadProps<T>, 'allowUpload'>
 ) => {
-  const { t } = useTranslation();
   const form = useFormContext<APISIXType['ProtoPost']>();
   return (
     <FormItemTextareaWithUpload
       name="content"
-      label={t('form.protos.content')}
-      placeholder={t('form.protos.contentPlaceholder', { fileTypes })}
+      label="Content"
+      placeholder={`Paste or upload ${fileTypes} file`}
       control={form.control}
       minRows={10}
       acceptFileTypes={fileTypes}

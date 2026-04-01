@@ -16,7 +16,6 @@
  */
 import { type PropsWithChildren, type ReactNode, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import type { APISIXType } from '@/types/schema/apisix';
 import { APISIXCommon } from '@/types/schema/apisix/common';
@@ -28,23 +27,24 @@ import { FormItemTextarea } from '../form/Textarea';
 import { FormItemTextInput } from '../form/TextInput';
 import { FormSection, type FormSectionProps } from './FormSection';
 
+const statusLabels: Record<string, string> = { '0': 'Disabled', '1': 'Enabled' };
+
 const FormItemStatus = () => {
   const { control } = useFormContext<APISIXType['Basic']>();
-  const { t } = useTranslation();
   const np = useNamePrefix();
   const options = useMemo(
     () =>
       APISIXCommon.Status.options.map((v) => ({
         value: String(v.value),
-        label: t(`form.basic.statusOption.${v.value}`),
+        label: statusLabels[String(v.value)] ?? String(v.value),
       })),
-    [t]
+    []
   );
   return (
     <FormItemSelect
       control={control}
       name={np('status')}
-      label={t('form.basic.status')}
+      label="Status"
       defaultValue={APISIXCommon.Status.options[1].value}
       data={options}
       from={String}
@@ -73,23 +73,22 @@ export const FormPartBasic = (props: FormPartBasicProps) => {
     ...restProps
   } = props;
   const { control } = useFormContext<APISIXType['Basic']>();
-  const { t } = useTranslation();
   const np = useNamePrefix();
 
   return (
-    <FormSection legend={t('form.basic.title')} {...restProps}>
+    <FormSection legend="Basic Infomation" {...restProps}>
       {before}
       {showName && (
         <FormItemTextInput
           name={np('name')}
-          label={t('form.basic.name')}
+          label="Name"
           control={control}
         />
       )}
       {showDesc && (
         <FormItemTextarea
           name={np('desc')}
-          label={t('form.basic.desc')}
+          label="Description"
           control={control}
         />
       )}

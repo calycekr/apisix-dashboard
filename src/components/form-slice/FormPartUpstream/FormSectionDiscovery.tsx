@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemJsonInput } from '@/components/form/JsonInput';
 import { FormItemSelect } from '@/components/form/Select';
@@ -36,19 +35,18 @@ const DISCOVERY_TYPES = [
 ];
 
 export const FormSectionDiscovery = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<FormPartUpstreamType>();
   const np = useNamePrefix();
   return (
-    <FormSection legend={t('form.upstreams.serviceDiscovery.title')}>
+    <FormSection legend="Service Discovery">
       <FormItemTextInput
         name={np('service_name')}
-        label={t('form.upstreams.serviceName.title')}
+        label="Service Name"
         control={control}
       />
       <FormItemSelect
         name={np('discovery_type')}
-        label={t('form.upstreams.discoveryType.title')}
+        label="Discovery Type"
         control={control}
         data={DISCOVERY_TYPES}
         clearable
@@ -56,7 +54,7 @@ export const FormSectionDiscovery = () => {
       />
       <FormItemJsonInput
         name={np('discovery_args')}
-        label={t('form.upstreams.discoveryArgs.title')}
+        label="Discovery Args"
         control={control}
         toObject
       />

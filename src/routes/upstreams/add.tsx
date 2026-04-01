@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import type { z } from 'zod';
 
 import { postUpstreamReq } from '@/apis/upstreams';
@@ -38,13 +37,12 @@ const PostUpstreamSchema = FormPartUpstreamSchema.omit({
 type PostUpstreamType = z.infer<typeof PostUpstreamSchema>;
 
 const UpstreamAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
   const postUpstream = useMutation({
     mutationFn: (d: PostUpstreamType) => postUpstreamReq(req, d),
     async onSuccess(data) {
       showNotification({
-        message: t('info.add.success', { name: t('upstreams.singular') }),
+        message: `Add ${'Upstream'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -67,18 +65,17 @@ const UpstreamAddForm = () => {
         )}
       >
         <FormPartUpstream />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('upstreams.singular') })}
+        title={`Add ${'Upstream'}`}
       />
       <FormTOCBox>
         <UpstreamAddForm />

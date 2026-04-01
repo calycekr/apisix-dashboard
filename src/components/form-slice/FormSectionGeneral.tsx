@@ -16,7 +16,6 @@
  */
 import { Divider } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import type { APISIXType } from '@/types/schema/apisix';
 
@@ -26,22 +25,20 @@ import { FormSection } from './FormSection';
 
 const DisplayDate = () => {
   const { control } = useFormContext<APISIXType['Info']>();
-  const { t } = useTranslation();
   const createTime = useWatch({ control, name: 'create_time' });
   const updateTime = useWatch({ control, name: 'update_time' });
   return (
     <>
-      <FormDisplayDate date={createTime} label={t('form.info.create_time')} />
-      <FormDisplayDate date={updateTime} label={t('form.info.update_time')} />
+      <FormDisplayDate date={createTime} label="Created At" />
+      <FormDisplayDate date={updateTime} label="Updated At" />
     </>
   );
 };
 
 const FormItemID = () => {
   const { control } = useFormContext<APISIXType['Info']>();
-  const { t } = useTranslation();
   return (
-    <FormItemTextInput control={control} name="id" label={t('form.info.id')} />
+    <FormItemTextInput control={control} name="id" label="ID" />
   );
 };
 
@@ -54,14 +51,13 @@ export type FormSectionGeneralProps = {
 
 export const FormSectionGeneral = (props: FormSectionGeneralProps) => {
   const { showDate = props.readOnly, showID = true, readOnly = false } = props;
-  const { t } = useTranslation();
   const { register } = useFormContext<APISIXType['Info']>();
   // we use fieldset disabled to show readonly state
   // because mantine readOnly style looks like we can edit
   // this is also the way rhf recommends,
   // Using disable directly on the component will cause rhf to ignore the value
   return (
-    <FormSection legend={t('form.general.title')} disabled={readOnly}>
+    <FormSection legend="General" disabled={readOnly}>
       {showID && <FormItemID />}
       {showID && showDate && <Divider style={{ margin: '16px 0' }} />}
       <input type="hidden" {...register('create_time')} />

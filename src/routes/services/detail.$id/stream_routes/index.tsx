@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { createFileRoute, useParams } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
 
 import { getStreamRouteListQueryOptions } from '@/apis/hooks';
 import PageHeader from '@/components/page/PageHeader';
@@ -26,11 +25,10 @@ import { StreamRouteList } from '@/routes/stream_routes';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function StreamRouteComponent() {
-  const { t } = useTranslation();
   const { id } = useParams({ from: '/services/detail/$id/stream_routes/' });
   return (
     <>
-      <PageHeader title={t('sources.streamRoutes')} />
+      <PageHeader title={'Stream Routes'} />
       <StreamRouteList
         routeKey="/services/detail/$id/stream_routes/"
         ToDetailBtn={({ record }) => (

@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getRouteQueryOptions } from '@/apis/hooks';
@@ -57,7 +56,6 @@ type Props = {
 
 const RouteDetailForm = (props: Props) => {
   const { readOnly, setReadOnly, id } = props;
-  const { t } = useTranslation();
 
   const routeQuery = useQuery(getRouteQueryOptions(id));
   const { data: routeData, isLoading, refetch } = routeQuery;
@@ -85,7 +83,7 @@ const RouteDetailForm = (props: Props) => {
       putRouteReq(req, produceRoute(d) as APISIXType['Route']),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('routes.singular') }),
+        message: `Edit ${'Route'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -104,9 +102,9 @@ const RouteDetailForm = (props: Props) => {
         <FormPartRoute />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -120,15 +118,14 @@ type RouteDetailProps = Pick<Props, 'id'> & {
 };
 export const RouteDetail = (props: RouteDetailProps) => {
   const { id, onDeleteSuccess } = props;
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('routes.singular') })}
+        title={`Edit ${'Route'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('routes.singular') }),
+          title: `${'Route'} Detail`,
           extra: (
             <Space>
               <Button
@@ -136,11 +133,11 @@ export const RouteDetail = (props: RouteDetailProps) => {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('routes.singular')}
+                name={'Route'}
                 target={id}
                 api={`${API_ROUTES}/${id}`}
                 onSuccess={onDeleteSuccess}

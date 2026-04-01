@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getSecretQueryOptions } from '@/apis/hooks';
@@ -48,7 +47,6 @@ type Props = {
 
 const SecretDetailForm = (props: Props) => {
   const { readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const { manager, id } = useParams({ from: '/secrets/detail/$manager/$id' });
 
   const secretQuery = useQuery(
@@ -79,7 +77,7 @@ const SecretDetailForm = (props: Props) => {
       putSecretReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('secrets.singular') }),
+        message: `Edit ${'Secret'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -98,9 +96,9 @@ const SecretDetailForm = (props: Props) => {
         <FormPartSecret readOnlyManager />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -110,7 +108,6 @@ const SecretDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const { manager, id } = useParams({ from: '/secrets/detail/$manager/$id' });
   const navigate = useNavigate();
@@ -118,9 +115,9 @@ function RouteComponent() {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('secrets.singular') })}
+        title={`Edit ${'Secret'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('secrets.singular') }),
+          title: `${'Secret'} Detail`,
           extra: (
             <Space>
               <Button
@@ -128,11 +125,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('secrets.singular')}
+                name={'Secret'}
                 target={id}
                 api={`${API_SECRETS}/${manager}/${id}`}
                 onSuccess={() => navigate({ to: '/secrets' })}

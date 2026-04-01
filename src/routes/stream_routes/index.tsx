@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -50,7 +49,6 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
     routeKey,
     defaultParams
   );
-  const { t } = useTranslation();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
@@ -64,24 +62,24 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
       },
       {
         dataIndex: ['value', 'server_addr'],
-        title: t('form.streamRoutes.serverAddr'),
+        title: 'Server Address',
         key: 'server_addr',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'server_port'],
-        title: t('form.streamRoutes.serverPort'),
+        title: 'Server Port',
         key: 'server_port',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -89,7 +87,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
           <ToDetailBtn key="detail" record={record} />,
           <DeleteResourceBtn
             key="delete"
-            name={t('streamRoutes.singular')}
+            name={'Stream Route'}
             target={record.value.id}
             api={`${API_STREAM_ROUTES}/${record.value.id}`}
             onSuccess={refetch}
@@ -97,7 +95,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         ],
       },
     ];
-  }, [t, ToDetailBtn, refetch]);
+  }, [ToDetailBtn, refetch]);
 
   return (
     <AntdConfigProvider>
@@ -119,9 +117,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
                 label: (
                   <ToAddPageBtn
                     key="add"
-                    label={t('info.add.title', {
-                      name: t('streamRoutes.singular'),
-                    })}
+                    label={`Add ${'Stream Route'}`}
                     to={`${routeKey}add`}
                   />
                 ),
@@ -135,11 +131,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
 };
 
 function StreamRouteComponent() {
-  const { t } = useTranslation();
 
   return (
     <>
-      <PageHeader title={t('sources.streamRoutes')} />
+      <PageHeader title={'Stream Routes'} />
       <StreamRouteList
         routeKey="/stream_routes/"
         ToDetailBtn={({ record }) => (

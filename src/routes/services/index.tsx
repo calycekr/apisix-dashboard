@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -32,7 +31,6 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination } = useServiceList();
-  const { t } = useTranslation();
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -44,19 +42,19 @@ const ServiceList = () => {
       },
       {
         dataIndex: ['value', 'name'],
-        title: t('form.basic.name'),
+        title: 'Name',
         key: 'name',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: t('form.info.update_time'),
+        title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         sorter: true,
@@ -66,7 +64,7 @@ const ServiceList = () => {
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -78,7 +76,7 @@ const ServiceList = () => {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('services.singular')}
+            name={'Service'}
             target={record.value.id}
             api={`${API_SERVICES}/${record.value.id}`}
             onSuccess={refetch}
@@ -86,7 +84,7 @@ const ServiceList = () => {
         ],
       },
     ];
-  }, [t, refetch]);
+  }, [refetch]);
 
   return (
     <AntdConfigProvider>
@@ -108,9 +106,7 @@ const ServiceList = () => {
                 label: (
                   <ToAddPageBtn
                     key="add"
-                    label={t('info.add.title', {
-                      name: t('services.singular'),
-                    })}
+                    label={`Add ${'Service'}`}
                     to="/services/add"
                   />
                 ),
@@ -124,10 +120,9 @@ const ServiceList = () => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('sources.services')} />
+      <PageHeader title={'Services'} />
       <AntdConfigProvider>
         <ServiceList />
       </AntdConfigProvider>

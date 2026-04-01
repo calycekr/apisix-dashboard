@@ -18,7 +18,6 @@ import { Divider } from 'antd';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemPasswordInput } from '@/components/form/PasswordInput';
 import { FormItemSelect } from '@/components/form/Select';
@@ -30,7 +29,6 @@ import { FormItemTagsInput } from '../form/TagInput';
 import { FormSection } from './FormSection';
 
 const VaultSecretForm = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<APISIXType['Secret']>();
 
   return (
@@ -38,29 +36,28 @@ const VaultSecretForm = () => {
       <FormItemTextInput
         control={control}
         name="uri"
-        label={t('form.secrets.vault.uri')}
+        label="URI"
       />
       <FormItemTextInput
         control={control}
         name="prefix"
-        label={t('form.secrets.vault.prefix')}
+        label="Prefix"
       />
       <FormItemPasswordInput
         control={control}
         name="token"
-        label={t('form.secrets.vault.token')}
+        label="Token"
       />
       <FormItemTextInput
         control={control}
         name="namespace"
-        label={t('form.secrets.vault.namespace')}
+        label="Namespace"
       />
     </>
   );
 };
 
 const AWSSecretForm = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<APISIXType['Secret']>();
 
   return (
@@ -68,79 +65,78 @@ const AWSSecretForm = () => {
       <FormItemPasswordInput
         control={control}
         name="access_key_id"
-        label={t('form.secrets.aws.access_key_id')}
+        label="Access Key ID"
       />
       <FormItemPasswordInput
         control={control}
         name="secret_access_key"
-        label={t('form.secrets.aws.secret_access_key')}
+        label="Secret Access Key"
       />
       <FormItemPasswordInput
         control={control}
         name="session_token"
-        label={t('form.secrets.aws.session_token')}
+        label="Session Token"
       />
 
       <FormItemTextInput
         control={control}
         name="region"
-        label={t('form.secrets.aws.region')}
+        label="Region"
       />
       <FormItemTextInput
         control={control}
         name="endpoint_url"
-        label={t('form.secrets.aws.endpoint_url')}
+        label="Endpoint URL"
       />
     </>
   );
 };
 
 const GCPSecretForm = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<APISIXType['Secret']>();
 
   return (
     <>
-      <InputWrapper label={t('form.secrets.gcp.ssl_verify')}>
+      <InputWrapper label="SSL Verify">
         <FormItemSwitch control={control} name="ssl_verify" />
       </InputWrapper>
-      <FormSection legend={t('form.secrets.gcp.auth')}>
+      <FormSection legend="Auth">
         <FormItemTextInput
           control={control}
           name="auth_file"
-          label={t('form.secrets.gcp.auth_file')}
+          label="Auth File"
         />
-        <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
-        <FormSection legend={t('form.secrets.gcp.auth_config')}>
+        <Divider style={{ margin: '8px 0' }}>OR</Divider>
+        <FormSection legend="Auth Configuration">
           <FormItemTextInput
             control={control}
             name="auth_config.client_email"
-            label={t('form.secrets.gcp.client_email')}
+            label="Client Email"
           />
           <FormItemPasswordInput
             control={control}
             name="auth_config.private_key"
-            label={t('form.secrets.gcp.private_key')}
+            label="Private Key"
           />
           <FormItemTextInput
             control={control}
             name="auth_config.project_id"
-            label={t('form.secrets.gcp.project_id')}
+            label="Project ID"
           />
           <FormItemTextInput
             control={control}
             name="auth_config.token_uri"
-            label={t('form.secrets.gcp.token_uri')}
+            label="Token URI"
           />
           <FormItemTagsInput
             control={control}
             name="auth_config.scope"
-            label={t('form.secrets.gcp.scope')}
+            label="Scope"
           />
           <FormItemTextInput
             control={control}
             name="auth_config.entries_uri"
-            label={t('form.secrets.gcp.entries_uri')}
+            label="Entries URI"
           />
         </FormSection>
       </FormSection>
@@ -151,10 +147,9 @@ const GCPSecretForm = () => {
 type FormSectionManagerProps = { readOnlyManager?: boolean };
 const FormSectionManager = (props: FormSectionManagerProps) => {
   const { readOnlyManager } = props;
-  const { t } = useTranslation();
   const { control } = useFormContext<APISIXType['Secret']>();
   return (
-    <FormSection legend={t('form.secrets.manager')} disabled={readOnlyManager}>
+    <FormSection legend="Secret Manager" disabled={readOnlyManager}>
       <FormItemSelect
         control={control}
         name="manager"
@@ -166,12 +161,11 @@ const FormSectionManager = (props: FormSectionManagerProps) => {
 };
 
 const FormSectionManagerConfig = () => {
-  const { t } = useTranslation();
   const { watch } = useFormContext<APISIXType['Secret']>();
   // useWatch not working here
   const manager = watch('manager');
   return (
-    <FormSection legend={t('form.secrets.managerConfig')}>
+    <FormSection legend="Manager Configuration">
       {manager === 'vault' && <VaultSecretForm />}
       {manager === 'aws' && <AWSSecretForm />}
       {manager === 'gcp' && <GCPSecretForm />}

@@ -17,12 +17,9 @@
 import { Layout, Menu, theme } from 'antd';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useAtom } from 'jotai';
 
 import apisixLogo from '@/assets/apisix-logo.svg';
 import { navRoutes } from '@/config/navRoutes';
-import { sidebarCollapsedAtom } from '@/stores/global';
 import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
 import IconRoute from '~icons/material-symbols/route';
 import IconDns from '~icons/material-symbols/dns';
@@ -52,12 +49,25 @@ const iconMap: Record<string, ReactNode> = {
   code: <IconCode />,
 };
 
+const sourceLabels: Record<string, string> = {
+  services: 'Services',
+  routes: 'Routes',
+  streamRoutes: 'Stream Routes',
+  upstreams: 'Upstreams',
+  consumers: 'Consumers',
+  consumerGroups: 'Consumer Groups',
+  ssls: 'SSLs',
+  globalRules: 'Global Rules',
+  pluginMetadata: 'Plugin Metadata',
+  pluginConfigs: 'Plugin Configs',
+  secrets: 'Secrets',
+  protos: 'Protos',
+};
+
 export const Navbar = () => {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
-  const [collapsed] = useAtom(sidebarCollapsedAtom);
   const { token } = theme.useToken();
 
   const selectedKey =
@@ -65,11 +75,8 @@ export const Navbar = () => {
 
   return (
     <Layout.Sider
-      collapsed={collapsed}
       trigger={null}
-      collapsible
       width={250}
-      collapsedWidth={64}
       style={{
         overflow: 'auto',
         height: '100vh',
@@ -86,8 +93,8 @@ export const Navbar = () => {
           height: APPSHELL_HEADER_HEIGHT,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
-          paddingInline: collapsed ? 0 : 20,
+          justifyContent: 'flex-start',
+          paddingInline: 20,
           gap: 10,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
           flexShrink: 0,
@@ -100,19 +107,17 @@ export const Navbar = () => {
           height={28}
           style={{ objectFit: 'contain', flexShrink: 0 }}
         />
-        {!collapsed && (
-          <span
-            style={{
-              fontWeight: 700,
-              fontSize: 16,
-              letterSpacing: 0.3,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-            }}
-          >
-            APISIX
-          </span>
-        )}
+        <span
+          style={{
+            fontWeight: 700,
+            fontSize: 16,
+            letterSpacing: 0.3,
+            whiteSpace: 'nowrap',
+            overflow: 'hidden',
+          }}
+        >
+          APISIX
+        </span>
       </div>
       <Menu
         mode="inline"
@@ -121,7 +126,7 @@ export const Navbar = () => {
         items={navRoutes.map((route) => ({
           key: route.to,
           icon: iconMap[route.icon],
-          label: t(`sources.${route.label}`),
+          label: sourceLabels[route.label] ?? route.label,
           onClick: () => navigate({ to: route.to }),
         }))}
       />

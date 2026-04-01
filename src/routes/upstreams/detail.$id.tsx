@@ -29,7 +29,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getUpstreamReq, putUpstreamReq } from '@/apis/upstreams';
@@ -61,7 +60,6 @@ const UpstreamDetailForm = (
   props: Props & Pick<APISIXType['Upstream'], 'id'>
 ) => {
   const { id, readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const {
     data: { value: upstreamData },
     isLoading,
@@ -79,7 +77,7 @@ const UpstreamDetailForm = (
     mutationFn: (d: APISIXType['Upstream']) => putUpstreamReq(req, d),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('upstreams.singular') }),
+        message: `Edit ${'Upstream'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -109,9 +107,9 @@ const UpstreamDetailForm = (
           <FormPartUpstream />
           {!readOnly && (
             <Space>
-              <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+              <FormSubmitBtn>{'Save'}</FormSubmitBtn>
               <Button variant="outlined" onClick={() => setReadOnly(true)}>
-                {t('form.btn.cancel')}
+                {'Cancel'}
               </Button>
             </Space>
           )}
@@ -122,7 +120,6 @@ const UpstreamDetailForm = (
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const { id } = useParams({ from: '/upstreams/detail/$id' });
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
@@ -130,9 +127,9 @@ function RouteComponent() {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('upstreams.singular') })}
+        title={`Edit ${'Upstream'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('upstreams.singular') }),
+          title: `${'Upstream'} Detail`,
           extra: (
             <Space>
               <Button
@@ -140,11 +137,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('upstreams.singular')}
+                name={'Upstream'}
                 target={id}
                 api={`${API_UPSTREAMS}/${id}`}
                 onSuccess={() => navigate({ to: '/upstreams' })}

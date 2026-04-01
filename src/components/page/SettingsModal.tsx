@@ -16,20 +16,18 @@
  */
 import { Divider, Input, Modal, Typography } from 'antd';
 import { useAtom } from 'jotai';
-import { useTranslation } from 'react-i18next';
 
 import { queryClient } from '@/config/global';
 import { adminKeyAtom, isSettingsOpenAtom } from '@/stores/global';
 import { sha } from '~build/git';
 
 const AdminKey = () => {
-  const { t } = useTranslation();
   const [adminKey, setAdminKey] = useAtom(adminKeyAtom);
 
   return (
     <div>
       <Typography.Text style={{ display: 'block', marginBottom: 4 }}>
-        {t('settings.adminKey')} <Typography.Text type="danger">*</Typography.Text>
+        Admin Key <Typography.Text type="danger">*</Typography.Text>
       </Typography.Text>
       <Input.Password
         value={adminKey}
@@ -46,10 +44,9 @@ const AdminKey = () => {
 };
 
 const UICommitSha = () => {
-  const { t } = useTranslation();
   return (
     <div>
-      <Typography.Text style={{ display: 'block', marginBottom: 4 }}>{t('settings.ui-commit-sha')}</Typography.Text>
+      <Typography.Text style={{ display: 'block', marginBottom: 4 }}>UI Commit SHA</Typography.Text>
       <Typography.Text type="secondary" style={{ fontSize: 14 }}>
         {sha}
       </Typography.Text>
@@ -58,7 +55,6 @@ const UICommitSha = () => {
 };
 
 export const SettingsModal = () => {
-  const { t } = useTranslation();
   const [isSettingsOpen, setIsSettingsOpen] = useAtom(isSettingsOpenAtom);
 
   return (
@@ -66,7 +62,7 @@ export const SettingsModal = () => {
       open={isSettingsOpen}
       onCancel={() => setIsSettingsOpen(false)}
       centered
-      title={t('settings.title')}
+      title="Settings"
       footer={null}
     >
       <AdminKey />

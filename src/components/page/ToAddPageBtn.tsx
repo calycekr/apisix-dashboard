@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import type { LinkProps } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
 
 import { RouteLinkBtn } from '@/components/Btn';
 import type { FileRoutesByTo } from '@/routeTree.gen';
@@ -48,10 +47,9 @@ export type ToDetailPageBtnProps = {
 } & Pick<LinkProps, 'params'>;
 export const ToDetailPageBtn = (props: ToDetailPageBtnProps) => {
   const { params, to } = props;
-  const { t } = useTranslation();
   return (
     <RouteLinkBtn size="small" to={to} params={params}>
-      {t('form.btn.view')}
+      View
     </RouteLinkBtn>
   );
 };

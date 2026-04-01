@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { Button, Card, Space, Typography } from 'antd';
-import { useTranslation } from 'react-i18next';
 
 export type PluginCardProps = {
   name: string;
@@ -29,7 +28,6 @@ export type PluginCardProps = {
 
 export const PluginCard = (props: PluginCardProps) => {
   const { name, desc, mode, onAdd, onEdit, onView, onDelete } = props;
-  const { t } = useTranslation();
   return (
     <Card
       bordered
@@ -44,7 +42,7 @@ export const PluginCard = (props: PluginCardProps) => {
               type="text"
               onClick={() => onAdd?.(name)}
             >
-              {t('form.btn.add')}
+              Add
             </Button>
           )}
           {mode === 'view' && (
@@ -53,7 +51,7 @@ export const PluginCard = (props: PluginCardProps) => {
               type="text"
               onClick={() => onView?.(name)}
             >
-              {t('form.btn.view')}
+              View
             </Button>
           )}
           {mode === 'edit' && (
@@ -63,7 +61,7 @@ export const PluginCard = (props: PluginCardProps) => {
                 type="text"
                 onClick={() => onEdit?.(name)}
               >
-                {t('form.btn.edit')}
+                Edit
               </Button>
               <Button
                 size="small"
@@ -71,7 +69,7 @@ export const PluginCard = (props: PluginCardProps) => {
                 danger
                 onClick={() => onDelete?.(name)}
               >
-                {t('form.btn.delete')}
+                Delete
               </Button>
             </>
           )}

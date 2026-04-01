@@ -16,7 +16,6 @@
  */
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemSwitch } from '@/components/form/Switch';
 import { FormItemTagsInput } from '@/components/form/TagInput';
@@ -30,31 +29,29 @@ import type { ServicePostType } from './schema';
 
 
 const FormSectionPlugins = () => {
-  const { t } = useTranslation();
   return (
-    <FormSection legend={t('form.plugins.label')}>
+    <FormSection legend="Plugins">
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
 };
 
 const FormSectionSettings = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<ServicePostType>();
   return (
-    <FormSection legend={t('form.services.settings')}>
-      <InputWrapper label={t('form.services.enableWebsocket')}>
+    <FormSection legend="Service Settings">
+      <InputWrapper label="Enable WebSocket">
         <FormItemSwitch control={control} name="enable_websocket" />
       </InputWrapper>
       <FormItemTextInput
         control={control}
         name="script"
-        label={t('form.services.script')}
+        label="Script"
       />
       <FormItemTagsInput
         control={control}
         name="hosts"
-        label={t('form.services.hosts')}
+        label="Hosts"
       />
     </FormSection>
   );

@@ -16,36 +16,43 @@
  */
 import { Breadcrumb, Button, Layout, theme } from 'antd';
 import type { FC } from 'react';
-import { useTranslation } from 'react-i18next';
-import { useAtom } from 'jotai';
 import { useRouterState } from '@tanstack/react-router';
 
-import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
+import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
-import { sidebarCollapsedAtom, useThemeMode } from '@/stores/global';
-import IconMenuOpen from '~icons/material-symbols/menu-open';
-import IconMenu from '~icons/material-symbols/menu';
+import { useThemeMode } from '@/stores/global';
 import IconLightMode from '~icons/material-symbols/light-mode';
 import IconDarkMode from '~icons/material-symbols/dark-mode';
 
 import { SettingModalBtn } from './SettingModalBtn';
 
+const sourceLabels: Record<string, string> = {
+  services: 'Services',
+  routes: 'Routes',
+  streamRoutes: 'Stream Routes',
+  upstreams: 'Upstreams',
+  consumers: 'Consumers',
+  consumerGroups: 'Consumer Groups',
+  ssls: 'SSLs',
+  globalRules: 'Global Rules',
+  pluginMetadata: 'Plugin Metadata',
+  pluginConfigs: 'Plugin Configs',
+  secrets: 'Secrets',
+  protos: 'Protos',
+};
+
 export const Header: FC = () => {
-  const { t } = useTranslation();
   const { token } = theme.useToken();
   const { mode, toggle: toggleTheme } = useThemeMode();
-  const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
   const activeRoute = navRoutes.find((r) => currentPath.startsWith(r.to));
 
   const breadcrumbItems = [
-    { title: t('apisix.dashboard') },
-    ...(activeRoute ? [{ title: t(`sources.${activeRoute.label}`) }] : []),
+    { title: 'APISIX Dashboard' },
+    ...(activeRoute ? [{ title: sourceLabels[activeRoute.label] ?? activeRoute.label }] : []),
   ];
-
-  const siderWidth = collapsed ? 64 : 250;
 
   return (
     <Layout.Header
@@ -59,21 +66,13 @@ export const Header: FC = () => {
         background: token.colorBgContainer,
         position: 'fixed',
         top: 0,
-        left: siderWidth,
+        left: APPSHELL_NAVBAR_WIDTH,
         right: 0,
         zIndex: 100,
-        transition: 'left 0.2s',
         lineHeight: `${APPSHELL_HEADER_HEIGHT}px`,
       }}
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        <Button
-          variant="text"
-          color="default"
-          size="small"
-          icon={collapsed ? <IconMenu /> : <IconMenuOpen />}
-          onClick={() => setCollapsed((v) => !v)}
-        />
         <Breadcrumb items={breadcrumbItems} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
@@ -83,7 +82,7 @@ export const Header: FC = () => {
           size="small"
           icon={mode === 'dark' ? <IconLightMode /> : <IconDarkMode />}
           onClick={toggleTheme}
-          title={mode === 'dark' ? t('switchToLight') : t('switchToDark')}
+          title={mode === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'}
         />
         <SettingModalBtn />
       </div>

@@ -20,7 +20,6 @@ import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useParams, useRouter } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { putCredentialReq } from '@/apis/credentials';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -33,7 +32,6 @@ import { APISIX, type APISIXType } from '@/types/schema/apisix';
 import { pipeProduce } from '@/utils/producer';
 
 const CredentialAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
   const { username } = useParams({
     from: '/consumers/detail/$username/credentials/add',
@@ -44,9 +42,7 @@ const CredentialAddForm = () => {
       putCredentialReq(req, pipeProduce()({ ...d, username })),
     async onSuccess(_, res) {
       showNotification({
-        message: t('info.add.success', {
-          name: t('credentials.singular'),
-        }),
+        message: `Add ${'Credential'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -71,20 +67,17 @@ const CredentialAddForm = () => {
       <form onSubmit={form.handleSubmit((d) => putCredential.mutateAsync(d))}>
         <FormSectionGeneral />
         <FormPartCredential />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', {
-          name: t('credentials.singular'),
-        })}
+        title={`Add ${'Credential'}`}
       />
       <FormTOCBox>
         <CredentialAddForm />

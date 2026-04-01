@@ -20,7 +20,6 @@ import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { putSecretReq } from '@/apis/secrets';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -34,7 +33,6 @@ import { APISIX, type APISIXType } from '@/types/schema/apisix';
 import { pipeProduce } from '@/utils/producer';
 
 const SecretAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const putSecret = useMutation({
@@ -42,7 +40,7 @@ const SecretAddForm = () => {
       putSecretReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.add.success', { name: t('secrets.singular') }),
+        message: `Add ${'Secret'} Successfully`,
         type: 'success',
       });
       // Invalidate secrets list query to refetch fresh data
@@ -69,18 +67,17 @@ const SecretAddForm = () => {
       <form onSubmit={form.handleSubmit((d) => putSecret.mutateAsync(d))}>
         <FormSectionGeneral />
         <FormPartSecret />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('secrets.singular') })}
+        title={`Add ${'Secret'}`}
       />
       <FormTOCBox>
         <SecretAddForm />

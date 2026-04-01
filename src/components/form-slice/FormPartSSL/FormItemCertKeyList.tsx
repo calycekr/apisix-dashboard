@@ -17,7 +17,6 @@
 import { Button, theme } from 'antd';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { useFieldArray, useFormContext, useFormState } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemTextareaWithUpload } from '@/components/form/TextareaWithUpload';
 import IconDelete from '~icons/material-symbols/delete-forever-outline';
@@ -41,19 +40,18 @@ const PairWrapper = (
 };
 
 const RequiredCertKey = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<SSLPostType>();
   return (
     <PairWrapper>
       <FormItemTextareaWithUpload
         control={control}
-        label={`${t('form.ssls.cert')} 1`}
+        label="Certificate 1"
         name="cert"
         required
       />
       <FormItemTextareaWithUpload
         control={control}
-        label={`${t('form.ssls.key')} 1`}
+        label="Private Key 1"
         name="key"
         required
       />
@@ -61,7 +59,6 @@ const RequiredCertKey = () => {
   );
 };
 const CertKeyPairList = () => {
-  const { t } = useTranslation();
   const certsState = useFormState<SSLPostType>({ name: 'certs' });
   const certs = useFieldArray({
     name: 'certs',
@@ -85,7 +82,7 @@ const CertKeyPairList = () => {
                   keys.remove(idx);
                 }}
               >
-                {t('form.ssls.cert_key_list.delete')}
+                Delete the pair
               </Button>
             )
           }
@@ -93,12 +90,12 @@ const CertKeyPairList = () => {
           <FormItemTextareaWithUpload
             key={cert.id}
             name={`certs.${idx}`}
-            label={`${t('form.ssls.cert')} ${idx + 2}`}
+            label={`Certificate ${idx + 2}`}
           />
           <FormItemTextareaWithUpload
             key={keys.fields[idx].id}
             name={`keys.${idx}`}
-            label={`${t('form.ssls.key')} ${idx + 2}`}
+            label={`Private Key ${idx + 2}`}
           />
         </PairWrapper>
       ))}
@@ -111,16 +108,15 @@ const CertKeyPairList = () => {
             certs.append('');
           }}
         >
-          {t('form.ssls.cert_key_list.add')}
+          Add a pair
         </Button>
       )}
     </>
   );
 };
 export const FormItemCertKeyList = () => {
-  const { t } = useTranslation();
   return (
-    <FormSection legend={t('form.ssls.cert_key_list.title')}>
+    <FormSection legend="Certificate and Key Pairs">
       <RequiredCertKey />
       <CertKeyPairList />
     </FormSection>

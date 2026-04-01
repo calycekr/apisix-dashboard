@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -31,7 +30,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function ConsumerGroupsList() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useConsumerGroupList();
 
   const columns = useMemo<
@@ -46,19 +44,19 @@ function ConsumerGroupsList() {
       },
       {
         dataIndex: ['value', 'name'],
-        title: t('form.basic.name'),
+        title: 'Name',
         key: 'name',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: t('form.info.update_time'),
+        title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         sorter: true,
@@ -68,7 +66,7 @@ function ConsumerGroupsList() {
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -80,7 +78,7 @@ function ConsumerGroupsList() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('consumerGroups.singular')}
+            name={'Consumer Group'}
             target={record.value.id}
             api={`${API_CONSUMER_GROUPS}/${record.value.id}`}
             onSuccess={refetch}
@@ -88,7 +86,7 @@ function ConsumerGroupsList() {
         ],
       },
     ];
-  }, [refetch, t]);
+  }, [refetch]);
 
   return (
     <AntdConfigProvider>
@@ -111,9 +109,7 @@ function ConsumerGroupsList() {
                   <ToAddPageBtn
                     key="add"
                     to="/consumer_groups/add"
-                    label={t('info.add.title', {
-                      name: t('consumerGroups.singular'),
-                    })}
+                    label={`Add ${'Consumer Group'}`}
                   />
                 ),
               },
@@ -126,10 +122,9 @@ function ConsumerGroupsList() {
 }
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('sources.consumerGroups')} />
+      <PageHeader title={'Consumer Groups'} />
       <ConsumerGroupsList />
     </>
   );

@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -31,7 +30,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useUpstreamList();
 
   const columns = useMemo<
@@ -46,19 +44,19 @@ function RouteComponent() {
       },
       {
         dataIndex: ['value', 'name'],
-        title: t('form.basic.name'),
+        title: 'Name',
         key: 'name',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'scheme'],
-        title: t('form.upstreams.scheme'),
+        title: 'Scheme',
         key: 'scheme',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: t('form.upstreams.updateTime'),
+        title: 'Update Time',
         key: 'update_time',
         valueType: 'dateTime',
         renderText: (text) => {
@@ -67,7 +65,7 @@ function RouteComponent() {
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -79,7 +77,7 @@ function RouteComponent() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('upstreams.singular')}
+            name={'Upstream'}
             target={record.value.id}
             api={`${API_UPSTREAMS}/${record.value.id}`}
             onSuccess={refetch}
@@ -87,11 +85,11 @@ function RouteComponent() {
         ],
       },
     ];
-  }, [t, refetch]);
+  }, [refetch]);
 
   return (
     <>
-      <PageHeader title={t('sources.upstreams')} />
+      <PageHeader title={'Upstreams'} />
       <AntdConfigProvider>
         <ProTable
           columns={columns}
@@ -112,9 +110,7 @@ function RouteComponent() {
                     <ToAddPageBtn
                       key="add"
                       to="/upstreams/add"
-                      label={t('info.add.title', {
-                        name: t('upstreams.singular'),
-                      })}
+                      label={`Add ${'Upstream'}`}
                     />
                   ),
                 },

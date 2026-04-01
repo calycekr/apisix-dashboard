@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -33,18 +32,16 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 
 function RouteComponent() {
-  const { t } = useTranslation();
 
   return (
     <>
-      <PageHeader title={t('sources.globalRules')} />
+      <PageHeader title={'Global Rules'} />
       <GlobalRulesList />
     </>
   );
 }
 
 function GlobalRulesList() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useGlobalRuleList();
 
   const columns = useMemo<
@@ -58,7 +55,7 @@ function GlobalRulesList() {
         valueType: 'text',
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -70,7 +67,7 @@ function GlobalRulesList() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('globalRules.singular')}
+            name={'Global Rule'}
             target={record.value.id}
             api={`${API_GLOBAL_RULES}/${record.value.id}`}
             onSuccess={refetch}
@@ -78,7 +75,7 @@ function GlobalRulesList() {
         ],
       },
     ];
-  }, [t, refetch]);
+  }, [refetch]);
 
   return (
     <AntdConfigProvider>
@@ -101,9 +98,7 @@ function GlobalRulesList() {
                   <ToAddPageBtn
                     key="add"
                     to="/global_rules/add"
-                    label={t('info.add.title', {
-                      name: t('globalRules.singular'),
-                    })}
+                    label={`Add ${'Global Rule'}`}
                   />
                 ),
               },

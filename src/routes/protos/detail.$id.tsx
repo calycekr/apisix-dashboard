@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getProtoQueryOptions } from '@/apis/hooks';
@@ -48,7 +47,6 @@ type ProtoFormProps = {
 };
 
 const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
-  const { t } = useTranslation();
   const {
     data: protoData,
     isLoading,
@@ -66,7 +64,7 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
     mutationFn: (d: APISIXType['Proto']) => putProtoReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('protos.singular') }),
+        message: `Edit ${'Proto'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -92,9 +90,9 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
         <FormPartProto allowUpload={!readOnly} />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -105,16 +103,15 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/protos/detail/$id' });
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('protos.singular') })}
+        title={`Edit ${'Proto'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('protos.singular') }),
+          title: `${'Proto'} Detail`,
           extra: (
             <Space>
               <Button
@@ -122,11 +119,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('protos.singular')}
+                name={'Proto'}
                 target={id}
                 api={`${API_PROTOS}/${id}`}
                 onSuccess={() => navigate({ to: '/protos' })}

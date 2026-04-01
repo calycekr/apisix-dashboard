@@ -24,8 +24,6 @@ import {
   type UseControllerProps,
   useFormContext,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-
 import { monaco, setupMonacoEditor } from '@/utils/monaco';
 import { useThemeMode } from '@/stores/global';
 
@@ -65,7 +63,6 @@ type FormItemEditorProps<T extends FieldValues> = FormItemEditorWrapperProps &
 export const FormItemEditor = <T extends FieldValues>(
   props: FormItemEditorProps<T>
 ) => {
-  const { t } = useTranslation();
   const { mode } = useThemeMode();
   const { token } = theme.useToken();
   const { controllerProps, restProps } = genControllerProps(props, '');
@@ -84,7 +81,7 @@ export const FormItemEditor = <T extends FieldValues>(
             try {
               JSON.parse(value);
             } catch {
-              return t('form.json.parseError');
+              return 'JSON format is not valid';
             }
           }
           // Check Monaco markers
@@ -95,7 +92,7 @@ export const FormItemEditor = <T extends FieldValues>(
         },
       },
     };
-  }, [controllerProps, t, monacoErrorRef, isJson]);
+  }, [controllerProps, monacoErrorRef, isJson]);
 
   const {
     field: { value, onChange: fOnChange, ...restField },

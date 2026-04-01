@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { putCredentialReq } from '@/apis/credentials';
@@ -48,7 +47,6 @@ type CredentialFormProps = {
 
 const CredentialDetailForm = (props: CredentialFormProps) => {
   const { readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const { username, id } = useParams({
     from: '/consumers/detail/$username/credentials/detail/$id',
   });
@@ -78,7 +76,7 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
       putCredentialReq(req, pipeProduce()({ ...d, username })),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('credentials.singular') }),
+        message: `Edit ${'Credential'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -97,9 +95,9 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
         <FormPartCredential />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -109,7 +107,6 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const { username, id } = useParams({
     from: '/consumers/detail/$username/credentials/detail/$id',
@@ -119,9 +116,9 @@ function RouteComponent() {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('credentials.singular') })}
+        title={`Edit ${'Credential'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('credentials.singular') }),
+          title: `${'Credential'} Detail`,
           extra: (
             <Space>
               <Button
@@ -129,12 +126,12 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
                 key="delete"
-                name={t('credentials.singular')}
+                name={'Credential'}
                 target={id}
                 api={`${API_CREDENTIALS(username)}/${id}`}
                 onSuccess={() =>

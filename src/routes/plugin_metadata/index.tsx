@@ -15,17 +15,15 @@
  * limitations under the License.
  */
 import { createFileRoute } from '@tanstack/react-router';
-import { useTranslation } from 'react-i18next';
 
 import PageHeader from '@/components/page/PageHeader';
 import { PluginMetadata } from '@/components/page-slice/plugin_metadata/PluginMetadata';
 
 function RouteComponent() {
-  const { t } = useTranslation();
 
   return (
     <>
-      <PageHeader title={t('sources.pluginMetadata')} />
+      <PageHeader title={'Plugin Metadata'} />
       <PluginMetadata />
     </>
   );

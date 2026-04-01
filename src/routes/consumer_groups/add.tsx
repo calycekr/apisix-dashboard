@@ -20,7 +20,6 @@ import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { putConsumerGroupReq } from '@/apis/consumer_groups';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -33,7 +32,6 @@ import { APISIX, type APISIXType } from '@/types/schema/apisix';
 import { pipeProduce } from '@/utils/producer';
 
 const ConsumerGroupAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const putConsumerGroup = useMutation({
@@ -41,7 +39,7 @@ const ConsumerGroupAddForm = () => {
       putConsumerGroupReq(req, d),
     async onSuccess(response) {
       showNotification({
-        message: t('info.add.success', { name: t('consumerGroups.singular') }),
+        message: `Add ${'Consumer Group'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -70,18 +68,17 @@ const ConsumerGroupAddForm = () => {
       >
         <FormSectionGeneral />
         <FormPartPluginConfig basicProps={{ showName: false }} />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('consumerGroups.singular') })}
+        title={`Add ${'Consumer Group'}`}
       />
       <FormTOCBox>
         <ConsumerGroupAddForm />

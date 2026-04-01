@@ -23,13 +23,11 @@ import {
   useParams,
 } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { Tabs, type TabsItem } from '@/components/page/Tabs';
 
 const defaultTab = 'detail';
 export const DetailTabs = () => {
-  const { t } = useTranslation();
   const { id } = useParams({ strict: false });
   const navigate = useNavigate();
   const pathname = useLocation({
@@ -40,18 +38,18 @@ export const DetailTabs = () => {
     (): TabsItem[] => [
       {
         value: 'detail',
-        label: t('info.detail.title', { name: t('services.singular') }),
+        label: `${'Service'} Detail`,
       },
       {
         value: 'routes',
-        label: t('sources.routes'),
+        label: 'Routes',
       },
       {
         value: 'stream_routes',
-        label: t('sources.streamRoutes'),
+        label: 'Stream Routes',
       },
     ],
-    [t]
+    []
   );
   return (
     <Tabs

@@ -16,7 +16,6 @@
  */
 import { Button, Drawer } from 'antd';
 import { useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
   PluginCardList,
@@ -37,7 +36,6 @@ export type SelectPluginsDrawerProps = Pick<PluginCardListProps, 'plugins'> &
  */
 export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
   const { plugins, onAdd, opened, setOpened, disabled = false } = props;
-  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   return (
@@ -48,7 +46,7 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
         keyboard={false}
         open={opened}
         onClose={() => setOpened(false)}
-        title={t('form.plugins.selectPlugins.title')}
+        title="Select Plugins"
         extra={
           <div style={{ minHeight: 60 }}>
             <PluginCardListSearch search={search} setSearch={setSearch} />
@@ -66,7 +64,7 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
       </Drawer>
       {!disabled && (
         <Button style={{ marginLeft: 8 }} onClick={() => setOpened(true)}>
-          {t('form.plugins.selectPlugins.title')}
+          Select Plugins
         </Button>
       )}
     </>

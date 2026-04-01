@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getStreamRouteQueryOptions } from '@/apis/hooks';
@@ -50,7 +49,6 @@ type Props = {
 
 const StreamRouteDetailForm = (props: Props) => {
   const { readOnly, setReadOnly, id } = props;
-  const { t } = useTranslation();
 
   const streamRouteQuery = useQuery(getStreamRouteQueryOptions(id));
   const { data: streamRouteData, isLoading, refetch } = streamRouteQuery;
@@ -74,7 +72,7 @@ const StreamRouteDetailForm = (props: Props) => {
       putStreamRouteReq(req, produceRoute(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('streamRoutes.singular') }),
+        message: `Edit ${'Stream Route'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -93,9 +91,9 @@ const StreamRouteDetailForm = (props: Props) => {
         <FormPartStreamRoute />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -110,15 +108,14 @@ type StreamRouteDetailProps = Pick<Props, 'id'> & {
 
 export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
   const { id, onDeleteSuccess } = props;
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('streamRoutes.singular') })}
+        title={`Edit ${'Stream Route'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('streamRoutes.singular') }),
+          title: `${'Stream Route'} Detail`,
           extra: (
             <Space>
               <Button
@@ -126,11 +123,11 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('streamRoutes.singular')}
+                name={'Stream Route'}
                 target={id}
                 api={`${API_STREAM_ROUTES}/${id}`}
                 onSuccess={onDeleteSuccess}

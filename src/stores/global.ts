@@ -38,14 +38,6 @@ export const themeModeAtom = atomWithStorage<'light' | 'dark'>(
   { getOnInit: true }
 );
 
-// Sidebar collapsed state with persistent storage
-export const sidebarCollapsedAtom = atomWithStorage<boolean>(
-  'sidebar:collapsed',
-  false,
-  undefined,
-  { getOnInit: true }
-);
-
 export const useThemeMode = () => {
   const [mode, setMode] = useAtom(themeModeAtom);
   const toggle = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));

@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -31,26 +30,25 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function ConsumersList() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useConsumerList();
 
   const columns = useMemo<ProColumns<APISIXType['RespConsumerItem']>[]>(() => {
     return [
       {
         dataIndex: ['value', 'username'],
-        title: t('form.consumers.username'),
+        title: 'Username',
         key: 'username',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: t('form.info.update_time'),
+        title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         sorter: true,
@@ -60,7 +58,7 @@ function ConsumersList() {
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -72,7 +70,7 @@ function ConsumersList() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('consumers.singular')}
+            name={'Consumer'}
             target={record.value.username}
             api={`${API_CONSUMERS}/${record.value.username}`}
             onSuccess={refetch}
@@ -80,7 +78,7 @@ function ConsumersList() {
         ],
       },
     ];
-  }, [refetch, t]);
+  }, [refetch]);
 
   return (
     <AntdConfigProvider>
@@ -103,9 +101,7 @@ function ConsumersList() {
                   <ToAddPageBtn
                     key="add"
                     to="/consumers/add"
-                    label={t('info.add.title', {
-                      name: t('consumers.singular'),
-                    })}
+                    label={`Add ${'Consumer'}`}
                   />
                 ),
               },
@@ -118,10 +114,9 @@ function ConsumersList() {
 }
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('sources.consumers')} />
+      <PageHeader title={'Consumers'} />
       <ConsumersList />
     </>
   );

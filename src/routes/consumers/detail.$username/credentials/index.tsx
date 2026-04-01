@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, useParams } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import {
   getCredentialListQueryOptions,
@@ -33,7 +32,6 @@ import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 
 function CredentialsList() {
-  const { t } = useTranslation();
   const { username } = useParams({
     from: '/consumers/detail/$username/credentials/',
   });
@@ -51,13 +49,13 @@ function CredentialsList() {
       },
       {
         dataIndex: ['value', 'desc'],
-        title: t('form.basic.desc'),
+        title: 'Description',
         key: 'desc',
         valueType: 'text',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: t('form.info.update_time'),
+        title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         sorter: true,
@@ -67,7 +65,7 @@ function CredentialsList() {
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -82,7 +80,7 @@ function CredentialsList() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('credentials.singular')}
+            name={'Credential'}
             target={record.value.id}
             api={`${API_CREDENTIALS(username)}/${record.value.id}`}
             onSuccess={refetch}
@@ -90,7 +88,7 @@ function CredentialsList() {
         ],
       },
     ];
-  }, [refetch, t, username]);
+  }, [refetch, username]);
 
   return (
     <AntdConfigProvider>
@@ -114,9 +112,7 @@ function CredentialsList() {
                     key="add"
                     to="/consumers/detail/$username/credentials/add"
                     params={{ username }}
-                    label={t('info.add.title', {
-                      name: t('credentials.singular'),
-                    })}
+                    label={`Add ${'Credential'}`}
                   />
                 ),
               },
@@ -129,10 +125,9 @@ function CredentialsList() {
 }
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('sources.credentials')} />
+      <PageHeader title={'Credentials'} />
       <CredentialsList />
     </>
   );

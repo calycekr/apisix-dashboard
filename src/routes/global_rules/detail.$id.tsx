@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { putGlobalRuleReq } from '@/apis/global_rules';
@@ -46,7 +45,6 @@ type Props = {
 };
 const GlobalRuleDetailForm = (props: Props) => {
   const { readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const { id } = useParams({ from: '/global_rules/detail/$id' });
   const detailReq = useSuspenseQuery(getGlobalRuleQueryOptions(id));
 
@@ -69,7 +67,7 @@ const GlobalRuleDetailForm = (props: Props) => {
     mutationFn: (d: APISIXType['GlobalRulePut']) => putGlobalRuleReq(req, d),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('globalRules.singular') }),
+        message: `Edit ${'Global Rule'} Successfully`,
         type: 'success',
       });
       await detailReq.refetch();
@@ -84,9 +82,9 @@ const GlobalRuleDetailForm = (props: Props) => {
         <FormPartGlobalRules />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -97,16 +95,15 @@ const GlobalRuleDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/global_rules/detail/$id' });
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('globalRules.singular') })}
+        title={`Edit ${'Global Rule'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('globalRules.singular') }),
+          title: `${'Global Rule'} Detail`,
           extra: (
             <Space>
               <Button
@@ -114,11 +111,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('globalRules.singular')}
+                name={'Global Rule'}
                 target={id}
                 api={`${API_GLOBAL_RULES}/${id}`}
                 onSuccess={() => navigate({ to: '/global_rules' })}

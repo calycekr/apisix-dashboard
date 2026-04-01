@@ -18,7 +18,6 @@ import { Typography, theme } from 'antd';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext, useWatch } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemNumberInput } from '@/components/form/NumberInput';
 import { FormItemSelect } from '@/components/form/Select';
@@ -34,30 +33,29 @@ import { FormItemCertKeyList } from './FormItemCertKeyList';
 import type { SSLPostType } from './schema';
 
 const FormSectionClient = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<SSLPostType>();
   const clientEnabled = useWatch({ control, name: '__clientEnabled' });
   const { token } = theme.useToken();
   return (
     <FormSection
-      legend={t('form.ssls.client.title')}
+      legend="Client"
       extra={<FormItemSwitch control={control} name="__clientEnabled" />}
     >
       {clientEnabled ? (
         <>
           <FormItemTextarea
             control={control}
-            label={t('form.ssls.client.ca')}
+            label="Client CA Certificate"
             name="client.ca"
           />
           <FormItemNumberInput
             control={control}
-            label={t('form.ssls.client.depth')}
+            label="Verification Depth"
             name="client.depth"
             defaultValue={1}
             min={0}
           />
-          <InputWrapper label={t('form.ssls.client.skipMtlsUriRegex')}>
+          <InputWrapper label="Skip mTLS URI Regex">
             <FormItemSwitch
               control={control}
               name="client.skip_mtls_uri_regex"
@@ -66,14 +64,13 @@ const FormSectionClient = () => {
         </>
       ) : (
         <Typography.Text style={{ color: token.colorTextSecondary, fontSize: 14 }}>
-          {t('form.disabled')}
+          Disabled, click switch to enable
         </Typography.Text>
       )}
     </FormSection>
   );
 };
 export const FormPartSSL = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<SSLPostType>();
   return (
     <>
@@ -81,25 +78,25 @@ export const FormPartSSL = () => {
       <FormItemSelect
         control={control}
         name="type"
-        label={t('form.ssls.type')}
+        label="Certificate Type"
         data={APISIX.SSLType.options.map((v) => v.value.toString())}
         defaultValue={APISIX.SSLType.options[0].value.toString()}
       />
       <FormItemTagsInput
         control={control}
         name="ssl_protocols"
-        label={t('form.ssls.ssl_protocols')}
+        label="SSL Protocols"
         data={APISIX.SSLProtocols.options.map((v) => v.value.toString())}
       />
       <FormItemTextInput
         control={control}
-        label={t('form.ssls.sni')}
+        label="SNI"
         name="sni"
         placeholder="domain1.com"
       />
       <FormItemTagsInput
         control={control}
-        label={t('form.ssls.snis')}
+        label="SNIs"
         name="snis"
         placeholder="domain1.com, domain2.com"
       />

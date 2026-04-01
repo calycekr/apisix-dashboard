@@ -18,7 +18,6 @@ import { Divider } from 'antd';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemEditor } from '@/components/form/Editor';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
@@ -37,14 +36,13 @@ import { FormSection } from '../FormSection';
 import type { RoutePostType } from './schema';
 
 const FormPartBasicWithPriority = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   return (
     <FormPartBasic showStatus>
       <FormItemNumberInput
         control={control}
         name="priority"
-        label={t('form.routes.priority')}
+        label="Priority"
         defaultValue={zGetDefault(APISIX.Route).priority!}
       />
     </FormPartBasic>
@@ -52,59 +50,58 @@ const FormPartBasicWithPriority = () => {
 };
 
 const FormSectionMatchRules = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend={t('form.routes.matchRules')}>
+    <FormSection legend="Match Rules">
       <FormItemTagsInput
         control={control}
         name="methods"
-        label={t('form.routes.methods')}
+        label="HTTP Methods"
         data={APISIX.HttpMethod.options.map((v) => v.value)}
         searchValue=""
       />
-      <InputWrapper label={t('form.routes.enableWebsocket')}>
+      <InputWrapper label="Enable WebSocket">
         <FormItemSwitch control={control} name="enable_websocket" />
       </InputWrapper>
       <FormItemTextInput
         control={control}
         name="uri"
-        label={t('form.routes.uri')}
+        label="URI"
       />
       <FormItemTagsInput
         control={control}
         name="uris"
-        label={t('form.routes.uris')}
+        label="URIs"
       />
       <FormItemTextInput
         control={control}
         name="host"
-        label={t('form.routes.host')}
+        label="Host"
       />
       <FormItemTagsInput
         control={control}
         name="hosts"
-        label={t('form.routes.hosts')}
+        label="Hosts"
       />
       <FormItemTextInput
         control={control}
         name="remote_addr"
-        label={t('form.routes.remoteAddr')}
+        label="Remote Address"
       />
       <FormItemTagsInput
         control={control}
         name="remote_addrs"
-        label={t('form.routes.remoteAddrs')}
+        label="Remote Addresses"
       />
       <FormItemEditor
         control={control}
         name="vars"
-        label={t('form.routes.vars')}
+        label="Vars"
       />
       <FormItemEditor
         control={control}
         name="filter_func"
-        label={t('form.routes.filterFunc')}
+        label="Filter Func"
         language="lua"
       />
     </FormSection>
@@ -112,14 +109,13 @@ const FormSectionMatchRules = () => {
 };
 
 export const FormSectionUpstream = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend={t('form.upstreams.title')}>
-      <FormSection legend={t('form.upstreams.upstreamId')}>
+    <FormSection legend="Upstream">
+      <FormSection legend="Upstream ID">
         <FormItemTextInput control={control} name="upstream_id" />
       </FormSection>
-      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
+      <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <NamePrefixProvider value="upstream">
         <FormPartUpstream />
       </NamePrefixProvider>
@@ -128,36 +124,34 @@ export const FormSectionUpstream = () => {
 };
 
 export const FormSectionPlugins = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend={t('form.plugins.label')}>
+    <FormSection legend="Plugins">
       <FormItemTextInput
         control={control}
         name="plugin_config_id"
-        label={t('form.plugins.configId')}
+        label="Plugin Config ID"
       />
-      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
+      <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
 };
 
 export const FormSectionScript = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend={t('form.routes.scriptSection')}>
+    <FormSection legend="Script">
       <FormItemTextInput
         control={control}
         name="script_id"
-        label={t('form.routes.scriptId')}
+        label="Script ID"
       />
-      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
+      <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <FormItemEditor
         control={control}
         name="script"
-        label={t('form.routes.script')}
+        label="Script"
         language="lua"
       />
     </FormSection>
@@ -165,18 +159,17 @@ export const FormSectionScript = () => {
 };
 
 export const FormSectionService = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
   const readOnlyFields = useFormReadOnlyFields();
   return (
     <FormSection
-      legend={t('form.routes.service')}
+      legend="Service"
       disabled={readOnlyFields.includes('service_id')}
     >
       <FormItemTextInput
         control={control}
         name="service_id"
-        label={t('form.upstreams.serviceId')}
+        label="Service ID"
       />
     </FormSection>
   );

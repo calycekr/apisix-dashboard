@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { postStreamRouteReq } from '@/apis/stream_routes';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -42,14 +41,13 @@ type Props = {
 
 export const StreamRouteAddForm = (props: Props) => {
   const { navigate, defaultValues } = props;
-  const { t } = useTranslation();
 
   const postStreamRoute = useMutation({
     mutationFn: (d: StreamRoutePostType) =>
       postStreamRouteReq(req, produceRoute(d)),
     async onSuccess(res) {
       showNotification({
-        message: t('info.add.success', { name: t('streamRoutes.singular') }),
+        message: `Add ${'Stream Route'} Successfully`,
         type: 'success',
       });
       await navigate(res);
@@ -68,19 +66,18 @@ export const StreamRouteAddForm = (props: Props) => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postStreamRoute.mutateAsync(d))}>
         <FormPartStreamRoute />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('streamRoutes.singular') })}
+        title={`Add ${'Stream Route'}`}
       />
       <FormTOCBox>
         <StreamRouteAddForm

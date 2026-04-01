@@ -19,7 +19,6 @@ import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { theme } from 'antd';
 import { useEffect } from 'react';
-import { I18nextProvider } from 'react-i18next';
 
 import { Header } from '@/components/Header';
 import { Navbar } from '@/components/Navbar';
@@ -28,7 +27,6 @@ import {
   APPSHELL_HEADER_HEIGHT,
   APPSHELL_NAVBAR_WIDTH,
 } from '@/config/constant';
-import i18n from '@/config/i18n';
 import { useThemeMode } from '@/stores/global';
 
 const Root = () => {
@@ -40,7 +38,7 @@ const Root = () => {
   }, [mode]);
 
   return (
-    <I18nextProvider i18n={i18n}>
+    <>
       <HeadContent />
       <Header />
       <Navbar />
@@ -50,7 +48,7 @@ const Root = () => {
           marginLeft: APPSHELL_NAVBAR_WIDTH,
           padding: 16,
           minHeight: `calc(100vh - ${APPSHELL_HEADER_HEIGHT}px)`,
-          background: token.colorBgLayout,
+          background: token.colorBgContainer,
         }}
       >
         <Outlet />
@@ -58,7 +56,7 @@ const Root = () => {
       <TanStackRouterDevtools />
       <ReactQueryDevtools initialIsOpen={false} />
       <SettingsModal />
-    </I18nextProvider>
+    </>
   );
 };
 

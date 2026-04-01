@@ -26,7 +26,6 @@ import {
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useDeepCompareEffect } from 'react-use';
 
 import {
@@ -53,8 +52,6 @@ export const FormItemPlugins = <T extends FieldValues>(
     controllerProps,
     restProps: { schema = 'schema', ...restProps },
   } = genControllerProps(props, {});
-  const { t } = useTranslation();
-
   const {
     field: { value: rawObject, onChange: fOnChange, name: fName, ...restField },
     fieldState,
@@ -163,7 +160,7 @@ export const FormItemPlugins = <T extends FieldValues>(
         </div>
         <PluginCardList
           mode={isView ? 'view' : 'edit'}
-          placeholder={t('form.plugins.searchForSelectedPlugins')}
+          placeholder="Search for Selected Plugins"
           mah="60vh"
           search={pluginsOb.search}
           plugins={pluginsOb.selected}

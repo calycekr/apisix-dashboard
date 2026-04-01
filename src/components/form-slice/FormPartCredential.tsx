@@ -14,18 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useTranslation } from 'react-i18next';
-
 import { FormItemPlugins } from './FormItemPlugins';
 import { FormPartBasic } from './FormPartBasic';
 import { FormSection } from './FormSection';
 
 export const FormPartCredential = () => {
-  const { t } = useTranslation();
   return (
     <>
       <FormPartBasic showName={false} />
-      <FormSection legend={t('form.plugins.label')}>
+      <FormSection legend="Plugins">
         <FormItemPlugins name="plugins" schema="consumer_schema" />
       </FormSection>
     </>

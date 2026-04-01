@@ -23,7 +23,6 @@ import {
 } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { putGlobalRuleReq } from '@/apis/global_rules';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -36,7 +35,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { APISIX } from '@/types/schema/apisix';
 
 const GlobalRuleAddForm = () => {
-  const { t } = useTranslation();
   const router = useReactRouter();
 
   const putGlobalRule = useMutation({
@@ -44,7 +42,7 @@ const GlobalRuleAddForm = () => {
     async onSuccess(res) {
       showNotification({
         id: 'add-global_rule',
-        message: t('info.add.success', { name: t('globalRules.singular') }),
+        message: `Add ${'Global Rule'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -70,18 +68,17 @@ const GlobalRuleAddForm = () => {
       <form onSubmit={form.handleSubmit((d) => putGlobalRule.mutateAsync(d))}>
         <FormSectionGeneral />
         <FormPartGlobalRules />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('globalRules.singular') })}
+        title={`Add ${'Global Rule'}`}
       />
       <FormTOCBox>
         <GlobalRuleAddForm />

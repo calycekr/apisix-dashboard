@@ -18,7 +18,6 @@ import { Empty, Input, theme } from 'antd';
 import IconClose from '~icons/material-symbols/cancel';
 import { useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
 
@@ -29,11 +28,10 @@ type PluginCardListSearchProps = {
 };
 export const PluginCardListSearch = (props: PluginCardListSearchProps) => {
   const { placeholder, search, setSearch } = props;
-  const { t } = useTranslation();
   const { token } = theme.useToken();
   return (
     <Input
-      placeholder={placeholder || t('form.search')}
+      placeholder={placeholder || 'Search'}
       value={search}
       style={{ flexGrow: 1, position: 'sticky', top: 0 }}
       onChange={(event) => {
@@ -78,7 +76,6 @@ export type PluginCardListProps = Omit<OptionProps, 'name'> & {
 export const PluginCardList = (props: PluginCardListProps) => {
   const { search = '', cols = 3, h, mah, plugins } = props;
   const { mode, onAdd, onEdit, onDelete, onView } = props;
-  const { t } = useTranslation();
 
   const optionsOb = useLocalObservable(() => ({
     search: '',
@@ -115,7 +112,7 @@ export const PluginCardList = (props: PluginCardListProps) => {
     <div style={{ marginTop: '1em' }}>
       <div style={scrollStyle}>
         {!optionsOb.list.length ? (
-          <Empty description={t('noData')} />
+          <Empty description="No Data" />
         ) : (
           <div
             style={{

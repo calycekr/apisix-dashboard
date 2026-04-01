@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { postRouteReq } from '@/apis/routes';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -41,13 +40,12 @@ type Props = {
 
 export const RouteAddForm = (props: Props) => {
   const { navigate, defaultValues } = props;
-  const { t } = useTranslation();
 
   const postRoute = useMutation({
     mutationFn: (d: RoutePostType) => postRouteReq(req, produceRoute(d)),
     async onSuccess(res) {
       showNotification({
-        message: t('info.add.success', { name: t('routes.singular') }),
+        message: `Add ${'Route'} Successfully`,
         type: 'success',
       });
       await navigate(res);
@@ -66,18 +64,17 @@ export const RouteAddForm = (props: Props) => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postRoute.mutateAsync(d))}>
         <FormPartRoute />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   return (
     <>
-      <PageHeader title={t('info.add.title', { name: t('routes.singular') })} />
+      <PageHeader title={`Add ${'Route'}`} />
       <FormTOCBox>
         <RouteAddForm
           navigate={(res) =>

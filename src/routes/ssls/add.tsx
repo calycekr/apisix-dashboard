@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { postSSLReq } from '@/apis/ssls';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -35,13 +34,12 @@ import { req } from '@/config/req';
 import { pipeProduce } from '@/utils/producer';
 
 const SSLAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
   const postSSL = useMutation({
     mutationFn: (d: SSLPostType) => postSSLReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.add.success', { name: t('ssls.singular') }),
+        message: `Add ${'SSL'} Successfully`,
         type: 'success',
       });
       // Invalidate SSLs list query to refetch fresh data
@@ -62,17 +60,16 @@ const SSLAddForm = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postSSL.mutateAsync(d))}>
         <FormPartSSL />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('info.add.title', { name: t('ssls.singular') })} />
+      <PageHeader title={`Add ${'SSL'}`} />
       <FormTOCBox>
         <SSLAddForm />
       </FormTOCBox>

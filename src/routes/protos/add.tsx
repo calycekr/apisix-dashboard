@@ -22,7 +22,6 @@ import {
   useRouter as useReactRouter,
 } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { postProtoReq } from '@/apis/protos';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -37,14 +36,13 @@ const defaultValues: APISIXType['ProtoPost'] = {
 };
 
 const ProtoAddForm = () => {
-  const { t } = useTranslation();
   const router = useReactRouter();
 
   const postProto = useMutation({
     mutationFn: (d: APISIXType['ProtoPost']) => postProtoReq(req, d),
     async onSuccess() {
       showNotification({
-        message: t('info.add.success', { name: t('protos.singular') }),
+        message: `Add ${'Proto'} Successfully`,
         type: 'success',
       });
       await router.navigate({ to: '/protos' });
@@ -63,17 +61,16 @@ const ProtoAddForm = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postProto.mutateAsync(d))}>
         <FormPartProto />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
-      <PageHeader title={t('info.add.title', { name: t('protos.singular') })} />
+      <PageHeader title={`Add ${'Proto'}`} />
       <ProtoAddForm />
     </>
   );

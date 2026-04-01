@@ -19,13 +19,11 @@ import '@ant-design/v5-patch-for-react-19';
 import { ConfigProvider, theme } from 'antd';
 import enUS from 'antd/locale/en_US';
 import type { PropsWithChildren } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { useThemeMode } from '@/stores/global';
 
 export const AntdConfigProvider = (props: PropsWithChildren) => {
   const { children } = props;
-  const { t } = useTranslation();
   const { mode } = useThemeMode();
 
   const isDark = mode === 'dark';
@@ -34,7 +32,7 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
     <ConfigProvider
       virtual
       locale={enUS}
-      renderEmpty={() => <div>{t('noData')}</div>}
+      renderEmpty={() => <div>No Data</div>}
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {

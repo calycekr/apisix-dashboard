@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getServiceQueryOptions } from '@/apis/hooks';
@@ -49,7 +48,6 @@ type Props = {
 
 const ServiceDetailForm = (props: Props) => {
   const { readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const { id } = useParams({ from: '/services/detail/$id' });
 
   const serviceQuery = useSuspenseQuery(getServiceQueryOptions(id));
@@ -77,7 +75,7 @@ const ServiceDetailForm = (props: Props) => {
       ),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('services.singular') }),
+        message: `Edit ${'Service'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -96,9 +94,9 @@ const ServiceDetailForm = (props: Props) => {
         <FormPartService />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -108,7 +106,6 @@ const ServiceDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const { id } = useParams({ from: '/services/detail/$id' });
   const navigate = useNavigate();
@@ -116,9 +113,9 @@ function RouteComponent() {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('services.singular') })}
+        title={`Edit ${'Service'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('services.singular') }),
+          title: `${'Service'} Detail`,
           extra: (
             <Space>
               <Button
@@ -126,11 +123,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('services.singular')}
+                name={'Service'}
                 target={id}
                 api={`${API_SERVICES}/${id}`}
                 onSuccess={() => navigate({ to: '/services' })}

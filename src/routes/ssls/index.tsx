@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { useMemo } from 'react';
-import { useTranslation } from 'react-i18next';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -31,7 +30,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const { data, isLoading, refetch, pagination } = useSSLList();
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
@@ -58,15 +56,15 @@ function RouteComponent() {
       },
       {
         dataIndex: ['value', 'status'],
-        title: t('form.basic.status'),
+        title: 'Status',
         key: 'status',
         valueEnum: {
-          1: { text: t('table.enabled'), status: 'Success' },
-          0: { text: t('table.disabled'), status: 'Error' },
+          1: { text: 'Enabled', status: 'Success' },
+          0: { text: 'Disabled', status: 'Error' },
         },
       },
       {
-        title: t('table.actions'),
+        title: 'Actions',
         valueType: 'option',
         key: 'option',
         width: 120,
@@ -78,7 +76,7 @@ function RouteComponent() {
           />,
           <DeleteResourceBtn
             key="delete"
-            name={t('ssls.singular')}
+            name={'SSL'}
             target={record.value.id}
             api={`${API_SSLS}/${record.value.id}`}
             onSuccess={refetch}
@@ -86,11 +84,11 @@ function RouteComponent() {
         ],
       },
     ];
-  }, [t, refetch]);
+  }, [refetch]);
 
   return (
     <>
-      <PageHeader title={t('sources.ssls')} />
+      <PageHeader title={'SSLs'} />
       <AntdConfigProvider>
         <ProTable
           columns={columns}
@@ -111,7 +109,7 @@ function RouteComponent() {
                     <ToAddPageBtn
                       key="add"
                       to="/ssls/add"
-                      label={t('info.add.title', { name: t('ssls.singular') })}
+                      label={`Add ${'SSL'}`}
                     />
                   ),
                 },

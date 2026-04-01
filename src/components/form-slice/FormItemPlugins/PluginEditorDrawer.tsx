@@ -18,7 +18,6 @@ import { Drawer, Tabs, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
@@ -48,7 +47,6 @@ const hasProperties = (schema: object | undefined): boolean => {
 export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const { opened, onSave, onClose, plugin, mode, schema } = props;
   const { name, config } = plugin;
-  const { t } = useTranslation();
 
   const canUseForm = hasProperties(schema);
   const [activeTab, setActiveTab] = useState<string>(canUseForm ? 'form' : 'json');
@@ -99,10 +97,10 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   }, []);
 
   const title = mode === 'add'
-    ? t('form.plugins.addPlugin')
+    ? 'Add Plugin'
     : mode === 'edit'
-      ? t('form.plugins.editPlugin')
-      : t('form.plugins.viewPlugin');
+      ? 'Edit Plugin'
+      : 'View Plugin';
 
   const getCurrentConfig = (): object => {
     if (activeTab === 'form') {
@@ -120,7 +118,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       ? [
           {
             key: 'form',
-            label: t('form.plugins.formMode'),
+            label: 'Form',
             children: (
               <SchemaForm
                 schema={schema as Record<string, unknown>}
@@ -134,7 +132,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       : []),
     {
       key: 'json',
-      label: t('form.plugins.jsonMode'),
+      label: 'JSON',
       children: (
         <FormItemEditor
           name="config"
@@ -187,8 +185,8 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
                 handleClose();
               })}
             >
-              {mode === 'add' && t('form.btn.add')}
-              {mode === 'edit' && t('form.btn.save')}
+              {mode === 'add' && 'Add'}
+              {mode === 'edit' && 'Save'}
             </FormSubmitBtn>
           </div>
         )}

@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemJsonInput } from '@/components/form/JsonInput';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
@@ -31,62 +30,60 @@ import { FormSection } from '../FormSection';
 import type { StreamRoutePostType } from './schema';
 
 const FormSectionStreamRouteBasic = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<StreamRoutePostType>();
 
   return (
-    <FormSection legend={t('form.streamRoutes.server')}>
+    <FormSection legend="Server">
       <FormItemTextInput
         control={control}
         name="server_addr"
-        label={t('form.streamRoutes.serverAddr')}
+        label="Server Address"
       />
       <FormItemNumberInput
         control={control}
         name="server_port"
-        label={t('form.streamRoutes.serverPort')}
+        label="Server Port"
         allowDecimal={false}
       />
       <FormItemTextInput
         control={control}
         name="remote_addr"
-        label={t('form.streamRoutes.remoteAddr')}
+        label="Remote Address"
       />
       <FormItemTextInput
         control={control}
         name="sni"
-        label={t('form.streamRoutes.sni')}
+        label="SNI"
       />
     </FormSection>
   );
 };
 
 const FormSectionStreamRouteProtocol = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<StreamRoutePostType>();
 
   return (
-    <FormSection legend={t('form.streamRoutes.protocol.title')}>
+    <FormSection legend="Protocol Information">
       <FormItemTextInput
         control={control}
         name="protocol.name"
-        label={t('form.streamRoutes.protocol.name')}
+        label="Protocol Name"
       />
       <FormItemTextInput
         control={control}
         name="protocol.superior_id"
-        label={t('form.streamRoutes.protocol.superiorId')}
+        label="Superior ID"
       />
       <FormItemJsonInput
         control={control}
         name="protocol.conf"
-        label={t('form.streamRoutes.protocol.conf')}
+        label="Conf"
         toObject
       />
       <FormItemJsonInput
         control={control}
         name="protocol.logger"
-        label={t('form.streamRoutes.protocol.logger')}
+        label="Logger"
         toObject
         objValue={[]}
       />

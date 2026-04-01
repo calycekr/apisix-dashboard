@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { putConsumerGroupReq } from '@/apis/consumer_groups';
@@ -49,7 +48,6 @@ type Props = {
 
 const ConsumerGroupDetailForm = (props: Props) => {
   const { id, readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
 
   const consumerGroupQuery = useSuspenseQuery(getConsumerGroupQueryOptions(id));
   const { data } = consumerGroupQuery;
@@ -59,7 +57,7 @@ const ConsumerGroupDetailForm = (props: Props) => {
       putConsumerGroupReq(req, d),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('consumerGroups.singular') }),
+        message: `Edit ${'Consumer Group'} Successfully`,
         type: 'success',
       });
       consumerGroupQuery.refetch();
@@ -92,9 +90,9 @@ const ConsumerGroupDetailForm = (props: Props) => {
         <FormPartPluginConfig basicProps={{ showName: false }} />
         {!readOnly && (
           <Space>
-            <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
             <Button onClick={() => setReadOnly(true)}>
-              {t('form.btn.cancel')}
+              {'Cancel'}
             </Button>
           </Space>
         )}
@@ -105,16 +103,15 @@ const ConsumerGroupDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/consumer_groups/detail/$id' });
-  const { t } = useTranslation();
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('consumerGroups.singular') })}
+        title={`Edit ${'Consumer Group'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('consumerGroups.singular') }),
+          title: `${'Consumer Group'} Detail`,
           extra: (
             <Space>
               <Button
@@ -122,11 +119,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('consumerGroups.singular')}
+                name={'Consumer Group'}
                 target={id}
                 api={`${API_CONSUMER_GROUPS}/${id}`}
                 onSuccess={() => navigate({ to: '/consumer_groups' })}

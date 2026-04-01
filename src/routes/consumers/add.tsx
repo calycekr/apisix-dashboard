@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { putConsumerReq } from '@/apis/consumers';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -31,14 +30,13 @@ import { APISIX, type APISIXType } from '@/types/schema/apisix';
 import { pipeProduce } from '@/utils/producer';
 
 const ConsumerAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const putConsumer = useMutation({
     mutationFn: (d: APISIXType['ConsumerPut']) => putConsumerReq(req, d),
     async onSuccess(_, res) {
       showNotification({
-        message: t('info.add.success', { name: t('consumers.singular') }),
+        message: `Add ${'Consumer'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -63,18 +61,17 @@ const ConsumerAddForm = () => {
         )}
       >
         <FormPartConsumer />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('consumers.singular') })}
+        title={`Add ${'Consumer'}`}
       />
       <FormTOCBox>
         <ConsumerAddForm />

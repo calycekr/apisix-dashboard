@@ -15,9 +15,7 @@
  * limitations under the License.
  */
 import js from '@eslint/js'
-import i18n from '@m6web/eslint-plugin-i18n';
 import headers from 'eslint-plugin-headers';
-import i18next from 'eslint-plugin-i18next';
 import * as importPlugin from 'eslint-plugin-import';
 import playwright from 'eslint-plugin-playwright'
 import react from 'eslint-plugin-react'
@@ -97,34 +95,6 @@ const e2eRules = tseslint.config(
   }
 );
 
-const i18nRules = tseslint.config({
-  files: ['src/**/*.{ts,tsx,js}'],
-  plugins: {
-    i18next: i18next,
-    i18n: i18n,
-  },
-  rules: {
-    ...i18next.configs['flat/recommended'].rules,
-    'i18n/no-unknown-key': 'error',
-    'i18n/no-text-as-children': ['error', { ignorePattern: '^\\s?[/.]\\s?$' }],
-    'i18n/no-text-as-attribute': ['error', { attributes: ['alt', 'title'] }],
-    'i18n/interpolation-data': [
-      'error',
-      { interpolationPattern: '\\{\\.+\\}' },
-    ],
-  },
-  settings: {
-    i18n: {
-      principalLangs: [
-        {
-          name: 'en',
-          translationPath: 'src/locales/en/common.json',
-        },
-      ],
-      functionName: 't',
-    },
-  },
-});
 
 const srcRules = tseslint.config({
   extends: [commonRules],
@@ -185,6 +155,5 @@ const srcRules = tseslint.config({
 export default tseslint.config(
   { ignores: ['dist', 'src/routeTree.gen.ts'] },
   e2eRules,
-  i18nRules,
   srcRules
 );

@@ -22,8 +22,6 @@ import {
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-
 import IconUpload from '~icons/material-symbols/upload';
 
 import { FormError } from './FormError';
@@ -51,8 +49,6 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
-  const { t } = useTranslation();
-
   const [fileError, setFileError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -71,7 +67,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
 
     if (file.size > maxFileSize) {
       const size = Math.round(maxFileSize / 1024 / 1024);
-      setFileError(`${t('form.upload.fileOverSize')} ${size}MB`);
+      setFileError(`file size is too large ${size}MB`);
       return;
     }
 
@@ -86,7 +82,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
     };
 
     reader.onerror = (e) => {
-      setFileError(`${t('form.upload.readError')} ${e.target?.error}`);
+      setFileError(`file read error: ${e.target?.error}`);
     };
 
     reader.readAsText(file);
@@ -114,7 +110,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
             variant="outlined"
             onClick={() => fileInputRef.current?.click()}
           >
-            {uploadButtonText || t('form.btn.upload')}
+            {uploadButtonText || 'Upload'}
           </Button>
           <input
             type="file"

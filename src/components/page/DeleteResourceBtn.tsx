@@ -16,7 +16,6 @@
  */
 import { Button, type ButtonProps, Modal, Typography } from 'antd';
 import type { AxiosResponse } from 'axios';
-import { useTranslation } from 'react-i18next';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
@@ -45,15 +44,14 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
     mode = 'list',
     ...btnProps
   } = props;
-  const { t } = useTranslation();
   const openModal = useCallbackRef(() => {
     Modal.confirm({
       centered: true,
       okButtonProps: { danger: true },
-      title: t('info.delete.title', { name: name }),
+      title: `Delete ${name}`,
       content: (
         <Typography.Text>
-          {t('info.delete.content', { name: name })}
+          {`Do you want to delete the ${name}`}
           {target && (
             <Typography.Text
               strong
@@ -62,26 +60,20 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
               {target}
             </Typography.Text>
           )}
-          {t('mark.question')}
+          {'?'}
         </Typography.Text>
       ),
-      okText: t('form.btn.delete'),
-      cancelText: t('form.btn.cancel'),
+      okText: 'Delete',
+      cancelText: 'Cancel',
       onOk: () =>
         req
           .delete(api)
           .then((res) => Promise.resolve(onSuccess?.(res)))
           .then(() => {
             showNotification({
-              message: t('info.delete.success', { name: name }),
+              message: `Delete ${name} Successfully`,
               type: 'success',
             });
-            // force invalidate all queries
-            // because in playwright, if without this, the navigated page will not refresh
-            // and the deleted source will not be removed from the list
-            // And in normal use, I haven't reproduced this problem.
-            // So this is a workaround for now
-            // TODO: remove this
             queryClient.invalidateQueries();
           }),
     });
@@ -99,7 +91,7 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
       })}
       {...btnProps}
     >
-      {t('form.btn.delete')}
+      Delete
     </Button>
   );
 };

@@ -25,7 +25,6 @@ import {
 } from '@tanstack/react-router';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 import { useBoolean } from 'react-use';
 
 import { getSSLQueryOptions } from '@/apis/hooks';
@@ -52,7 +51,6 @@ type Props = {
 
 const SSLDetailForm = (props: Props & { id: string }) => {
   const { id, readOnly, setReadOnly } = props;
-  const { t } = useTranslation();
   const {
     data: { value: sslData },
     isLoading,
@@ -70,7 +68,7 @@ const SSLDetailForm = (props: Props & { id: string }) => {
     mutationFn: (d: SSLPutType) => putSSLReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
-        message: t('info.edit.success', { name: t('ssls.singular') }),
+        message: `Edit ${'SSL'} Successfully`,
         type: 'success',
       });
       await refetch();
@@ -100,9 +98,9 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           <FormPartSSL />
           {!readOnly && (
             <Space>
-              <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
+              <FormSubmitBtn>{'Save'}</FormSubmitBtn>
               <Button variant="outlined" onClick={() => setReadOnly(true)}>
-                {t('form.btn.cancel')}
+                {'Cancel'}
               </Button>
             </Space>
           )}
@@ -113,7 +111,6 @@ const SSLDetailForm = (props: Props & { id: string }) => {
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   const { id } = useParams({ from: '/ssls/detail/$id' });
   const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
@@ -121,9 +118,9 @@ function RouteComponent() {
   return (
     <>
       <PageHeader
-        title={t('info.edit.title', { name: t('ssls.singular') })}
+        title={`Edit ${'SSL'}`}
         {...(readOnly && {
-          title: t('info.detail.title', { name: t('ssls.singular') }),
+          title: `${'SSL'} Detail`,
           extra: (
             <Space>
               <Button
@@ -131,11 +128,11 @@ function RouteComponent() {
                 size="small"
                 type="primary"
               >
-                {t('form.btn.edit')}
+                {'Edit'}
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={t('ssls.singular')}
+                name={'SSL'}
                 target={id}
                 api={`${API_SSLS}/${id}`}
                 onSuccess={() => navigate({ to: '/ssls' })}

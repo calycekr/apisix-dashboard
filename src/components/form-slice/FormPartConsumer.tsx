@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { useFormContext } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { FormItemTextInput } from '@/components/form/TextInput';
 import type { APISIXType } from '@/types/schema/apisix';
@@ -25,16 +24,14 @@ import { FormPartBasic } from './FormPartBasic';
 import { FormSection } from './FormSection';
 
 export const FormSectionPluginsOnly = () => {
-  const { t } = useTranslation();
   return (
-    <FormSection legend={t('form.plugins.label')}>
+    <FormSection legend="Plugins">
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
 };
 
 export const FormPartConsumer = () => {
-  const { t } = useTranslation();
   const { control } = useFormContext<APISIXType['ConsumerPut']>();
 
   return (
@@ -45,7 +42,7 @@ export const FormPartConsumer = () => {
           <FormItemTextInput
             control={control}
             name="username"
-            label={t('form.consumers.username')}
+            label="Username"
             required
           />
         }
@@ -53,7 +50,7 @@ export const FormPartConsumer = () => {
       <FormItemTextInput
         control={control}
         name="group_id"
-        label={t('form.consumers.groupId')}
+        label="Group ID"
       />
       <FormSectionPluginsOnly />
     </>

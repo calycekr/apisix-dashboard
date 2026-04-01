@@ -14,12 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { Resources } from '@/config/i18n';
 import type { FileRouteTypes } from '@/routeTree.gen';
 
 export type NavRoute = {
   to: FileRouteTypes['to'];
-  label: keyof Resources['en']['common']['sources'];
+  label: string;
   icon: string;
 };
 export const navRoutes: NavRoute[] = [

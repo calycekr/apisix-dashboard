@@ -19,7 +19,6 @@ import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
 
 import { postServiceReq, type ServicePostType } from '@/apis/services';
 import { FormSubmitBtn } from '@/components/form/Btn';
@@ -32,7 +31,6 @@ import { produceRmUpstreamWhenHas } from '@/utils/form-producer';
 import { pipeProduce } from '@/utils/producer';
 
 const ServiceAddForm = () => {
-  const { t } = useTranslation();
   const router = useRouter();
 
   const postService = useMutation({
@@ -43,7 +41,7 @@ const ServiceAddForm = () => {
       ),
     async onSuccess(res) {
       showNotification({
-        message: t('info.add.success', { name: t('services.singular') }),
+        message: `Add ${'Service'} Successfully`,
         type: 'success',
       });
       await router.navigate({
@@ -64,18 +62,17 @@ const ServiceAddForm = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postService.mutateAsync(d))}>
         <FormPartService />
-        <FormSubmitBtn>{t('form.btn.add')}</FormSubmitBtn>
+        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
       </form>
     </FormProvider>
   );
 };
 
 function RouteComponent() {
-  const { t } = useTranslation();
   return (
     <>
       <PageHeader
-        title={t('info.add.title', { name: t('services.singular') })}
+        title={`Add ${'Service'}`}
       />
       <FormTOCBox>
         <ServiceAddForm />

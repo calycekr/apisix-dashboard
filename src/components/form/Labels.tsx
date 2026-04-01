@@ -21,8 +21,6 @@ import {
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
-import { useTranslation } from 'react-i18next';
-
 import type { APISIXType } from '@/types/schema/apisix';
 
 import { FormError } from './FormError';
@@ -44,7 +42,6 @@ export const FormItemLabels = <T extends FieldValues>(
     field: { value, onChange: fOnChange, name: fName, onBlur: fOnBlur, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
-  const { t } = useTranslation();
   const [internalError, setInternalError] = useState<string | null>();
 
   const values = useMemo(() => {
@@ -57,12 +54,12 @@ export const FormItemLabels = <T extends FieldValues>(
       const tuple = val.split(':');
       // when clear input, val can be ''
       if (val && tuple.length !== 2) {
-        setInternalError(t('form.basic.labels.errorFormat'));
+        setInternalError('The format of label is wrong, it should be `key:value`');
         return;
       }
       setInternalError(null);
     },
-    [t]
+    []
   );
 
   const handleChange = useCallback(
@@ -71,7 +68,7 @@ export const FormItemLabels = <T extends FieldValues>(
       for (const val of vals) {
         const tuple = val.split(':');
         if (tuple.length !== 2) {
-          setInternalError(t('form.basic.labels.errorFormat'));
+          setInternalError('The format of label is wrong, it should be `key:value`');
           return;
         }
         obj[tuple[0]] = tuple[1];
@@ -80,7 +77,7 @@ export const FormItemLabels = <T extends FieldValues>(
       fOnChange(obj);
       propsOnChange?.(obj);
     },
-    [fOnChange, propsOnChange, t]
+    [fOnChange, propsOnChange]
   );
 
   return (
@@ -92,7 +89,7 @@ export const FormItemLabels = <T extends FieldValues>(
         value={values}
         onSearch={handleSearch}
         tokenSeparators={[',']}
-        placeholder={t('form.basic.labels.placeholder')}
+        placeholder="Input text like `key:value`, then enter or blur"
         status={internalError || fieldState.error ? 'error' : undefined}
         onChange={handleChange}
         onBlur={fOnBlur}
