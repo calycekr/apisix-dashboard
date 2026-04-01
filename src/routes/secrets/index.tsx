@@ -17,6 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space } from 'antd';
 import { useMemo } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
@@ -37,40 +38,51 @@ function SecretList() {
   >(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-        width: 300,
-      },
-      {
         dataIndex: ['value', 'manager'],
-        title: 'Secret Manager',
+        title: 'Manager',
         key: 'manager',
         valueType: 'text',
         width: 120,
       },
       {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        valueType: 'text',
+      },
+      {
+        dataIndex: ['value', 'update_time'],
+        title: 'Updated At',
+        key: 'update_time',
+        valueType: 'dateTime',
+        renderText: (text) => {
+          if (!text) return '-';
+          return new Date(Number(text) * 1000).toISOString();
+        },
+      },
+      {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/secrets/detail/$manager/$id"
-            params={{
-              manager: record.value.manager,
-              id: record.value.id,
-            }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Secret'}
-            target={record.value.id}
-            api={`${API_SECRETS}/${record.value.manager}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/secrets/detail/$manager/$id"
+              params={{
+                manager: record.value.manager,
+                id: record.value.id,
+              }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Secret'}
+              target={record.value.id}
+              api={`${API_SECRETS}/${record.value.manager}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -84,7 +96,9 @@ function SecretList() {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Secrets"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

@@ -17,6 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space } from 'antd';
 import { useMemo } from 'react';
 
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
@@ -43,16 +44,21 @@ function ConsumerGroupsList() {
         valueType: 'text',
       },
       {
-        dataIndex: ['value', 'name'],
-        title: 'Name',
-        key: 'name',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'desc'],
         title: 'Description',
         key: 'desc',
         valueType: 'text',
+      },
+      {
+        dataIndex: ['value', 'plugins'],
+        title: 'Plugins',
+        key: 'plugins',
+        render: (_, record) => {
+          const plugins = record.value.plugins;
+          if (!plugins) return '-';
+          const count = Object.keys(plugins).length;
+          return `${count} plugin${count !== 1 ? 's' : ''}`;
+        },
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -69,20 +75,22 @@ function ConsumerGroupsList() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/consumer_groups/detail/$id"
-            params={{ id: record.value.id }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Consumer Group'}
-            target={record.value.id}
-            api={`${API_CONSUMER_GROUPS}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/consumer_groups/detail/$id"
+              params={{ id: record.value.id }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Consumer Group'}
+              target={record.value.id}
+              api={`${API_CONSUMER_GROUPS}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -96,7 +104,9 @@ function ConsumerGroupsList() {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Consumer Groups"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

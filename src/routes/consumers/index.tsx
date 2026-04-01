@@ -17,6 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
@@ -38,13 +39,22 @@ function ConsumersList() {
         dataIndex: ['value', 'username'],
         title: 'Username',
         key: 'username',
-        valueType: 'text',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.username}</Typography.Text>
+        ),
       },
       {
         dataIndex: ['value', 'desc'],
         title: 'Description',
         key: 'desc',
         valueType: 'text',
+      },
+      {
+        dataIndex: ['value', 'group_id'],
+        title: 'Group ID',
+        key: 'group_id',
+        valueType: 'text',
+        render: (_, record) => record.value.group_id || '-',
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -61,20 +71,22 @@ function ConsumersList() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/consumers/detail/$username"
-            params={{ username: record.value.username }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Consumer'}
-            target={record.value.username}
-            api={`${API_CONSUMERS}/${record.value.username}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/consumers/detail/$username"
+              params={{ username: record.value.username }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Consumer'}
+              target={record.value.username}
+              api={`${API_CONSUMERS}/${record.value.username}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -88,7 +100,9 @@ function ConsumersList() {
         rowKey="username"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Consumers"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

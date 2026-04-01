@@ -21,7 +21,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { putConsumerReq } from '@/apis/consumers';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
 import { FormPartConsumer } from '@/components/form-slice/FormPartConsumer';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import PageHeader from '@/components/page/PageHeader';
@@ -61,7 +61,7 @@ const ConsumerAddForm = () => {
         )}
       >
         <FormPartConsumer />
-        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
+        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
       </form>
     </FormProvider>
   );

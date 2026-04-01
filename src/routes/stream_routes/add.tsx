@@ -21,7 +21,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { postStreamRouteReq } from '@/apis/stream_routes';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
 import { produceRoute } from '@/components/form-slice/FormPartRoute/util';
 import { FormPartStreamRoute } from '@/components/form-slice/FormPartStreamRoute';
 import {
@@ -66,7 +66,7 @@ export const StreamRouteAddForm = (props: Props) => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postStreamRoute.mutateAsync(d))}>
         <FormPartStreamRoute />
-        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
+        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
       </form>
     </FormProvider>
   );

@@ -17,6 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, useParams } from '@tanstack/react-router';
+import { Space } from 'antd';
 import { useMemo } from 'react';
 
 import {
@@ -54,6 +55,17 @@ function CredentialsList() {
         valueType: 'text',
       },
       {
+        dataIndex: ['value', 'plugins'],
+        title: 'Plugin Type',
+        key: 'plugins',
+        render: (_, record) => {
+          const plugins = record.value.plugins;
+          if (!plugins) return '-';
+          const keys = Object.keys(plugins);
+          return keys.length > 0 ? keys.join(', ') : '-';
+        },
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
@@ -68,23 +80,25 @@ function CredentialsList() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/consumers/detail/$username/credentials/detail/$id"
-            params={{
-              username: username as string,
-              id: record.value.id,
-            }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Credential'}
-            target={record.value.id}
-            api={`${API_CREDENTIALS(username)}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/consumers/detail/$username/credentials/detail/$id"
+              params={{
+                username: username as string,
+                id: record.value.id,
+              }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Credential'}
+              target={record.value.id}
+              api={`${API_CREDENTIALS(username)}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -98,7 +112,9 @@ function CredentialsList() {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Credentials"
         pagination={false}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

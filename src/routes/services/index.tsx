@@ -17,12 +17,13 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
-import { ToAddPageBtn,ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SERVICES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -35,22 +36,25 @@ const ServiceList = () => {
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'name'],
         title: 'Name',
         key: 'name',
-        valueType: 'text',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+        ),
       },
       {
         dataIndex: ['value', 'desc'],
         title: 'Description',
         key: 'desc',
         valueType: 'text',
+      },
+      {
+        dataIndex: ['value', 'upstream_id'],
+        title: 'Upstream ID',
+        key: 'upstream_id',
+        valueType: 'text',
+        render: (_, record) => record.value.upstream_id || '-',
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -67,20 +71,22 @@ const ServiceList = () => {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/services/detail/$id"
-            params={{ id: record.value.id }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Service'}
-            target={record.value.id}
-            api={`${API_SERVICES}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/services/detail/$id"
+              params={{ id: record.value.id }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Service'}
+              target={record.value.id}
+              api={`${API_SERVICES}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -94,7 +100,9 @@ const ServiceList = () => {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Services"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

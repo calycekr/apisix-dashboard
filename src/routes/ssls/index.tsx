@@ -17,9 +17,11 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
+import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -35,52 +37,69 @@ function RouteComponent() {
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'sni'],
         title: 'SNI',
         key: 'sni',
-        valueType: 'text',
         render: (_, record) => {
-          // Show sni if available, otherwise show the first snis entry
           const sni = record.value.sni;
           const snis = record.value.snis;
-          if (sni) return sni;
-          if (snis && snis.length > 0) return snis.join(', ');
-          return '-';
+          const display = sni || (snis && snis.length > 0 ? snis.join(', ') : '-');
+          return <Typography.Text strong>{display}</Typography.Text>;
         },
+      },
+      {
+        dataIndex: ['value', 'type'],
+        title: 'Type',
+        key: 'type',
+        valueType: 'text',
+        render: (_, record) => record.value.type || '-',
       },
       {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
-        valueEnum: {
-          1: { text: 'Enabled', status: 'Success' },
-          0: { text: 'Disabled', status: 'Error' },
+        render: (_, record) => <StatusTag status={record.value.status} />,
+      },
+      {
+        dataIndex: ['value', 'validity_end'],
+        title: 'Expiry',
+        key: 'validity_end',
+        valueType: 'dateTime',
+        renderText: (text) => {
+          if (!text) return '-';
+          return new Date(Number(text) * 1000).toISOString();
+        },
+      },
+      {
+        dataIndex: ['value', 'update_time'],
+        title: 'Updated At',
+        key: 'update_time',
+        valueType: 'dateTime',
+        renderText: (text) => {
+          if (!text) return '-';
+          return new Date(Number(text) * 1000).toISOString();
         },
       },
       {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/ssls/detail/$id"
-            params={{ id: record.value.id }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'SSL'}
-            target={record.value.id}
-            api={`${API_SSLS}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/ssls/detail/$id"
+              params={{ id: record.value.id }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'SSL'}
+              target={record.value.id}
+              api={`${API_SSLS}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -96,7 +115,9 @@ function RouteComponent() {
           rowKey="id"
           loading={isLoading}
           search={false}
-          options={false}
+          options={{ density: false, fullScreen: false, reload: true, setting: true }}
+          dateFormatter="string"
+          headerTitle="SSLs"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolbar={{

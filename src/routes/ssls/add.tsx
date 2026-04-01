@@ -21,7 +21,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { postSSLReq } from '@/apis/ssls';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
 import { FormPartSSL } from '@/components/form-slice/FormPartSSL';
 import {
   SSLPostSchema,
@@ -60,7 +60,7 @@ const SSLAddForm = () => {
     <FormProvider {...form}>
       <form onSubmit={form.handleSubmit((d) => postSSL.mutateAsync(d))}>
         <FormPartSSL />
-        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
+        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
       </form>
     </FormProvider>
   );

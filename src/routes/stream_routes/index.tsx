@@ -17,10 +17,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space } from 'antd';
 import { useMemo } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -55,43 +57,67 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
   >(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-      },
-      {
-        dataIndex: ['value', 'server_addr'],
-        title: 'Server Address',
-        key: 'server_addr',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'server_port'],
         title: 'Server Port',
         key: 'server_port',
         valueType: 'text',
+        render: (_, record) => {
+          const v = record.value as APISIXType['StreamRoute'];
+          return v.server_port ?? '-';
+        },
       },
       {
-        dataIndex: ['value', 'desc'],
-        title: 'Description',
-        key: 'desc',
+        dataIndex: ['value', 'remote_addr'],
+        title: 'Remote Addr',
+        key: 'remote_addr',
         valueType: 'text',
+        render: (_, record) => {
+          const v = record.value as APISIXType['StreamRoute'];
+          return v.remote_addr || '-';
+        },
+      },
+      {
+        dataIndex: ['value', 'sni'],
+        title: 'SNI',
+        key: 'sni',
+        valueType: 'text',
+        render: (_, record) => {
+          const v = record.value as APISIXType['StreamRoute'];
+          return v.sni || '-';
+        },
+      },
+      {
+        dataIndex: ['value', 'status'],
+        title: 'Status',
+        key: 'status',
+        render: (_, record) => <StatusTag status={record.value.status} />,
+      },
+      {
+        dataIndex: ['value', 'update_time'],
+        title: 'Updated At',
+        key: 'update_time',
+        valueType: 'dateTime',
+        renderText: (text) => {
+          if (!text) return '-';
+          return new Date(Number(text) * 1000).toISOString();
+        },
       },
       {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailBtn key="detail" record={record} />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Stream Route'}
-            target={record.value.id}
-            api={`${API_STREAM_ROUTES}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailBtn key="detail" record={record} />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Stream Route'}
+              target={record.value.id}
+              api={`${API_STREAM_ROUTES}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -105,7 +131,9 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Stream Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

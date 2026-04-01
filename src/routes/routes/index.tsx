@@ -17,10 +17,13 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { MethodTags } from '@/components/MethodTags';
+import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -49,43 +52,77 @@ export const RouteList = (props: RouteListProps) => {
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'name'],
         title: 'Name',
         key: 'name',
-        valueType: 'text',
-      },
-      {
-        dataIndex: ['value', 'desc'],
-        title: 'Description',
-        key: 'desc',
-        valueType: 'text',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+        ),
       },
       {
         dataIndex: ['value', 'uri'],
         title: 'URI',
         key: 'uri',
         valueType: 'text',
+        render: (_, record) => {
+          const uri = record.value.uri;
+          const uris = record.value.uris;
+          if (uri) return uri;
+          if (uris && uris.length > 0) return uris.join(', ');
+          return '-';
+        },
+      },
+      {
+        dataIndex: ['value', 'methods'],
+        title: 'Methods',
+        key: 'methods',
+        render: (_, record) => <MethodTags methods={record.value.methods} />,
+      },
+      {
+        dataIndex: ['value', 'host'],
+        title: 'Host',
+        key: 'host',
+        valueType: 'text',
+        render: (_, record) => {
+          const host = record.value.host;
+          const hosts = record.value.hosts;
+          if (host) return host;
+          if (hosts && hosts.length > 0) return hosts.join(', ');
+          return '-';
+        },
+      },
+      {
+        dataIndex: ['value', 'status'],
+        title: 'Status',
+        key: 'status',
+        render: (_, record) => <StatusTag status={record.value.status} />,
+      },
+      {
+        dataIndex: ['value', 'update_time'],
+        title: 'Updated At',
+        key: 'update_time',
+        valueType: 'dateTime',
+        renderText: (text) => {
+          if (!text) return '-';
+          return new Date(Number(text) * 1000).toISOString();
+        },
       },
       {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailBtn key="detail" record={record} />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Route'}
-            target={record.value.id}
-            api={`${API_ROUTES}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailBtn key="detail" record={record} />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Route'}
+              target={record.value.id}
+              api={`${API_ROUTES}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -99,7 +136,9 @@ export const RouteList = (props: RouteListProps) => {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={false}
+        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        dateFormatter="string"
+        headerTitle="Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolbar={{

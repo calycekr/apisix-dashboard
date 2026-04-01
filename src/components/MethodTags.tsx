@@ -14,24 +14,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useRouter } from '@tanstack/react-router';
-import { Button, Space, type ButtonProps } from 'antd';
-import { useFormContext, useFormState } from 'react-hook-form';
+import { Tag } from 'antd';
 
-export const FormSubmitBtn = (props: ButtonProps) => {
-  const form = useFormContext();
-  const { isSubmitting } = useFormState(form);
-  return <Button type="primary" size="middle" htmlType="submit" loading={isSubmitting} {...props} />;
+const METHOD_COLORS: Record<string, string> = {
+  GET: 'blue',
+  POST: 'green',
+  PUT: 'orange',
+  DELETE: 'red',
+  PATCH: 'purple',
+  HEAD: 'cyan',
+  OPTIONS: 'default',
 };
 
-export const FormSubmitBtnWithCancel = (props: ButtonProps) => {
-  const router = useRouter();
+export const MethodTags = ({ methods }: { methods?: string[] }) => {
+  if (!methods?.length) return <Tag>ALL</Tag>;
   return (
-    <Space>
-      <FormSubmitBtn {...props} />
-      <Button size="middle" onClick={() => router.history.back()}>
-        Cancel
-      </Button>
-    </Space>
+    <>
+      {methods.map((m) => (
+        <Tag key={m} color={METHOD_COLORS[m] || 'default'}>
+          {m}
+        </Tag>
+      ))}
+    </>
   );
 };

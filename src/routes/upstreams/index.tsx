@@ -17,6 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import { useMemo } from 'react';
 
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
@@ -37,26 +38,42 @@ function RouteComponent() {
   >(() => {
     return [
       {
-        dataIndex: ['value', 'id'],
-        title: 'ID',
-        key: 'id',
-        valueType: 'text',
-      },
-      {
         dataIndex: ['value', 'name'],
         title: 'Name',
         key: 'name',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+        ),
+      },
+      {
+        dataIndex: ['value', 'type'],
+        title: 'Type',
+        key: 'type',
         valueType: 'text',
+        render: (_, record) => record.value.type || '-',
+      },
+      {
+        dataIndex: ['value', 'nodes'],
+        title: 'Nodes',
+        key: 'nodes',
+        render: (_, record) => {
+          const nodes = record.value.nodes;
+          if (!nodes) return '-';
+          if (Array.isArray(nodes)) return `${nodes.length} node${nodes.length !== 1 ? 's' : ''}`;
+          const count = Object.keys(nodes).length;
+          return `${count} node${count !== 1 ? 's' : ''}`;
+        },
       },
       {
         dataIndex: ['value', 'scheme'],
         title: 'Scheme',
         key: 'scheme',
         valueType: 'text',
+        render: (_, record) => record.value.scheme || '-',
       },
       {
         dataIndex: ['value', 'update_time'],
-        title: 'Update Time',
+        title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         renderText: (text) => {
@@ -68,20 +85,22 @@ function RouteComponent() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 120,
+        width: 160,
         render: (_, record) => [
-          <ToDetailPageBtn
-            key="detail"
-            to="/upstreams/detail/$id"
-            params={{ id: record.value.id }}
-          />,
-          <DeleteResourceBtn
-            key="delete"
-            name={'Upstream'}
-            target={record.value.id}
-            api={`${API_UPSTREAMS}/${record.value.id}`}
-            onSuccess={refetch}
-          />,
+          <Space key="actions">
+            <ToDetailPageBtn
+              key="detail"
+              to="/upstreams/detail/$id"
+              params={{ id: record.value.id }}
+            />
+            <DeleteResourceBtn
+              key="delete"
+              name={'Upstream'}
+              target={record.value.id}
+              api={`${API_UPSTREAMS}/${record.value.id}`}
+              onSuccess={refetch}
+            />
+          </Space>,
         ],
       },
     ];
@@ -97,7 +116,9 @@ function RouteComponent() {
           rowKey="id"
           loading={isLoading}
           search={false}
-          options={false}
+          options={{ density: false, fullScreen: false, reload: true, setting: true }}
+          dateFormatter="string"
+          headerTitle="Upstreams"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolbar={{

@@ -22,7 +22,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 import { postUpstreamReq } from '@/apis/upstreams';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
 import { FormPartUpstream } from '@/components/form-slice/FormPartUpstream';
 import { FormPartUpstreamSchema } from '@/components/form-slice/FormPartUpstream/schema';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
@@ -65,7 +65,7 @@ const UpstreamAddForm = () => {
         )}
       >
         <FormPartUpstream />
-        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
+        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
       </form>
     </FormProvider>
   );

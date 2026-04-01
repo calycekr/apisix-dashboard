@@ -22,7 +22,7 @@ import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { putSecretReq } from '@/apis/secrets';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
 import { FormPartSecret } from '@/components/form-slice/FormPartSecret';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -67,7 +67,7 @@ const SecretAddForm = () => {
       <form onSubmit={form.handleSubmit((d) => putSecret.mutateAsync(d))}>
         <FormSectionGeneral />
         <FormPartSecret />
-        <FormSubmitBtn>{'Add'}</FormSubmitBtn>
+        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
       </form>
     </FormProvider>
   );
