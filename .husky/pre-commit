@@ -1,2 +1,2 @@
-node ./node_modules/lint-staged/bin/lint-staged.js
+pnpm lint-staged
 git update-index --again

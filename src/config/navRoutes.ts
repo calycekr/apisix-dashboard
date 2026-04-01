@@ -20,54 +20,67 @@ import type { FileRouteTypes } from '@/routeTree.gen';
 export type NavRoute = {
   to: FileRouteTypes['to'];
   label: keyof Resources['en']['common']['sources'];
+  icon: string;
 };
 export const navRoutes: NavRoute[] = [
   {
     to: '/services',
     label: 'services',
+    icon: 'dns',
   },
   {
     to: '/routes',
     label: 'routes',
+    icon: 'route',
   },
   {
     to: '/stream_routes',
     label: 'streamRoutes',
+    icon: 'stream',
   },
   {
     to: '/upstreams',
     label: 'upstreams',
+    icon: 'cloud-upload',
   },
   {
     to: '/consumers',
     label: 'consumers',
+    icon: 'person',
   },
   {
     to: '/consumer_groups',
     label: 'consumerGroups',
+    icon: 'group',
   },
   {
     to: '/ssls',
     label: 'ssls',
+    icon: 'lock',
   },
   {
     to: '/global_rules',
     label: 'globalRules',
+    icon: 'public',
   },
   {
     to: '/plugin_metadata',
     label: 'pluginMetadata',
+    icon: 'data-object',
   },
   {
     to: '/plugin_configs',
     label: 'pluginConfigs',
+    icon: 'extension',
   },
   {
     to: '/secrets',
     label: 'secrets',
+    icon: 'key',
   },
   {
     to: '/protos',
     label: 'protos',
+    icon: 'code',
   },
 ];

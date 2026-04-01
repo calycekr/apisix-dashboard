@@ -16,14 +16,19 @@
  */
 import '@ant-design/v5-patch-for-react-19';
 
-import { ConfigProvider } from 'antd';
+import { ConfigProvider, theme } from 'antd';
 import enUS from 'antd/locale/en_US';
 import type { PropsWithChildren } from 'react';
 import { useTranslation } from 'react-i18next';
 
+import { useThemeMode } from '@/stores/global';
+
 export const AntdConfigProvider = (props: PropsWithChildren) => {
   const { children } = props;
   const { t } = useTranslation();
+  const { mode } = useThemeMode();
+
+  const isDark = mode === 'dark';
 
   return (
     <ConfigProvider
@@ -31,8 +36,23 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
       locale={enUS}
       renderEmpty={() => <div>{t('noData')}</div>}
       theme={{
+        algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {
+          colorPrimary: '#1677ff',
           borderRadiusSM: 2,
+          borderRadius: 4,
+          borderRadiusLG: 6,
+        },
+        components: {
+          Layout: {
+            siderBg: isDark ? '#141414' : '#fff',
+            headerBg: isDark ? '#141414' : '#fff',
+            bodyBg: isDark ? '#1f1f1f' : '#f5f5f5',
+          },
+          Menu: {
+            darkItemBg: '#141414',
+            darkSubMenuItemBg: '#141414',
+          },
         },
       }}
     >

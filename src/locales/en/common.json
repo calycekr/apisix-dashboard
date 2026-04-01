@@ -3,6 +3,14 @@
     "dashboard": "APISIX Dashboard",
     "logo": "APISIX Logo"
   },
+  "switchToDark": "Switch to Dark Mode",
+  "switchToLight": "Switch to Light Mode",
+  "dashboard": {
+    "welcome": "Welcome to APISIX Dashboard",
+    "summary": "Managing {{routes}} routes, {{services}} services across {{upstreams}} upstreams",
+    "recentChanges": "Recent Changes",
+    "resourceOverview": "Resource Overview"
+  },
   "consumerGroups": {
     "singular": "Consumer Group"
   },

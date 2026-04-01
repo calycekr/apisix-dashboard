@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { atom } from 'jotai';
+import { atom, useAtom } from 'jotai';
 import { atomWithStorage } from 'jotai/utils';
 
 // Admin key with persistent storage
@@ -29,3 +29,25 @@ export const adminKeyAtom = atomWithStorage<string>(
 
 // Settings modal visibility state
 export const isSettingsOpenAtom = atom<boolean>(false);
+
+// Theme mode with persistent storage
+export const themeModeAtom = atomWithStorage<'light' | 'dark'>(
+  'theme',
+  'light',
+  undefined,
+  { getOnInit: true }
+);
+
+// Sidebar collapsed state with persistent storage
+export const sidebarCollapsedAtom = atomWithStorage<boolean>(
+  'sidebar:collapsed',
+  false,
+  undefined,
+  { getOnInit: true }
+);
+
+export const useThemeMode = () => {
+  const [mode, setMode] = useAtom(themeModeAtom);
+  const toggle = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+  return { mode, toggle };
+};
