@@ -16,22 +16,10 @@
 #
 
 services:
-  dashboard:
+  apisix:
     build:
       context: .
-      dockerfile: Dockerfile
-    restart: always
-    ports:
-      - '8080:80'
-    environment:
-      APISIX_ADMIN_URL: http://apisix:9180
-    depends_on:
-      - apisix
-    networks:
-      - apisix
-
-  apisix:
-    image: apache/apisix:dev
+      dockerfile: e2e/server/Dockerfile
     restart: always
     volumes:
       - ./e2e/server/apisix_conf.yml:/usr/local/apisix/conf/config.yaml:ro
