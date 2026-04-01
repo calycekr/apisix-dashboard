@@ -41,6 +41,13 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
           borderRadius: 4,
           borderRadiusLG: 6,
         },
+        components: {
+          Table: {
+            headerBg: isDark ? '#1f1f1f' : '#fafafa',
+            borderColor: isDark ? '#303030' : '#f0f0f0',
+            rowHoverBg: isDark ? '#262626' : '#f5f5f5',
+          },
+        },
       }}
     >
       {children}

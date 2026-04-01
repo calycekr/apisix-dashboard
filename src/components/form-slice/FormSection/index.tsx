@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Anchor, theme } from 'antd';
+import { Anchor, Card, theme } from 'antd';
 import { clsx } from 'clsx';
 import { debounce } from 'rambdax';
 import {
@@ -90,22 +90,42 @@ export const FormSection = (props: FormSectionProps) => {
   // refresh TOC when children changes
   useShallowEffect(refreshTOC, [children]);
 
+  if (depth === 1) {
+    return (
+      <SectionDepthProvider value={depth}>
+        <Card
+          size="small"
+          title={<LegendGroup legend={legend} extra={extra} />}
+          className={clsx(tocSelector, classes.root, className)}
+          style={{ marginBottom: 16 }}
+          {...dataAttrs}
+          {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
+        >
+          <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0 }}>
+            {children}
+          </fieldset>
+        </Card>
+      </SectionDepthProvider>
+    );
+  }
+
   return (
     <SectionDepthProvider value={depth}>
-      <fieldset
+      <div
         className={clsx(tocSelector, classes.root, className)}
-        disabled={disabled}
-        style={{ border: `1px solid ${token.colorBorder}`, borderRadius: 4, padding: 12, marginBottom: 8 }}
+        style={{ paddingInlineStart: 16, marginBottom: 12 }}
         {...dataAttrs}
-        {...(restProps as React.HTMLAttributes<HTMLFieldSetElement>)}
+        {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
       >
         {(legend || extra) && (
-          <legend style={{ padding: '0 4px', width: 'auto' }}>
+          <div style={{ marginBottom: 8, color: token.colorTextSecondary, fontWeight: 500, fontSize: token.fontSizeSM }}>
             <LegendGroup legend={legend} extra={extra} />
-          </legend>
+          </div>
         )}
-        {children}
-      </fieldset>
+        <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0 }}>
+          {children}
+        </fieldset>
+      </div>
     </SectionDepthProvider>
   );
 };
