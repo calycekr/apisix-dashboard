@@ -23,7 +23,6 @@ import { defineConfig } from 'vite';
 import tsconfigPaths from 'vite-tsconfig-paths';
 
 import { API_PREFIX, BASE_PATH } from './src/config/constant';
-import i18nProgress from './vite-plugin-i18n-progress';
 
 const inDevContainer = process.env.REMOTE_CONTAINERS === 'true';
 
@@ -87,11 +86,6 @@ export default defineConfig({
       target: 'react',
       autoCodeSplitting: true,
       semicolons: false,
-    }),
-    i18nProgress({
-      langs: ['en', 'es', 'de', 'zh'],
-      baseLang: 'en',
-      getTranslationDir: (lang) => `./src/locales/${lang}`,
     }),
     react({
       plugins: [observerPlugin() as never],

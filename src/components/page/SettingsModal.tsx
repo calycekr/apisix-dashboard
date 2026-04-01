@@ -28,9 +28,9 @@ const AdminKey = () => {
 
   return (
     <div>
-      <label style={{ display: 'block', marginBottom: 4 }}>
-        {t('settings.adminKey')} <span style={{ color: 'red' }}>*</span>
-      </label>
+      <Typography.Text style={{ display: 'block', marginBottom: 4 }}>
+        {t('settings.adminKey')} <Typography.Text type="danger">*</Typography.Text>
+      </Typography.Text>
       <Input.Password
         value={adminKey}
         onChange={(e) => {
@@ -49,7 +49,7 @@ const UICommitSha = () => {
   const { t } = useTranslation();
   return (
     <div>
-      <label style={{ display: 'block', marginBottom: 4 }}>{t('settings.ui-commit-sha')}</label>
+      <Typography.Text style={{ display: 'block', marginBottom: 4 }}>{t('settings.ui-commit-sha')}</Typography.Text>
       <Typography.Text type="secondary" style={{ fontSize: 14 }}>
         {sha}
       </Typography.Text>

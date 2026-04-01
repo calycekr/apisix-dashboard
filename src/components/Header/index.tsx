@@ -28,15 +28,9 @@ import IconMenu from '~icons/material-symbols/menu';
 import IconLightMode from '~icons/material-symbols/light-mode';
 import IconDarkMode from '~icons/material-symbols/dark-mode';
 
-import { LanguageMenu } from './LanguageMenu';
 import { SettingModalBtn } from './SettingModalBtn';
 
-type HeaderProps = {
-  opened: boolean;
-  toggle: () => void;
-};
-
-export const Header: FC<HeaderProps> = () => {
+export const Header: FC = () => {
   const { t } = useTranslation();
   const { token } = theme.useToken();
   const { mode, toggle: toggleTheme } = useThemeMode();
@@ -92,7 +86,6 @@ export const Header: FC<HeaderProps> = () => {
           title={mode === 'dark' ? t('switchToLight') : t('switchToDark')}
         />
         <SettingModalBtn />
-        <LanguageMenu />
       </div>
     </Layout.Header>
   );
