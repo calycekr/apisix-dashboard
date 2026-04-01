@@ -14,23 +14,23 @@
 }
 
 .editor-wrapper {
-  border: 1px solid #ced4da;
+  border: 1px solid var(--ant-color-border);
   border-radius: 6px;
   position: relative;
   height: 100%;
 
   &:focus-within {
-    border-color: #1677ff;
+    border-color: var(--ant-color-primary);
   }
 }
 
 .editor-wrapper--disabled {
-  background-color: #f8f9fa;
-  border-color: #dee2e6;
+  background-color: var(--ant-color-bg-container-disabled);
+  border-color: var(--ant-color-border);
   cursor: not-allowed !important;
 
   &:focus-within {
-    border-color: #dee2e6;
+    border-color: var(--ant-color-border);
   }
 
   & * {
@@ -42,11 +42,11 @@
   .monaco-editor .monaco-editor-background,
   .monaco-editor .overflow-guard,
   .monaco-editor .margin-view-overlays {
-    background-color: #f8f9fa !important;
+    background-color: var(--ant-color-bg-container-disabled) !important;
   }
 
   .monaco-editor .view-lines,
   .monaco-editor .view-line * {
-    color: #adb5bd !important;
+    color: var(--ant-color-text-disabled) !important;
   }
 }

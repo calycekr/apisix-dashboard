@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Skeleton } from 'antd';
+import { Skeleton, theme } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import { clsx } from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,7 +27,9 @@ import {
 import { useTranslation } from 'react-i18next';
 
 import { monaco, setupMonacoEditor } from '@/utils/monaco';
+import { useThemeMode } from '@/stores/global';
 
+import { FormError } from './FormError';
 import { genControllerProps } from './util';
 
 setupMonacoEditor();
@@ -38,7 +40,6 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
   lineNumbersMinChars: 3,
   renderLineHighlight: 'none',
   lineDecorationsWidth: 0,
-  theme: 'vs-light',
   acceptSuggestionOnEnter: 'on',
   // auto adjust width and height to parent
   // see: https://github.com/Microsoft/monaco-editor/issues/543#issuecomment-321767059
@@ -65,6 +66,8 @@ export const FormItemEditor = <T extends FieldValues>(
   props: FormItemEditorProps<T>
 ) => {
   const { t } = useTranslation();
+  const { mode } = useThemeMode();
+  const { token } = theme.useToken();
   const { controllerProps, restProps } = genControllerProps(props, '');
   const { customSchema, language, isLoading, label, description, required, id } = restProps;
   const { trigger } = useFormContext();
@@ -128,7 +131,7 @@ export const FormItemEditor = <T extends FieldValues>(
     <div id={id ?? '#editor-wrapper'}>
       {label && (
         <div>
-          {required && <span style={{ color: 'red', marginRight: 4 }}>*</span>}
+          {required && <span style={{ color: token.colorError, marginRight: 4 }}>*</span>}
           {label}
         </div>
       )}
@@ -177,12 +180,11 @@ export const FormItemEditor = <T extends FieldValues>(
           </div>
         }
         options={{ ...options, readOnly: restField.disabled }}
+        theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
         defaultLanguage="json"
         {...(language && { language })}
       />
-      {fieldState.error?.message && (
-        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
-      )}
+      <FormError message={fieldState.error?.message} />
     </div>
   );
 };

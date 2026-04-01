@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -154,6 +154,7 @@ const FormSectionChecksPassiveCore = () => {
   const { t } = useTranslation();
   const { control, formState } = useFormContext<FormPartUpstreamType>();
   const np = useNamePrefix();
+  const { token } = theme.useToken();
   const passiveEnabled = useWatch({
     control,
     name: '__checksPassiveEnabled',
@@ -222,7 +223,7 @@ const FormSectionChecksPassiveCore = () => {
     );
   }
   return (
-    <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
+    <Typography.Text style={{ color: token.colorTextSecondary, fontSize: 14 }}>
       {t('form.disabled')}
     </Typography.Text>
   );
@@ -255,6 +256,7 @@ const FormItemChecksEnabled = () => {
 const FormSectionChecksCore = () => {
   const { t } = useTranslation();
   const { control, formState } = useFormContext<FormPartUpstreamType>();
+  const { token } = theme.useToken();
   const enabled = useWatch({
     control,
     name: '__checksEnabled',
@@ -270,7 +272,7 @@ const FormSectionChecksCore = () => {
     );
   }
   return (
-    <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
+    <Typography.Text style={{ color: token.colorTextSecondary, fontSize: 14 }}>
       {t('form.disabled')}
     </Typography.Text>
   );

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 import { forwardRef } from 'react';
 
 import type { InputWrapperProps } from '@/types/input-wrapper';
@@ -28,13 +28,14 @@ export const InputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
     const { label, error, required, withAsterisk, children, className, style } =
       props;
     const showAsterisk = required || withAsterisk;
+    const { token } = theme.useToken();
     return (
       <div ref={ref} className={className} style={style}>
         {label && (
           <div style={{ marginBottom: 4 }}>
             <Typography.Text>
               {showAsterisk && (
-                <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
+                <span style={{ color: token.colorError, marginRight: 4 }}>*</span>
               )}
               {label}
             </Typography.Text>

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Empty, Input } from 'antd';
+import { Empty, Input, theme } from 'antd';
 import IconClose from '~icons/material-symbols/cancel';
 import { useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
@@ -30,6 +30,7 @@ type PluginCardListSearchProps = {
 export const PluginCardListSearch = (props: PluginCardListSearchProps) => {
   const { placeholder, search, setSearch } = props;
   const { t } = useTranslation();
+  const { token } = theme.useToken();
   return (
     <Input
       placeholder={placeholder || t('form.search')}
@@ -48,7 +49,7 @@ export const PluginCardListSearch = (props: PluginCardListSearchProps) => {
               event.stopPropagation();
               setSearch('');
             }}
-            style={{ cursor: 'pointer', color: 'rgba(0,0,0,0.25)' }}
+            style={{ cursor: 'pointer', color: token.colorTextQuaternary }}
           />
         ) : (
           <span />

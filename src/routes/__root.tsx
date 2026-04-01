@@ -17,7 +17,8 @@
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
-import { useState } from 'react';
+import { theme } from 'antd';
+import { useEffect, useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
 import { Header } from '@/components/Header';
@@ -28,10 +29,18 @@ import {
   APPSHELL_NAVBAR_WIDTH,
 } from '@/config/constant';
 import i18n from '@/config/i18n';
+import { useThemeMode } from '@/stores/global';
 
 const Root = () => {
   const [opened, setOpened] = useState(false);
   const toggle = () => setOpened((v) => !v);
+  const { token } = theme.useToken();
+  const { mode } = useThemeMode();
+
+  useEffect(() => {
+    document.documentElement.dataset.theme = mode;
+  }, [mode]);
+
   return (
     <I18nextProvider i18n={i18n}>
       <HeadContent />
@@ -43,6 +52,7 @@ const Root = () => {
           marginLeft: APPSHELL_NAVBAR_WIDTH,
           padding: 16,
           minHeight: `calc(100vh - ${APPSHELL_HEADER_HEIGHT}px)`,
+          background: token.colorBgLayout,
         }}
       >
         <Outlet />

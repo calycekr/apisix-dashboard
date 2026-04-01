@@ -25,6 +25,7 @@ import { useTranslation } from 'react-i18next';
 
 import type { APISIXType } from '@/types/schema/apisix';
 
+import { FormError } from './FormError';
 import { genControllerProps } from './util';
 
 export type FormItemLabels<T extends FieldValues> = UseControllerProps<T> &
@@ -98,9 +99,7 @@ export const FormItemLabels = <T extends FieldValues>(
         {...restField}
         {...restProps}
       />
-      {(internalError || fieldState.error?.message) && (
-        <div style={{ color: 'red' }}>{internalError || fieldState.error?.message}</div>
-      )}
+      <FormError message={internalError || fieldState.error?.message} />
     </>
   );
 };

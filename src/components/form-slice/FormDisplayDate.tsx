@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 import dayjs from 'dayjs';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
@@ -27,9 +27,10 @@ const format = 'YYYY-MM-DD HH:mm:ss';
 export const FormDisplayDate = (props: FormDisplayDateProps) => {
   const { date, ...rest } = props;
   const d = typeof date === 'number' ? date * 1000 : date;
+  const { token } = theme.useToken();
   return (
     <InputWrapper {...rest}>
-      <Typography.Text style={{ fontSize: 14, color: '#8c8c8c' }}>
+      <Typography.Text style={{ fontSize: 14, color: token.colorTextSecondary }}>
         {d ? dayjs(d).format(format) : '-'}
       </Typography.Text>
     </InputWrapper>

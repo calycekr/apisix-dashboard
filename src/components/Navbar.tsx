@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Layout, Menu } from 'antd';
+import { Layout, Menu, theme } from 'antd';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import type { ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
@@ -58,6 +58,7 @@ export const Navbar = () => {
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const [collapsed] = useAtom(sidebarCollapsedAtom);
+  const { token } = theme.useToken();
 
   const selectedKey =
     navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
@@ -77,6 +78,7 @@ export const Navbar = () => {
         top: 0,
         bottom: 0,
         zIndex: 99,
+        background: token.colorBgContainer,
       }}
     >
       <div
@@ -87,7 +89,7 @@ export const Navbar = () => {
           justifyContent: collapsed ? 'center' : 'flex-start',
           paddingInline: collapsed ? 0 : 20,
           gap: 10,
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          borderBottom: `1px solid ${token.colorBorderSecondary}`,
           flexShrink: 0,
         }}
       >
@@ -114,7 +116,6 @@ export const Navbar = () => {
       </div>
       <Menu
         mode="inline"
-        theme="dark"
         selectedKeys={[selectedKey]}
         style={{ borderRight: 'none', marginTop: 8 }}
         items={navRoutes.map((route) => ({

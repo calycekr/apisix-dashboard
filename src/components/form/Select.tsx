@@ -22,6 +22,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import { FormError } from './FormError';
 import { genControllerProps } from './util';
 
 export type FormItemSelectProps<T extends FieldValues, R> = UseControllerProps<T> &
@@ -61,9 +62,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
         {...restField}
         {...restProps}
       />
-      {fieldState.error?.message && (
-        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
-      )}
+      <FormError message={fieldState.error?.message} />
     </>
   );
 };

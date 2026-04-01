@@ -26,6 +26,7 @@ import { useTranslation } from 'react-i18next';
 
 import IconUpload from '~icons/material-symbols/upload';
 
+import { FormError } from './FormError';
 import { genControllerProps } from './util';
 
 export type FormItemTextareaWithUploadProps<T extends FieldValues> =
@@ -124,9 +125,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
           />
         </div>
       )}
-      {(fieldState.error?.message || fileError) && (
-        <div style={{ color: 'red' }}>{fieldState.error?.message || fileError}</div>
-      )}
+      <FormError message={fieldState.error?.message || fileError || undefined} />
     </div>
   );
 };

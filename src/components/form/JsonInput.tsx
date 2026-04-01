@@ -24,6 +24,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import { FormError } from './FormError';
 import { genControllerProps } from './util';
 
 export type FormItemJsonInputProps<T extends FieldValues> = UseControllerProps<T> &
@@ -100,9 +101,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
         {...restField}
         {...(omit(['objValue'], restProps) as TextAreaProps)}
       />
-      {fieldState.error?.message && (
-        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
-      )}
+      <FormError message={fieldState.error?.message} />
     </>
   );
 };

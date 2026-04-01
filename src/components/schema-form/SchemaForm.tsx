@@ -24,6 +24,7 @@ import {
   Switch,
   Tooltip,
   Typography,
+  theme,
 } from 'antd';
 import { useCallback } from 'react';
 import IconAdd from '~icons/material-symbols/add';
@@ -73,21 +74,24 @@ const FieldLabel = ({
   label: string;
   description?: string;
   required?: boolean;
-}) => (
-  <div style={{ marginBottom: 4 }}>
-    <Typography.Text>
-      {required && (
-        <span style={{ color: '#ff4d4f', marginRight: 4 }}>*</span>
-      )}
-      {label}
-      {description && (
-        <Tooltip title={description}>
-          <IconInfo style={{ marginLeft: 6, color: '#8c8c8c', cursor: 'help', fontSize: 14 }} />
-        </Tooltip>
-      )}
-    </Typography.Text>
-  </div>
-);
+}) => {
+  const { token } = theme.useToken();
+  return (
+    <div style={{ marginBottom: 4 }}>
+      <Typography.Text>
+        {required && (
+          <span style={{ color: token.colorError, marginRight: 4 }}>*</span>
+        )}
+        {label}
+        {description && (
+          <Tooltip title={description}>
+            <IconInfo style={{ marginLeft: 6, color: token.colorTextSecondary, cursor: 'help', fontSize: 14 }} />
+          </Tooltip>
+        )}
+      </Typography.Text>
+    </div>
+  );
+};
 
 const FieldWrapper = ({
   fieldKey,
@@ -117,6 +121,7 @@ const ArrayOfObjectsField = ({
   disabled,
   required,
 }: FieldRendererProps) => {
+  const { token } = theme.useToken();
   const items = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
 
   const handleAdd = useCallback(() => {
@@ -142,7 +147,7 @@ const ArrayOfObjectsField = ({
           <Card
             key={index}
             size="small"
-            style={{ background: '#fafafa' }}
+            style={{ background: token.colorFillAlter }}
             extra={
               !disabled && (
                 <Button

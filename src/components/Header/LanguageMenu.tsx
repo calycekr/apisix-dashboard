@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Dropdown, Typography } from 'antd';
+import { Button, Dropdown, Typography, theme } from 'antd';
 import { useTranslation } from 'react-i18next';
 import i18nProgress from 'virtual:i18n-progress';
 
@@ -30,10 +30,11 @@ const LangMap: Record<keyof Resources, string> = {
 };
 
 const TranslationProgress = ({ lang }: { lang: string }) => {
+  const { token } = theme.useToken();
   const percent = i18nProgress[lang].percent;
   if (typeof percent === 'number' && percent < 100) {
     return (
-      <span style={{ color: 'rgba(0,0,0,0.45)' }}>
+      <span style={{ color: token.colorTextSecondary }}>
         ({percent}%)
       </span>
     );

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Anchor } from 'antd';
+import { Anchor, theme } from 'antd';
 import { clsx } from 'clsx';
 import { debounce } from 'rambdax';
 import {
@@ -78,6 +78,7 @@ export const FormSection = (props: FormSectionProps) => {
   const parentDepth = useContext(SectionDepthCtx);
   const { refreshTOC } = useContext(FormTOCCtx);
   const depth = useMemo(() => parentDepth + 1, [parentDepth]);
+  const { token } = theme.useToken();
   const dataAttrs = useMemo(
     () => ({
       [tocValue]: typeof legend === 'string' ? legend : undefined,
@@ -94,7 +95,7 @@ export const FormSection = (props: FormSectionProps) => {
       <fieldset
         className={clsx(tocSelector, classes.root, className)}
         disabled={disabled}
-        style={{ border: '1px solid #d9d9d9', borderRadius: 4, padding: 12, marginBottom: 8 }}
+        style={{ border: `1px solid ${token.colorBorder}`, borderRadius: 4, padding: 12, marginBottom: 8 }}
         {...dataAttrs}
         {...(restProps as React.HTMLAttributes<HTMLFieldSetElement>)}
       >

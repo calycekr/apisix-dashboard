@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button } from 'antd';
+import { Button, theme } from 'antd';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { useFieldArray, useFormContext, useFormState } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -29,8 +29,9 @@ const PairWrapper = (
   props: PropsWithChildren & { legend?: ReactNode }
 ) => {
   const { children, legend } = props;
+  const { token } = theme.useToken();
   return (
-    <fieldset style={{ padding: 8, marginBottom: 5, border: '1px solid #d9d9d9', borderRadius: 4 }}>
+    <fieldset style={{ padding: 8, marginBottom: 5, border: `1px solid ${token.colorBorder}`, borderRadius: 4 }}>
       {legend && <legend>{legend}</legend>}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {children}

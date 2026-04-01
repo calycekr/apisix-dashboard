@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { Typography, theme } from 'antd';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -37,6 +37,7 @@ const FormSectionClient = () => {
   const { t } = useTranslation();
   const { control } = useFormContext<SSLPostType>();
   const clientEnabled = useWatch({ control, name: '__clientEnabled' });
+  const { token } = theme.useToken();
   return (
     <FormSection
       legend={t('form.ssls.client.title')}
@@ -64,7 +65,7 @@ const FormSectionClient = () => {
           </InputWrapper>
         </>
       ) : (
-        <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
+        <Typography.Text style={{ color: token.colorTextSecondary, fontSize: 14 }}>
           {t('form.disabled')}
         </Typography.Text>
       )}
