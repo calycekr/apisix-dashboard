@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputWrapper, type InputWrapperProps, Skeleton } from '@mantine/core';
+import { Skeleton } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import { clsx } from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -45,18 +45,28 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
   automaticLayout: true,
 };
 
-type FormItemEditorProps<T extends FieldValues> = InputWrapperProps &
+type FormItemEditorWrapperProps = {
+  label?: React.ReactNode;
+  description?: React.ReactNode;
+  error?: React.ReactNode;
+  required?: boolean;
+  children?: React.ReactNode;
+  id?: string;
+};
+
+type FormItemEditorProps<T extends FieldValues> = FormItemEditorWrapperProps &
   UseControllerProps<T> & {
     language?: string;
     isLoading?: boolean;
     customSchema?: object;
   };
+
 export const FormItemEditor = <T extends FieldValues>(
   props: FormItemEditorProps<T>
 ) => {
   const { t } = useTranslation();
   const { controllerProps, restProps } = genControllerProps(props, '');
-  const { customSchema, language, isLoading, ...wrapperProps } = restProps;
+  const { customSchema, language, isLoading, label, description, required, id } = restProps;
   const { trigger } = useFormContext();
   const monacoErrorRef = useRef<string | null>(null);
   const isJson = !language || language === 'json';
@@ -115,25 +125,29 @@ export const FormItemEditor = <T extends FieldValues>(
   }, [customSchema, isJson]);
 
   return (
-    <InputWrapper
-      error={fieldState.error?.message}
-      id="#editor-wrapper"
-      {...wrapperProps}
-    >
+    <div id={id ?? '#editor-wrapper'}>
+      {label && (
+        <div>
+          {required && <span style={{ color: 'red', marginRight: 4 }}>*</span>}
+          {label}
+        </div>
+      )}
+      {description && <div>{description}</div>}
       <input name={restField.name} type="hidden" />
       {(isLoading || internalLoading) && (
-        <Skeleton
+        <div
           style={{
             position: 'absolute',
             zIndex: 1,
             top: 0,
             left: 0,
+            height: '100%',
+            width: '100%',
           }}
           data-testid="editor-loading"
-          visible
-          height="100%"
-          width="100%"
-        />
+        >
+          <Skeleton active />
+        </div>
       )}
       <Editor
         wrapperProps={{
@@ -155,17 +169,20 @@ export const FormItemEditor = <T extends FieldValues>(
           }
         }}
         loading={
-          <Skeleton
+          <div
             data-testid="editor-loading"
-            visible
-            height="100%"
-            width="100%"
-          />
+            style={{ height: '100%', width: '100%' }}
+          >
+            <Skeleton active />
+          </div>
         }
         options={{ ...options, readOnly: restField.disabled }}
         defaultLanguage="json"
         {...(language && { language })}
       />
-    </InputWrapper>
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </div>
   );
 };

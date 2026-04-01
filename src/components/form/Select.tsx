@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Select, type SelectProps } from '@mantine/core';
+import { Select, type SelectProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -27,6 +28,11 @@ export type FormItemSelectProps<T extends FieldValues, R> = UseControllerProps<T
   Omit<SelectProps, 'value' | 'defaultValue'> & {
     from?: (v: R) => string;
     to?: (v: string) => R;
+    label?: ReactNode;
+    description?: ReactNode;
+    data?: unknown;
+    clearable?: boolean;
+    searchable?: boolean;
   };
 
 export const FormItemSelect = <T extends FieldValues, R>(
@@ -42,18 +48,22 @@ export const FormItemSelect = <T extends FieldValues, R>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <Select
-      value={from ? from(value) : value}
-      error={fieldState.error?.message}
-      onChange={(value, option) => {
-        const val = to && value ? to(value) : value;
-        fOnChange(val);
-        restProps?.onChange?.(value, option);
-      }}
-      comboboxProps={{ shadow: 'md' }}
-      allowDeselect={false}
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Select
+        value={from ? from(value) : value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(value, option) => {
+          const val = to && value ? to(value) : value;
+          fOnChange(val);
+          restProps?.onChange?.(value, option);
+        }}
+        allowClear={false}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

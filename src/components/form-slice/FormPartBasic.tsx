@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { ComboboxItem } from '@mantine/core';
 import { type PropsWithChildren, type ReactNode, useMemo } from 'react';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
@@ -34,7 +33,7 @@ const FormItemStatus = () => {
   const { t } = useTranslation();
   const np = useNamePrefix();
   const options = useMemo(
-    (): ComboboxItem[] =>
+    () =>
       APISIXCommon.Status.options.map((v) => ({
         value: String(v.value),
         label: t(`form.basic.statusOption.${v.value}`),

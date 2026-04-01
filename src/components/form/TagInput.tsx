@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TagsInput, type TagsInputProps } from '@mantine/core';
+import { Select, type SelectProps } from 'antd';
+import type { ReactNode } from 'react';
+import { useState } from 'react';
 import {
   type FieldValues,
   useController,
@@ -27,9 +29,13 @@ export type FormItemTagsInputProps<
   T extends FieldValues,
   R
 > = UseControllerProps<T> &
-  TagsInputProps & {
+  Omit<SelectProps, 'value' | 'defaultValue' | 'mode'> & {
     from?: (v: R) => string;
     to?: (v: string) => R;
+    splitChars?: string[];
+    data?: { value: string; label: string }[] | string[];
+    label?: ReactNode;
+    description?: ReactNode;
   };
 
 export const FormItemTagsInput = <T extends FieldValues, R>(
@@ -37,26 +43,53 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
 ) => {
   const {
     controllerProps,
-    restProps: { from, to, ...restProps },
+    restProps: { from, to, splitChars, data, ...restProps },
   } = genControllerProps(props, []);
 
   const {
-    field: { value, onChange: fOnChange, ...restField },
+    field: { value, onChange: fOnChange, onBlur: fOnBlur, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
+
+  const [searchValue, setSearchValue] = useState('');
+
+  const options = data
+    ? (data as Array<string | { value: string; label: string }>).map((item) =>
+        typeof item === 'string' ? { value: item, label: item } : item
+      )
+    : restProps.options;
+
   return (
-    <TagsInput
-      value={from ? value.map(from) : value}
-      error={fieldState.error?.message}
-      onChange={(value) => {
-        const val = to ? value.map(to) : value;
-        fOnChange(val);
-        restProps?.onChange?.(value);
-      }}
-      comboboxProps={{ shadow: 'md' }}
-      acceptValueOnBlur
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Select
+        mode="tags"
+        value={from ? (value as unknown[]).map(from as (v: unknown) => string) : value}
+        status={fieldState.error ? 'error' : undefined}
+        searchValue={searchValue}
+        onSearch={setSearchValue}
+        tokenSeparators={splitChars}
+        options={options}
+        onChange={(val) => {
+          const mapped = to ? (val as string[]).map(to) : val;
+          fOnChange(mapped);
+          restProps?.onChange?.(val, []);
+          setSearchValue('');
+        }}
+        onBlur={() => {
+          if (searchValue.trim()) {
+            const newVal = [...(value as string[]), searchValue.trim()];
+            const mapped = to ? newVal.map(to) : newVal;
+            fOnChange(mapped);
+            setSearchValue('');
+          }
+          fOnBlur();
+        }}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

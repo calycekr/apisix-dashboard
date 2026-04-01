@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Switch, type SwitchProps } from '@mantine/core';
+import { Switch, type SwitchProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -26,7 +27,10 @@ import { genControllerProps } from './util';
 export type FormItemSwitchProps<T extends FieldValues> = Omit<
   UseControllerProps<T> & SwitchProps,
   'defaultValue'
->;
+> & {
+  label?: ReactNode;
+  description?: ReactNode;
+};
 
 export const FormItemSwitch = <T extends FieldValues>(
   props: FormItemSwitchProps<T>
@@ -34,17 +38,13 @@ export const FormItemSwitch = <T extends FieldValues>(
   const { controllerProps, restProps } = genControllerProps(props, false);
   const {
     field: { value, onChange: fOnChange, ...restField },
-    fieldState,
   } = useController<T>(controllerProps);
   return (
     <Switch
-      labelPosition="left"
-      value={value}
       checked={value}
-      error={fieldState.error?.message}
-      onChange={(e) => {
-        fOnChange(e);
-        restProps.onChange?.(e);
+      onChange={(checked, e) => {
+        fOnChange(checked);
+        restProps.onChange?.(checked, e);
       }}
       {...restField}
       {...restProps}

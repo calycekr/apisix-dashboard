@@ -14,9 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { JsonInput, type JsonInputProps } from '@mantine/core';
+import { Input } from 'antd';
+import type { TextAreaProps } from 'antd/es/input';
 import { omit } from 'rambdax';
-import { useMemo } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import {
   type FieldValues,
   useController,
@@ -26,9 +27,11 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemJsonInputProps<T extends FieldValues> = UseControllerProps<T> &
-  JsonInputProps & {
+  TextAreaProps & {
     toObject?: boolean;
     objValue?: unknown;
+    label?: ReactNode;
+    description?: ReactNode;
   };
 
 export const FormItemJsonInput = <T extends FieldValues>(
@@ -40,7 +43,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
     restProps: { toObject, ...restProps },
   } = genControllerProps(props, props.toObject ? objValue : '');
   const {
-    field: { value: rawVal, onChange: fOnChange, ...restField },
+    field: { value: rawVal, onChange: fOnChange, onBlur: fOnBlur, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   const value = useMemo(() => {
@@ -52,26 +55,54 @@ export const FormItemJsonInput = <T extends FieldValues>(
   }, [rawVal, toObject, objValue]);
 
   return (
-    <JsonInput
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(val) => {
-        let res: unknown;
-        if (toObject) {
-          try {
-            res = JSON.parse(val);
-          } catch {
-            res = val.length === 0 ? objValue : val;
+    <>
+      <Input.TextArea
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(e) => {
+          const val = e.target.value;
+          let res: unknown;
+          if (toObject) {
+            try {
+              res = JSON.parse(val);
+            } catch {
+              res = val.length === 0 ? objValue : val;
+            }
+          } else {
+            res = val;
           }
-        }
-        fOnChange(res);
-        restProps.onChange?.(val);
-      }}
-      formatOnBlur
-      autosize
-      resize="vertical"
-      {...restField}
-      {...omit(['objValue'], restProps)}
-    />
+          fOnChange(res);
+          restProps.onChange?.(e);
+        }}
+        onBlur={(e) => {
+          const val = e.target.value;
+          try {
+            const formatted = JSON.stringify(JSON.parse(val), null, 2);
+            let res: unknown;
+            if (toObject) {
+              try {
+                res = JSON.parse(formatted);
+              } catch {
+                res = formatted;
+              }
+            } else {
+              res = formatted;
+            }
+            fOnChange(res);
+          } catch {
+            // not valid JSON, leave as-is
+          }
+          fOnBlur();
+          restProps.onBlur?.(e);
+        }}
+        autoSize
+        style={{ resize: 'vertical' }}
+        {...restField}
+        {...(omit(['objValue'], restProps) as TextAreaProps)}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

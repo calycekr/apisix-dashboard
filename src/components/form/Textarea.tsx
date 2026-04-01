@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Textarea as MTextarea,
-  type TextareaProps as MTextareaProps,
-} from '@mantine/core';
+import { Input } from 'antd';
+import type { TextAreaProps } from 'antd/es/input';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -27,7 +26,10 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemTextareaProps<T extends FieldValues> =
-  UseControllerProps<T> & MTextareaProps;
+  UseControllerProps<T> & TextAreaProps & {
+    label?: ReactNode;
+    description?: ReactNode;
+  };
 
 export const FormItemTextarea = <T extends FieldValues>(
   props: FormItemTextareaProps<T>
@@ -38,16 +40,21 @@ export const FormItemTextarea = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <MTextarea
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(e) => {
-        fOnChange(e);
-        restProps.onChange?.(e);
-      }}
-      resize="vertical"
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Input.TextArea
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(e) => {
+          fOnChange(e);
+          restProps.onChange?.(e);
+        }}
+        autoSize
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

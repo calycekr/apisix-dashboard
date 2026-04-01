@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TagsInput, type TagsInputProps } from '@mantine/core';
+import { Select, type SelectProps } from 'antd';
 import { useCallback, useMemo, useState } from 'react';
 import {
   type FieldValues,
@@ -28,17 +28,19 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { genControllerProps } from './util';
 
 export type FormItemLabels<T extends FieldValues> = UseControllerProps<T> &
-  Omit<TagsInputProps, 'value' | 'onChange' | 'onBlur' | 'defaultValue'> & {
+  Omit<SelectProps, 'value' | 'onChange' | 'onBlur' | 'defaultValue' | 'mode'> & {
     onChange?: (value: APISIXType['Labels']) => void;
     defaultValue?: APISIXType['Labels'];
+    label?: React.ReactNode;
+    description?: React.ReactNode;
   };
 
 export const FormItemLabels = <T extends FieldValues>(
   props: FormItemLabels<T>
 ) => {
-  const { controllerProps, restProps } = genControllerProps(props);
+  const { controllerProps, restProps: { onChange: propsOnChange, label: _label, description: _description, ...restProps } } = genControllerProps(props);
   const {
-    field: { value, onChange: fOnChange, name: fName, ...restField },
+    field: { value, onChange: fOnChange, name: fName, onBlur: fOnBlur, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   const { t } = useTranslation();
@@ -49,7 +51,7 @@ export const FormItemLabels = <T extends FieldValues>(
     return Object.entries(value).map(([key, val]) => `${key}:${val}`);
   }, [value]);
 
-  const handleSearchChange = useCallback(
+  const handleSearch = useCallback(
     (val: string) => {
       const tuple = val.split(':');
       // when clear input, val can be ''
@@ -75,27 +77,30 @@ export const FormItemLabels = <T extends FieldValues>(
       }
       setInternalError(null);
       fOnChange(obj);
-      restProps.onChange?.(obj);
+      propsOnChange?.(obj);
     },
-    [fOnChange, restProps, t]
+    [fOnChange, propsOnChange, t]
   );
 
   return (
     <>
       <input name={fName} type="hidden" />
-      <TagsInput
-        acceptValueOnBlur
-        clearable
+      <Select
+        mode="tags"
+        allowClear
         value={values}
-        onSearchChange={handleSearchChange}
-        splitChars={[',']}
-        label={t('form.basic.labels.title')}
+        onSearch={handleSearch}
+        tokenSeparators={[',']}
         placeholder={t('form.basic.labels.placeholder')}
-        error={internalError || fieldState.error?.message}
+        status={internalError || fieldState.error ? 'error' : undefined}
+        onChange={handleChange}
+        onBlur={fOnBlur}
         {...restField}
         {...restProps}
-        onChange={handleChange}
       />
+      {(internalError || fieldState.error?.message) && (
+        <div style={{ color: 'red' }}>{internalError || fieldState.error?.message}</div>
+      )}
     </>
   );
 };

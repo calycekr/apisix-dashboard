@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Drawer, Group, Title } from '@mantine/core';
+import { Drawer, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -55,28 +55,29 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     methods.setValue('config', toConfigStr(config));
   }, [config, methods]);
 
+  const title = mode === 'add'
+    ? t('form.plugins.addPlugin')
+    : mode === 'edit'
+      ? t('form.plugins.editPlugin')
+      : t('form.plugins.viewPlugin');
+
   return (
     <Drawer
-      offset={0}
-      radius="md"
-      position="right"
-      size="md"
-      closeOnEscape={false}
-      opened={opened}
+      placement="right"
+      width="md"
+      keyboard={false}
+      open={opened}
       onClose={handleClose}
+      title={title}
       styles={{ body: { paddingTop: '18px' } }}
-      {...(mode === 'add' && { title: t('form.plugins.addPlugin') })}
-      {...(mode === 'edit' && { title: t('form.plugins.editPlugin') })}
-      {...(mode === 'view' && { title: t('form.plugins.viewPlugin') })}
     >
-      <Title order={3} mb={10}>
+      <Typography.Title level={3} style={{ marginBottom: 10 }}>
         {name}
-      </Title>
+      </Typography.Title>
       <FormProvider {...methods}>
         <form>
           <FormItemEditor
             name="config"
-            h={500}
             customSchema={schema}
             isLoading={!schema}
             required
@@ -84,10 +85,10 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
         </form>
 
         {mode !== 'view' && (
-          <Group justify="flex-end" mt={8}>
+          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
             <FormSubmitBtn
-              size="xs"
-              variant="light"
+              size="small"
+              type="text"
               onClick={methods.handleSubmit(({ config }) => {
                 onSave({ name, config: JSON.parse(config) });
                 handleClose();
@@ -96,7 +97,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
               {mode === 'add' && t('form.btn.add')}
               {mode === 'edit' && t('form.btn.save')}
             </FormSubmitBtn>
-          </Group>
+          </div>
         )}
       </FormProvider>
     </Drawer>

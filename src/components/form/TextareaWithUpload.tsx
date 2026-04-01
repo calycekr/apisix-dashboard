@@ -14,15 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Box,
-  Button,
-  Group,
-  Input,
-  Textarea as MTextarea,
-  type TextareaProps as MTextareaProps,
-} from '@mantine/core';
-import { useRef, useState } from 'react';
+import { Button, Input } from 'antd';
+import type { TextAreaProps } from 'antd/es/input';
+import { type ReactNode, useRef, useState } from 'react';
 import {
   type FieldValues,
   useController,
@@ -36,12 +30,15 @@ import { genControllerProps } from './util';
 
 export type FormItemTextareaWithUploadProps<T extends FieldValues> =
   UseControllerProps<T> &
-    MTextareaProps & {
+    TextAreaProps & {
       acceptFileTypes?: string;
       uploadButtonText?: string;
       maxFileSize?: number;
       onFileLoaded?: (content: string, fileName: string) => void;
       allowUpload?: boolean;
+      label?: ReactNode;
+      description?: ReactNode;
+      minRows?: number;
     };
 
 export const FormItemTextareaWithUpload = <T extends FieldValues>(
@@ -95,24 +92,25 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
   };
 
   return (
-    <Box>
-      <MTextarea
+    <div>
+      <Input.TextArea
         value={value}
+        status={fieldState.error ? 'error' : undefined}
         onChange={(e) => {
           fOnChange(e);
           onChange?.(e);
         }}
-        resize="vertical"
-        autosize={restField.disabled}
+        style={{ resize: 'vertical' }}
+        autoSize={restField.disabled}
         {...restField}
         {...textareaProps}
       />
       {allowUpload && !restField.disabled && (
-        <Group mb="xs" mt={4}>
+        <div style={{ marginBottom: 8, marginTop: 4 }}>
           <Button
-            leftSection={<IconUpload />}
-            size="compact-xs"
-            variant="outline"
+            icon={<IconUpload />}
+            size="small"
+            variant="outlined"
             onClick={() => fileInputRef.current?.click()}
           >
             {uploadButtonText || t('form.btn.upload')}
@@ -124,9 +122,11 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
             style={{ display: 'none' }}
             ref={fileInputRef}
           />
-        </Group>
+        </div>
       )}
-      <Input.Error>{fieldState.error?.message || fileError}</Input.Error>
-    </Box>
+      {(fieldState.error?.message || fileError) && (
+        <div style={{ color: 'red' }}>{fieldState.error?.message || fileError}</div>
+      )}
+    </div>
   );
 };

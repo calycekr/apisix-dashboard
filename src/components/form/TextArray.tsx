@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TagsInput, type TagsInputProps } from '@mantine/core';
+import { Select, type SelectProps } from 'antd';
 import {
   type FieldValues,
   useController,
@@ -24,7 +24,7 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemTextArrayProps<T extends FieldValues> =
-  UseControllerProps<T> & TagsInputProps;
+  UseControllerProps<T> & Omit<SelectProps, 'mode'>;
 
 export const FormItemTextArray = <T extends FieldValues>(
   props: FormItemTextArrayProps<T>
@@ -36,15 +36,21 @@ export const FormItemTextArray = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <TagsInput
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(value) => {
-        fOnChange(value);
-        restProps?.onChange?.(value);
-      }}
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Select
+        mode="tags"
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(value) => {
+          fOnChange(value);
+          restProps?.onChange?.(value, []);
+        }}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

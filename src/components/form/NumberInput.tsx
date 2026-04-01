@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { NumberInput, type NumberInputProps } from '@mantine/core';
+import { InputNumber, type InputNumberProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -24,7 +25,11 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemNumberInputProps<T extends FieldValues> =
-  UseControllerProps<T> & NumberInputProps;
+  UseControllerProps<T> & InputNumberProps & {
+    label?: ReactNode;
+    description?: ReactNode;
+    allowDecimal?: boolean;
+  };
 
 export const FormItemNumberInput = <T extends FieldValues>(
   props: FormItemNumberInputProps<T>
@@ -35,17 +40,22 @@ export const FormItemNumberInput = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <NumberInput
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(e) => {
-        restProps.onChange?.(e);
-        // Mantine's NumberInput returns a string when the value is empty
-        const val = typeof e === 'string' ? undefined : e;
-        fOnChange(val);
-      }}
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <InputNumber
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(e) => {
+          restProps.onChange?.(e);
+          // Ant Design's InputNumber returns null when the value is empty
+          const val = e === null ? undefined : e;
+          fOnChange(val);
+        }}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

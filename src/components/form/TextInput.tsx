@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { TextInput, type TextInputProps } from '@mantine/core';
+import { Input, type InputProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -24,7 +25,10 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemTextInputProps<T extends FieldValues> =
-  UseControllerProps<T> & TextInputProps;
+  UseControllerProps<T> & InputProps & {
+    label?: ReactNode;
+    description?: ReactNode;
+  };
 
 export const FormItemTextInput = <T extends FieldValues>(
   props: FormItemTextInputProps<T>
@@ -35,15 +39,20 @@ export const FormItemTextInput = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <TextInput
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(e) => {
-        fOnChange(e);
-        restProps.onChange?.(e);
-      }}
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Input
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(e) => {
+          fOnChange(e);
+          restProps.onChange?.(e);
+        }}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };

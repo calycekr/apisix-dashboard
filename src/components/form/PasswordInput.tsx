@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { PasswordInput, type PasswordInputProps } from '@mantine/core';
+import { Input } from 'antd';
+import type { PasswordProps } from 'antd/es/input';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
@@ -24,7 +26,10 @@ import {
 import { genControllerProps } from './util';
 
 export type FormItemPasswordInputProps<T extends FieldValues> =
-  UseControllerProps<T> & PasswordInputProps;
+  UseControllerProps<T> & PasswordProps & {
+    label?: ReactNode;
+    description?: ReactNode;
+  };
 
 /**
  * Form field component for sensitive data (passwords, tokens, keys).
@@ -39,15 +44,20 @@ export const FormItemPasswordInput = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <PasswordInput
-      value={value}
-      error={fieldState.error?.message}
-      onChange={(e) => {
-        fOnChange(e);
-        restProps.onChange?.(e);
-      }}
-      {...restField}
-      {...restProps}
-    />
+    <>
+      <Input.Password
+        value={value}
+        status={fieldState.error ? 'error' : undefined}
+        onChange={(e) => {
+          fOnChange(e);
+          restProps.onChange?.(e);
+        }}
+        {...restField}
+        {...restProps}
+      />
+      {fieldState.error?.message && (
+        <div style={{ color: 'red' }}>{fieldState.error.message}</div>
+      )}
+    </>
   );
 };
