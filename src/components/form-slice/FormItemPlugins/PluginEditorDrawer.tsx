@@ -14,14 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Drawer, Typography } from 'antd';
+import { Drawer, Tabs, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
-import { useEffect } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
+import { SchemaForm } from '@/components/schema-form/SchemaForm';
 
 import type { PluginCardListProps } from './PluginCardList';
 
@@ -37,29 +38,113 @@ export type PluginEditorDrawerProps = Pick<PluginCardListProps, 'mode'> & {
 const toConfigStr = (p: object): string => {
   return !isEmpty(p) && !isNil(p) ? JSON.stringify(p, null, 2) : '{}';
 };
+
+const hasProperties = (schema: object | undefined): boolean => {
+  if (!schema) return false;
+  const s = schema as Record<string, unknown>;
+  return typeof s.properties === 'object' && s.properties !== null;
+};
+
 export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const { opened, onSave, onClose, plugin, mode, schema } = props;
   const { name, config } = plugin;
   const { t } = useTranslation();
+
+  const canUseForm = hasProperties(schema);
+  const [activeTab, setActiveTab] = useState<string>(canUseForm ? 'form' : 'json');
+  const [formValue, setFormValue] = useState<Record<string, unknown>>(
+    config as Record<string, unknown>
+  );
+
   const methods = useForm<{ config: string }>({
     criteriaMode: 'all',
     disabled: mode === 'view',
     defaultValues: { config: toConfigStr(config) },
   });
+
   const handleClose = () => {
     onClose();
     methods.reset();
+    setFormValue(config as Record<string, unknown>);
+    setActiveTab(canUseForm ? 'form' : 'json');
   };
 
   useEffect(() => {
     methods.setValue('config', toConfigStr(config));
+    setFormValue(config as Record<string, unknown>);
   }, [config, methods]);
+
+  useEffect(() => {
+    setActiveTab(canUseForm ? 'form' : 'json');
+  }, [canUseForm]);
+
+  const handleTabChange = useCallback((key: string) => {
+    if (key === 'json' && activeTab === 'form') {
+      // Serialize form values to JSON editor
+      methods.setValue('config', toConfigStr(formValue as object));
+    } else if (key === 'form' && activeTab === 'json') {
+      // Parse JSON editor to form values
+      try {
+        const parsed = JSON.parse(methods.getValues('config') || '{}') as Record<string, unknown>;
+        setFormValue(parsed);
+      } catch {
+        // Keep current form value if JSON is invalid
+      }
+    }
+    setActiveTab(key);
+  }, [activeTab, formValue, methods]);
+
+  const handleFormChange = useCallback((val: Record<string, unknown>) => {
+    setFormValue(val);
+  }, []);
 
   const title = mode === 'add'
     ? t('form.plugins.addPlugin')
     : mode === 'edit'
       ? t('form.plugins.editPlugin')
       : t('form.plugins.viewPlugin');
+
+  const getCurrentConfig = (): object => {
+    if (activeTab === 'form') {
+      return formValue as object;
+    }
+    try {
+      return JSON.parse(methods.getValues('config') || '{}') as object;
+    } catch {
+      return formValue as object;
+    }
+  };
+
+  const tabItems = [
+    ...(canUseForm
+      ? [
+          {
+            key: 'form',
+            label: t('form.plugins.formMode'),
+            children: (
+              <SchemaForm
+                schema={schema as Record<string, unknown>}
+                value={formValue}
+                onChange={handleFormChange}
+                disabled={mode === 'view'}
+              />
+            ),
+          },
+        ]
+      : []),
+    {
+      key: 'json',
+      label: t('form.plugins.jsonMode'),
+      children: (
+        <FormItemEditor
+          name="config"
+          customSchema={schema}
+          isLoading={!schema}
+          required
+        />
+      ),
+    },
+  ];
 
   return (
     <Drawer
@@ -76,12 +161,20 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       </Typography.Title>
       <FormProvider {...methods}>
         <form>
-          <FormItemEditor
-            name="config"
-            customSchema={schema}
-            isLoading={!schema}
-            required
-          />
+          {canUseForm ? (
+            <Tabs
+              activeKey={activeTab}
+              onChange={handleTabChange}
+              items={tabItems}
+            />
+          ) : (
+            <FormItemEditor
+              name="config"
+              customSchema={schema}
+              isLoading={!schema}
+              required
+            />
+          )}
         </form>
 
         {mode !== 'view' && (
@@ -89,8 +182,8 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             <FormSubmitBtn
               size="small"
               type="text"
-              onClick={methods.handleSubmit(({ config }) => {
-                onSave({ name, config: JSON.parse(config) });
+              onClick={methods.handleSubmit(() => {
+                onSave({ name, config: getCurrentConfig() });
                 handleClose();
               })}
             >

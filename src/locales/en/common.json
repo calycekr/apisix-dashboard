@@ -61,6 +61,8 @@
       "addPlugin": "Add Plugin",
       "configId": "Plugin Config ID",
       "editPlugin": "Edit Plugin",
+      "formMode": "Form",
+      "jsonMode": "JSON",
       "label": "Plugins",
       "searchForSelectedPlugins": "Search for Selected Plugins",
       "selectPlugins": {
