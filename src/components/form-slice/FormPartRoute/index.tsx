@@ -22,7 +22,6 @@ import { FormItemEditor } from '@/components/form/Editor';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
 import { FormItemSwitch } from '@/components/form/Switch';
 import { FormItemTagsInput } from '@/components/form/TagInput';
-import { FormItemTextarea } from '@/components/form/Textarea';
 import { FormItemTextInput } from '@/components/form/TextInput';
 import { APISIX } from '@/types/schema/apisix';
 import { NamePrefixProvider } from '@/utils/useNamePrefix';
@@ -100,10 +99,11 @@ const FormSectionMatchRules = () => {
         name="vars"
         label={t('form.routes.vars')}
       />
-      <FormItemTextarea
+      <FormItemEditor
         control={control}
         name="filter_func"
         label={t('form.routes.filterFunc')}
+        language="lua"
       />
     </FormSection>
   );
@@ -141,6 +141,27 @@ export const FormSectionPlugins = () => {
   );
 };
 
+export const FormSectionScript = () => {
+  const { t } = useTranslation();
+  const { control } = useFormContext<RoutePostType>();
+  return (
+    <FormSection legend={t('form.routes.scriptSection')}>
+      <FormItemTextInput
+        control={control}
+        name="script_id"
+        label={t('form.routes.scriptId')}
+      />
+      <Divider my="xs" label={t('or')} />
+      <FormItemEditor
+        control={control}
+        name="script"
+        label={t('form.routes.script')}
+        language="lua"
+      />
+    </FormSection>
+  );
+};
+
 export const FormSectionService = () => {
   const { t } = useTranslation();
   const { control } = useFormContext<RoutePostType>();
@@ -168,6 +189,7 @@ export const FormPartRoute = () => {
       <FormSectionTimeout />
       <FormSectionUpstream />
       <FormSectionPlugins />
+      <FormSectionScript />
     </>
   );
 };

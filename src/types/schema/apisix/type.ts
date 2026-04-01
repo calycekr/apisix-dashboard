@@ -22,8 +22,8 @@ import type { APISIX } from '.';
 export type APISIXDetailResponse<T> = {
   key: string;
   value: T;
-  createdIndex: number;
-  modifiedIndex: number;
+  createdIndex?: number;
+  modifiedIndex?: number;
 };
 export type APISIXListResponse<T> = {
   list: Array<APISIXDetailResponse<T>>;

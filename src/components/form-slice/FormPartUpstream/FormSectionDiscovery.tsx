@@ -18,11 +18,22 @@ import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
 import { FormItemJsonInput } from '@/components/form/JsonInput';
+import { FormItemSelect } from '@/components/form/Select';
 import { useNamePrefix } from '@/utils/useNamePrefix';
 
 import { FormItemTextInput } from '../../form/TextInput';
 import { FormSection } from '../FormSection';
 import type { FormPartUpstreamType } from './schema';
+
+const DISCOVERY_TYPES = [
+  'dns',
+  'consul',
+  'consul_kv',
+  'eureka',
+  'kubernetes',
+  'nacos',
+  'tars',
+];
 
 export const FormSectionDiscovery = () => {
   const { t } = useTranslation();
@@ -35,10 +46,13 @@ export const FormSectionDiscovery = () => {
         label={t('form.upstreams.serviceName.title')}
         control={control}
       />
-      <FormItemTextInput
+      <FormItemSelect
         name={np('discovery_type')}
         label={t('form.upstreams.discoveryType.title')}
         control={control}
+        data={DISCOVERY_TYPES}
+        clearable
+        searchable
       />
       <FormItemJsonInput
         name={np('discovery_args')}

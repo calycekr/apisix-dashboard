@@ -59,17 +59,20 @@ export const FormItemEditor = <T extends FieldValues>(
   const { customSchema, language, isLoading, ...wrapperProps } = restProps;
   const { trigger } = useFormContext();
   const monacoErrorRef = useRef<string | null>(null);
+  const isJson = !language || language === 'json';
   const enhancedControllerProps = useMemo(() => {
     return {
       ...controllerProps,
       rules: {
         ...controllerProps.rules,
         validate: (value: string) => {
-          // Check JSON syntax
-          try {
-            JSON.parse(value);
-          } catch {
-            return t('form.json.parseError');
+          if (isJson) {
+            // Check JSON syntax
+            try {
+              JSON.parse(value);
+            } catch {
+              return t('form.json.parseError');
+            }
           }
           // Check Monaco markers
           if (monacoErrorRef.current) {
@@ -79,7 +82,7 @@ export const FormItemEditor = <T extends FieldValues>(
         },
       },
     };
-  }, [controllerProps, t, monacoErrorRef]);
+  }, [controllerProps, t, monacoErrorRef, isJson]);
 
   const {
     field: { value, onChange: fOnChange, ...restField },
@@ -89,6 +92,8 @@ export const FormItemEditor = <T extends FieldValues>(
   const [internalLoading, setLoading] = useState(false);
 
   useEffect(() => {
+    if (!isJson) return;
+
     setLoading(true);
 
     const schemas = [];
@@ -107,7 +112,7 @@ export const FormItemEditor = <T extends FieldValues>(
     });
 
     setLoading(false);
-  }, [customSchema]);
+  }, [customSchema, isJson]);
 
   return (
     <InputWrapper
