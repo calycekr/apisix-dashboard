@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { getSSLQueryOptions } from '@/apis/hooks';
 import { putSSLReq } from '@/apis/ssls';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartSSL } from '@/components/form-slice/FormPartSSL';
 import {
   produceToSSLForm,
@@ -89,22 +89,15 @@ const SSLDetailForm = (props: Props & { id: string }) => {
   return (
     <FormTOCBox>
       <FormProvider {...form}>
-        <form
-          onSubmit={form.handleSubmit((d) =>
-            putSSL.mutateAsync(pipeProduce()(d))
-          )}
+        <FormJsonTabs
+          form={form}
+          onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
+          submitLabel="Save"
+          disabled={readOnly}
         >
           <FormSectionGeneral readOnly />
           <FormPartSSL />
-          {!readOnly && (
-            <Space>
-              <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-              <Button variant="outlined" onClick={() => setReadOnly(true)}>
-                {'Cancel'}
-              </Button>
-            </Space>
-          )}
-        </form>
+        </FormJsonTabs>
       </FormProvider>
     </FormTOCBox>
   );

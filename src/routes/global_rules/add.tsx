@@ -25,7 +25,7 @@ import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { putGlobalRuleReq } from '@/apis/global_rules';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartGlobalRules } from '@/components/form-slice/FormPartGlobalRules';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -65,11 +65,10 @@ const GlobalRuleAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putGlobalRule.mutateAsync(d))}>
+      <FormJsonTabs form={form} onSubmit={(d) => putGlobalRule.mutateAsync(d)} submitLabel="Add">
         <FormSectionGeneral />
         <FormPartGlobalRules />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

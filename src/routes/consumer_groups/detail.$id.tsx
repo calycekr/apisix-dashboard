@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { putConsumerGroupReq } from '@/apis/consumer_groups';
 import { getConsumerGroupQueryOptions } from '@/apis/hooks';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartPluginConfig } from '@/components/form-slice/FormPartPluginConfig';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -81,22 +81,15 @@ const ConsumerGroupDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit((d) =>
-          putConsumerGroup.mutateAsync(pipeProduce()({ ...d, id }))
-        )}
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putConsumerGroup.mutateAsync(pipeProduce()({ ...d, id }))}
+        submitLabel="Save"
+        disabled={readOnly}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig basicProps={{ showName: false }} />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

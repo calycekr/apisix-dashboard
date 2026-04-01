@@ -22,7 +22,7 @@ import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { putCredentialReq } from '@/apis/credentials';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartCredential } from '@/components/form-slice/FormPartCredential';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -64,11 +64,10 @@ const CredentialAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putCredential.mutateAsync(d))}>
+      <FormJsonTabs form={form} onSubmit={(d) => putCredential.mutateAsync(d)} submitLabel="Add">
         <FormSectionGeneral />
         <FormPartCredential />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

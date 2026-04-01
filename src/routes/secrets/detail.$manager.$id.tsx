@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { getSecretQueryOptions } from '@/apis/hooks';
 import { putSecretReq } from '@/apis/secrets';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartSecret } from '@/components/form-slice/FormPartSecret';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -91,18 +91,15 @@ const SecretDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putSecret.mutateAsync(d))}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putSecret.mutateAsync(d)}
+        submitLabel="Save"
+        disabled={readOnly}
+      >
         <FormSectionGeneral readOnly />
         <FormPartSecret readOnlyManager />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

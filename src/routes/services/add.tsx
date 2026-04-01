@@ -21,7 +21,7 @@ import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { postServiceReq, type ServicePostType } from '@/apis/services';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartService } from '@/components/form-slice/FormPartService';
 import { ServicePostSchema } from '@/components/form-slice/FormPartService/schema';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
@@ -60,10 +60,9 @@ const ServiceAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => postService.mutateAsync(d))}>
+      <FormJsonTabs form={form} onSubmit={(d) => postService.mutateAsync(d)} submitLabel="Add">
         <FormPartService />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

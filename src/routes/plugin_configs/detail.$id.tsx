@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { getPluginConfigQueryOptions } from '@/apis/hooks';
 import { putPluginConfigReq } from '@/apis/plugin_configs';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartPluginConfig } from '@/components/form-slice/FormPartPluginConfig';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -83,18 +83,15 @@ const PluginConfigDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putPluginConfig.mutateAsync(d))}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putPluginConfig.mutateAsync(d)}
+        submitLabel="Save"
+        disabled={readOnly}
+      >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

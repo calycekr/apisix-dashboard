@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { getStreamRouteQueryOptions } from '@/apis/hooks';
 import { putStreamRouteReq } from '@/apis/stream_routes';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { produceRoute } from '@/components/form-slice/FormPartRoute/util';
 import { FormPartStreamRoute } from '@/components/form-slice/FormPartStreamRoute';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
@@ -86,18 +86,15 @@ const StreamRouteDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putStreamRoute.mutateAsync(d))}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putStreamRoute.mutateAsync(d)}
+        submitLabel="Save"
+        disabled={readOnly}
+      >
         <FormSectionGeneral readOnly />
         <FormPartStreamRoute />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

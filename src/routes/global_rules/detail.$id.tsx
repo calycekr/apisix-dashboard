@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { putGlobalRuleReq } from '@/apis/global_rules';
 import { getGlobalRuleQueryOptions } from '@/apis/hooks';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartGlobalRules } from '@/components/form-slice/FormPartGlobalRules';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -77,18 +77,15 @@ const GlobalRuleDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putGlobalRule.mutateAsync(d))}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putGlobalRule.mutateAsync(d)}
+        submitLabel="Save"
+        disabled={readOnly}
+      >
         <FormSectionGeneral readOnly />
         <FormPartGlobalRules />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { putConsumerReq } from '@/apis/consumers';
 import { getConsumerQueryOptions } from '@/apis/hooks';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartConsumer } from '@/components/form-slice/FormPartConsumer';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -84,22 +84,15 @@ const ConsumerDetailForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit((d) => {
-          putConsumer.mutateAsync(pipeProduce()(d));
-        })}
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => { putConsumer.mutateAsync(pipeProduce()(d)); }}
+        submitLabel="Save"
+        disabled={readOnly}
       >
         <FormSectionGeneral showID={false} readOnly />
         <FormPartConsumer />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

@@ -32,7 +32,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
 
 import { getUpstreamReq, putUpstreamReq } from '@/apis/upstreams';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartUpstream } from '@/components/form-slice/FormPartUpstream';
 import { FormPartUpstreamSchema } from '@/components/form-slice/FormPartUpstream/schema';
 import { produceToUpstreamForm } from '@/components/form-slice/FormPartUpstream/util';
@@ -98,22 +98,15 @@ const UpstreamDetailForm = (
   return (
     <FormTOCBox>
       <FormProvider {...form}>
-        <form
-          onSubmit={form.handleSubmit((d) => {
-            putUpstream.mutateAsync(pipeProduce()(d));
-          })}
+        <FormJsonTabs
+          form={form}
+          onSubmit={(d) => { putUpstream.mutateAsync(pipeProduce()(d)); }}
+          submitLabel="Save"
+          disabled={readOnly}
         >
           <FormSectionGeneral readOnly />
           <FormPartUpstream />
-          {!readOnly && (
-            <Space>
-              <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-              <Button variant="outlined" onClick={() => setReadOnly(true)}>
-                {'Cancel'}
-              </Button>
-            </Space>
-          )}
-        </form>
+        </FormJsonTabs>
       </FormProvider>
     </FormTOCBox>
   );

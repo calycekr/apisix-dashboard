@@ -24,7 +24,7 @@ import {
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { postProtoReq } from '@/apis/protos';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartProto } from '@/components/form-slice/FormPartProto';
 import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
@@ -59,10 +59,9 @@ const ProtoAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => postProto.mutateAsync(d))}>
+      <FormJsonTabs form={form} onSubmit={(d) => postProto.mutateAsync(d)} submitLabel="Add">
         <FormPartProto />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

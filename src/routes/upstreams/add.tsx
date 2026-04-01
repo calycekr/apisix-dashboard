@@ -22,7 +22,7 @@ import { FormProvider, useForm } from 'react-hook-form';
 import type { z } from 'zod';
 
 import { postUpstreamReq } from '@/apis/upstreams';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartUpstream } from '@/components/form-slice/FormPartUpstream';
 import { FormPartUpstreamSchema } from '@/components/form-slice/FormPartUpstream/schema';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
@@ -59,14 +59,9 @@ const UpstreamAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit((d) =>
-          postUpstream.mutateAsync(pipeProduce()(d))
-        )}
-      >
+      <FormJsonTabs form={form} onSubmit={(d) => postUpstream.mutateAsync(pipeProduce()(d))} submitLabel="Add">
         <FormPartUpstream />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

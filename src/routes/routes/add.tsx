@@ -21,7 +21,7 @@ import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { postRouteReq } from '@/apis/routes';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartRoute } from '@/components/form-slice/FormPartRoute';
 import {
   RoutePostSchema,
@@ -62,10 +62,9 @@ export const RouteAddForm = (props: Props) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => postRoute.mutateAsync(d))}>
+      <FormJsonTabs form={form} onSubmit={(d) => postRoute.mutateAsync(d)} submitLabel="Add">
         <FormPartRoute />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

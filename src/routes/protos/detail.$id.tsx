@@ -29,7 +29,7 @@ import { useBoolean } from 'react-use';
 
 import { getProtoQueryOptions } from '@/apis/hooks';
 import { putProtoReq } from '@/apis/protos';
-import { FormSubmitBtn } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartProto } from '@/components/form-slice/FormPartProto';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -85,18 +85,15 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
 
   return (
     <FormProvider {...form}>
-      <form onSubmit={form.handleSubmit((d) => putProto.mutateAsync(d))}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putProto.mutateAsync(d)}
+        submitLabel="Save"
+        disabled={readOnly}
+      >
         <FormSectionGeneral readOnly />
         <FormPartProto allowUpload={!readOnly} />
-        {!readOnly && (
-          <Space>
-            <FormSubmitBtn>{'Save'}</FormSubmitBtn>
-            <Button variant="outlined" onClick={() => setReadOnly(true)}>
-              {'Cancel'}
-            </Button>
-          </Space>
-        )}
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };

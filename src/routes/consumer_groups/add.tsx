@@ -22,7 +22,7 @@ import { nanoid } from 'nanoid';
 import { FormProvider, useForm } from 'react-hook-form';
 
 import { putConsumerGroupReq } from '@/apis/consumer_groups';
-import { FormSubmitBtnWithCancel } from '@/components/form/Btn';
+import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartPluginConfig } from '@/components/form-slice/FormPartPluginConfig';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -61,15 +61,10 @@ const ConsumerGroupAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <form
-        onSubmit={form.handleSubmit((d) =>
-          putConsumerGroup.mutateAsync(pipeProduce()(d))
-        )}
-      >
+      <FormJsonTabs form={form} onSubmit={(d) => putConsumerGroup.mutateAsync(pipeProduce()(d))} submitLabel="Add">
         <FormSectionGeneral />
         <FormPartPluginConfig basicProps={{ showName: false }} />
-        <FormSubmitBtnWithCancel>{'Add'}</FormSubmitBtnWithCancel>
-      </form>
+      </FormJsonTabs>
     </FormProvider>
   );
 };
