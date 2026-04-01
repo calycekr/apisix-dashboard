@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -78,9 +78,9 @@ const SecretDetailForm = (props: Props) => {
     mutationFn: (d: APISIXType['Secret']) =>
       putSecretReq(req, pipeProduce()(d)),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('secrets.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -88,7 +88,7 @@ const SecretDetailForm = (props: Props) => {
   });
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -97,12 +97,12 @@ const SecretDetailForm = (props: Props) => {
         <FormSectionGeneral readOnly />
         <FormPartSecret readOnlyManager />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -122,11 +122,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('secrets.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -137,7 +137,7 @@ function RouteComponent() {
                 api={`${API_SECRETS}/${manager}/${id}`}
                 onSuccess={() => navigate({ to: '/secrets' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

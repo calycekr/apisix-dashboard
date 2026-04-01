@@ -17,8 +17,6 @@
 import { TanStackRouterVite } from '@tanstack/router-plugin/vite';
 import react from '@vitejs/plugin-react-swc';
 import observerPlugin from 'mobx-react-observer/swc-plugin';
-import postcssPresetMantine from 'postcss-preset-mantine';
-import postcssSimpleVars from 'postcss-simple-vars';
 import UnpluginIcons from 'unplugin-icons/vite';
 import UnpluginInfo from 'unplugin-info/vite';
 import { defineConfig } from 'vite';
@@ -99,20 +97,4 @@ export default defineConfig({
       plugins: [observerPlugin() as never],
     }),
   ],
-  css: {
-    postcss: {
-      plugins: [
-        postcssPresetMantine,
-        postcssSimpleVars({
-          variables: {
-            'mantine-breakpoint-xs': '36em',
-            'mantine-breakpoint-sm': '48em',
-            'mantine-breakpoint-md': '62em',
-            'mantine-breakpoint-lg': '75em',
-            'mantine-breakpoint-xl': '88em',
-          },
-        }),
-      ],
-    },
-  },
 });

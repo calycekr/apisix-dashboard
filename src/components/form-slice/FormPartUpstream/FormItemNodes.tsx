@@ -15,8 +15,11 @@
  * limitations under the License.
  */
 import { EditableProTable, type ProColumns } from '@ant-design/pro-components';
-import { Button, InputWrapper, type InputWrapperProps } from '@mantine/core';
-import { useClickOutside } from '@mantine/hooks';
+import { Button } from 'antd';
+
+import { InputWrapper } from '@/components/form/InputWrapper';
+import type { InputWrapperProps } from '@/types/input-wrapper';
+import { useClickOutside } from '@/utils/hooks';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { nanoid } from 'nanoid';
@@ -203,11 +206,11 @@ export const FormItemNodes = <T extends FieldValues>(
     ob.setDisabled(disabled);
   }, [disabled, ob]);
 
-  const ref = useClickOutside(() => {
+  const ref = useClickOutside<HTMLDivElement>(() => {
     const vals = parseToUpstreamNodes(toJS(ob.values));
     fOnChange?.(vals);
     restProps.onChange?.(vals);
-  }, ['mouseup', 'touchend', 'mousedown', 'touchstart']);
+  });
 
   return (
     <InputWrapper
@@ -237,9 +240,9 @@ export const FormItemNodes = <T extends FieldValues>(
               return [
                 <Button
                   key="delete"
-                  variant="transparent"
-                  size="compact-xs"
-                  px={0}
+                  type="text"
+                  size="small"
+                  style={{ padding: 0 }}
                   onClick={() => ob.remove(row.id)}
                 >
                   {t('form.btn.delete')}
@@ -250,14 +253,9 @@ export const FormItemNodes = <T extends FieldValues>(
         />
       </AntdConfigProvider>
       <Button
-        fullWidth
-        variant="default"
-        mt={8}
-        size="xs"
-        color="cyan"
-        style={{ borderColor: 'whitesmoke' }}
+        style={{ marginTop: 8, width: '100%', borderColor: 'whitesmoke', ...(disabled && { display: 'none' }) }}
+        size="small"
         onClick={() => ob.append(genRecord())}
-        {...(disabled && { display: 'none' })}
       >
         {t('form.upstreams.nodes.add')}
       </Button>

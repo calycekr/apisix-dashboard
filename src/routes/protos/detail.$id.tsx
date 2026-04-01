@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group, Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -65,9 +65,9 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
   const putProto = useMutation({
     mutationFn: (d: APISIXType['Proto']) => putProtoReq(req, pipeProduce()(d)),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('protos.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -82,7 +82,7 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
   }, [protoData, form]);
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -91,12 +91,12 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
         <FormSectionGeneral readOnly />
         <FormPartProto allowUpload={!readOnly} />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -116,11 +116,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('protos.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -131,7 +131,7 @@ function RouteComponent() {
                 api={`${API_PROTOS}/${id}`}
                 onSuccess={() => navigate({ to: '/protos' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

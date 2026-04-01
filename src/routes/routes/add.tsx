@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -46,9 +46,9 @@ export const RouteAddForm = (props: Props) => {
   const postRoute = useMutation({
     mutationFn: (d: RoutePostType) => postRouteReq(req, produceRoute(d)),
     async onSuccess(res) {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', { name: t('routes.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await navigate(res);
     },

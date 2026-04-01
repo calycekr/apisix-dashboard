@@ -14,11 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Tabs as MTabs,
-  type TabsListProps,
-  type TabsProps as MTabsProps,
-} from '@mantine/core';
+import { Tabs as ATabs, type TabsProps as ATabsProps } from 'antd';
 
 export type TabsItem = {
   value: string;
@@ -28,32 +24,25 @@ export type TabsItem = {
 export type TabsProps = {
   defaultValue?: string;
   items: TabsItem[];
-  listProps?: TabsListProps;
-} & MTabsProps;
+  /** Controlled active key (maps to antd activeKey) */
+  value?: string;
+  onChange?: (value: string) => void;
+} & Omit<ATabsProps, 'items' | 'defaultActiveKey' | 'activeKey' | 'onChange'>;
 
 export const Tabs = (props: TabsProps) => {
-  const { defaultValue, items, listProps, ...rest } = props;
+  const { defaultValue, items, value, onChange, ...rest } = props;
   return (
-    <MTabs
-      defaultValue={defaultValue || items[0].value}
-      keepMounted={false}
+    <ATabs
+      defaultActiveKey={defaultValue || items[0]?.value}
+      activeKey={value}
+      onChange={onChange}
+      destroyInactiveTabPane
+      items={items.map((item) => ({
+        key: item.value,
+        label: item.label,
+        children: item.content,
+      }))}
       {...rest}
-    >
-      <MTabs.List {...listProps}>
-        {items.map((item) => (
-          <MTabs.Tab key={item.value} value={item.value}>
-            {item.label}
-          </MTabs.Tab>
-        ))}
-      </MTabs.List>
-      {items.map(
-        (item) =>
-          item.content && (
-            <MTabs.Panel key={item.value} value={item.value}>
-              {item.content}
-            </MTabs.Panel>
-          )
-      )}
-    </MTabs>
+    />
   );
 };

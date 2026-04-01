@@ -14,42 +14,47 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppShellNavbar, NavLink, type NavLinkProps } from '@mantine/core';
-import { createLink } from '@tanstack/react-router';
-import type { FC } from 'react';
-import * as React from 'react';
+import { Menu } from 'antd';
+import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { useTranslation } from 'react-i18next';
 
 import { navRoutes } from '@/config/navRoutes';
-
-const MantineLinkComponent = React.forwardRef<HTMLAnchorElement, NavLinkProps>(
-  (props, ref) => {
-    return <NavLink ref={ref} {...props} />;
-  }
-);
-MantineLinkComponent.displayName = 'MantineLinkComponent';
-
-const CreatedLinkComponent = createLink(MantineLinkComponent);
-
-interface NavbarLinkProps extends NavLinkProps {
-  to: string;
-}
-
-export const NavbarLink: FC<NavbarLinkProps> = (props) => {
-  return <CreatedLinkComponent key={props.to} href={props.to} {...props} />;
-};
+import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 
 export const Navbar = () => {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const routerState = useRouterState();
+  const currentPath = routerState.location.pathname;
+
+  const selectedKey = navRoutes.find((r) =>
+    currentPath.startsWith(r.to)
+  )?.to || '';
+
   return (
-    <AppShellNavbar>
-      {navRoutes.map((route) => (
-        <NavbarLink
-          {...route}
-          key={route.to}
-          label={t(`sources.${route.label}`)}
-        />
-      ))}
-    </AppShellNavbar>
+    <div
+      style={{
+        width: APPSHELL_NAVBAR_WIDTH,
+        position: 'fixed',
+        top: APPSHELL_HEADER_HEIGHT,
+        left: 0,
+        bottom: 0,
+        overflowY: 'auto',
+        borderRight: '1px solid #f0f0f0',
+        background: '#fff',
+        zIndex: 99,
+      }}
+    >
+      <Menu
+        mode="inline"
+        selectedKeys={[selectedKey]}
+        style={{ borderRight: 'none', height: '100%' }}
+        items={navRoutes.map((route) => ({
+          key: route.to,
+          label: t(`sources.${route.label}`),
+          onClick: () => navigate({ to: route.to }),
+        }))}
+      />
+    </div>
   );
 };

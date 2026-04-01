@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -69,9 +69,9 @@ const SSLDetailForm = (props: Props & { id: string }) => {
   const putSSL = useMutation({
     mutationFn: (d: SSLPutType) => putSSLReq(req, pipeProduce()(d)),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('ssls.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -85,7 +85,7 @@ const SSLDetailForm = (props: Props & { id: string }) => {
   }, [sslData, form, isLoading]);
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -99,12 +99,12 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           <FormSectionGeneral readOnly />
           <FormPartSSL />
           {!readOnly && (
-            <Group>
+            <Space>
               <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-              <Button variant="outline" onClick={() => setReadOnly(true)}>
+              <Button variant="outlined" onClick={() => setReadOnly(true)}>
                 {t('form.btn.cancel')}
               </Button>
-            </Group>
+            </Space>
           )}
         </form>
       </FormProvider>
@@ -125,11 +125,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('ssls.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -140,7 +140,7 @@ function RouteComponent() {
                 api={`${API_SSLS}/${id}`}
                 onSuccess={() => navigate({ to: '/ssls' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

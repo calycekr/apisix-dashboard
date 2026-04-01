@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -43,9 +43,9 @@ const ProtoAddForm = () => {
   const postProto = useMutation({
     mutationFn: (d: APISIXType['ProtoPost']) => postProtoReq(req, d),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', { name: t('protos.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await router.navigate({ to: '/protos' });
     },

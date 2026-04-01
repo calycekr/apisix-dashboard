@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -73,9 +73,9 @@ const StreamRouteDetailForm = (props: Props) => {
     mutationFn: (d: APISIXType['StreamRoute']) =>
       putStreamRouteReq(req, produceRoute(d)),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('streamRoutes.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -83,7 +83,7 @@ const StreamRouteDetailForm = (props: Props) => {
   });
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -92,12 +92,12 @@ const StreamRouteDetailForm = (props: Props) => {
         <FormSectionGeneral readOnly />
         <FormPartStreamRoute />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -120,11 +120,11 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('streamRoutes.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -135,7 +135,7 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
                 api={`${API_STREAM_ROUTES}/${id}`}
                 onSuccess={onDeleteSuccess}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

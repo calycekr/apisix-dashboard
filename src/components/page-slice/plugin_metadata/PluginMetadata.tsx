@@ -14,8 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Drawer, Group } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
@@ -44,11 +43,11 @@ export const PluginMetadata = () => {
   const putMetadata = useMutation({
     mutationFn: putPluginMetadataReq,
     onSuccess(_, variables) {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', {
           name: `${t('pluginMetadata.singular')} of ${variables.name}`,
         }),
-        color: 'green',
+        type: 'success',
       });
       getMetadataListReq.refetch();
     },
@@ -56,11 +55,11 @@ export const PluginMetadata = () => {
   const deleteMetadata = useMutation({
     mutationFn: (name: string) => deletePluginMetadataReq(name),
     onSuccess(_, name) {
-      notifications.show({
+      showNotification({
         message: t('info.delete.success', {
           name: `${t('pluginMetadata.singular')} of ${name}`,
         }),
-        color: 'green',
+        type: 'success',
       });
       getMetadataListReq.refetch();
     },
@@ -134,8 +133,8 @@ export const PluginMetadata = () => {
   }, [pluginInfoMap, hasConfigNames, pluginsOb, isLoading]);
 
   return (
-    <Drawer.Stack>
-      <Group>
+    <>
+      <div style={{ display: 'flex', gap: 8 }}>
         <PluginCardListSearch
           search={pluginsOb.search}
           setSearch={pluginsOb.setSearch}
@@ -146,7 +145,7 @@ export const PluginMetadata = () => {
           opened={pluginsOb.selectPluginsOpened}
           setOpened={pluginsOb.setSelectPluginsOpened}
         />
-      </Group>
+      </div>
       <PluginCardList
         mode="edit"
         placeholder={t('pluginMetadata.search')}
@@ -164,6 +163,6 @@ export const PluginMetadata = () => {
         plugin={toJS(pluginsOb.curPlugin)}
         onSave={pluginsOb.update}
       />
-    </Drawer.Stack>
+    </>
   );
 };

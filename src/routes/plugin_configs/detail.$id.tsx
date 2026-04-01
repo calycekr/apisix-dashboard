@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -59,9 +59,9 @@ const PluginConfigDetailForm = (props: Props) => {
     mutationFn: (d: APISIXType['PluginConfigPut']) =>
       putPluginConfigReq(req, pipeProduce()({ ...d, id })),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('pluginConfigs.singular') }),
-        color: 'green',
+        type: 'success',
       });
       pluginConfigQuery.refetch();
       setReadOnly(true);
@@ -81,7 +81,7 @@ const PluginConfigDetailForm = (props: Props) => {
     form.reset(initialValue);
   }, [form, initialValue]);
 
-  if (!data) return <Skeleton height={200} />;
+  if (!data) return <Skeleton active />;
 
   return (
     <FormProvider {...form}>
@@ -89,12 +89,12 @@ const PluginConfigDetailForm = (props: Props) => {
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -114,11 +114,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('pluginConfigs.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -129,7 +129,7 @@ function RouteComponent() {
                 api={`${API_PLUGIN_CONFIGS}/${id}`}
                 onSuccess={() => navigate({ to: '/plugin_configs' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

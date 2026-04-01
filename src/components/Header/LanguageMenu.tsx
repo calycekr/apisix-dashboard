@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ActionIcon, Anchor, Menu } from '@mantine/core';
+import { Button, Dropdown, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 import i18nProgress from 'virtual:i18n-progress';
 
@@ -33,11 +33,7 @@ const TranslationProgress = ({ lang }: { lang: string }) => {
   const percent = i18nProgress[lang].percent;
   if (typeof percent === 'number' && percent < 100) {
     return (
-      <span
-        style={{
-          color: 'var(--mantine-color-gray-6)',
-        }}
-      >
+      <span style={{ color: 'rgba(0,0,0,0.45)' }}>
         ({percent}%)
       </span>
     );
@@ -48,42 +44,44 @@ const TranslationProgress = ({ lang }: { lang: string }) => {
 export const LanguageMenu = () => {
   const { i18n, t } = useTranslation();
   return (
-    <Menu shadow="md" width={200}>
-      <Menu.Target>
-        <ActionIcon variant="light" size="sm">
-          <IconLanguage />
-        </ActionIcon>
-      </Menu.Target>
-      <Menu.Dropdown>
-        {Object.keys(LangMap).map((lang) => (
-          <Menu.Item
-            key={lang}
-            {...(lang === i18n.language && {
-              disabled: true,
-              style: {
-                backgroundColor:
-                  'var(--menu-item-hover, var(--mantine-color-gray-1))',
-              },
-            })}
-            onClick={async () => {
+    <Dropdown
+      menu={{
+        items: [
+          ...Object.keys(LangMap).map((lang) => ({
+            key: lang,
+            disabled: lang === i18n.language,
+            label: (
+              <>
+                {LangMap[lang as keyof Resources]}
+                <TranslationProgress lang={lang} />
+              </>
+            ),
+            onClick: async () => {
               await i18n.changeLanguage(lang);
-            }}
-          >
-            {LangMap[lang as keyof Resources]}
-            <TranslationProgress lang={lang} />
-          </Menu.Item>
-        ))}
-        <Menu.Divider />
-        <Menu.Label>
-          <Anchor
-            href="https://github.com/apache/apisix-dashboard/issues/1407"
-            target="_blank"
-            size="xs"
-          >
-            {t('help-us-translate')}
-          </Anchor>
-        </Menu.Label>
-      </Menu.Dropdown>
-    </Menu>
+            },
+          })),
+          { type: 'divider' as const },
+          {
+            key: 'help-translate',
+            label: (
+              <Typography.Link
+                href="https://github.com/apache/apisix-dashboard/issues/1407"
+                target="_blank"
+                style={{ fontSize: 12 }}
+              >
+                {t('help-us-translate')}
+              </Typography.Link>
+            ),
+          },
+        ],
+      }}
+    >
+      <Button
+        variant="filled"
+        color="default"
+        size="small"
+        icon={<IconLanguage />}
+      />
+    </Dropdown>
   );
 };

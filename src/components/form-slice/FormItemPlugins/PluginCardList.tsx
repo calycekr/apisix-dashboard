@@ -14,22 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  CloseButton,
-  Combobox,
-  ScrollArea,
-  SimpleGrid,
-  TextInput,
-  type TextInputProps,
-  useVirtualizedCombobox,
-} from '@mantine/core';
+import { Empty, Input } from 'antd';
+import IconClose from '~icons/material-symbols/cancel';
 import { useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
 
-type PluginCardListSearchProps = Pick<TextInputProps, 'placeholder'> & {
+type PluginCardListSearchProps = {
+  placeholder?: string;
   search: string;
   setSearch: (search: string) => void;
 };
@@ -37,7 +31,7 @@ export const PluginCardListSearch = (props: PluginCardListSearchProps) => {
   const { placeholder, search, setSearch } = props;
   const { t } = useTranslation();
   return (
-    <TextInput
+    <Input
       placeholder={placeholder || t('form.search')}
       value={search}
       style={{ flexGrow: 1, position: 'sticky', top: 0 }}
@@ -46,15 +40,19 @@ export const PluginCardListSearch = (props: PluginCardListSearchProps) => {
         event.stopPropagation();
         setSearch(event.currentTarget.value);
       }}
-      rightSectionPointerEvents="all"
-      rightSection={
-        <CloseButton
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            setSearch('');
-          }}
-        />
+      suffix={
+        search ? (
+          <IconClose
+            onClick={(event: React.MouseEvent) => {
+              event.preventDefault();
+              event.stopPropagation();
+              setSearch('');
+            }}
+            style={{ cursor: 'pointer', color: 'rgba(0,0,0,0.25)' }}
+          />
+        ) : (
+          <span />
+        )
       }
     />
   );
@@ -66,51 +64,25 @@ type OptionProps = Pick<
 > & {
   name: string;
 };
-const Option = (props: OptionProps) => {
-  const { mode, name, onAdd, onEdit, onDelete, onView } = props;
-  return (
-    <Combobox.Option key={name} value={name} p={0}>
-      <PluginCard
-        mode={mode}
-        name={name}
-        onAdd={() => onAdd?.(name)}
-        onEdit={() => onEdit?.(name)}
-        onDelete={() => onDelete?.(name)}
-        onView={() => onView?.(name)}
-      />
-    </Combobox.Option>
-  );
-};
 
-const Options = (props: { list: OptionProps[] }) => {
-  const { list } = props;
-  return (
-    <>
-      {list.map((option) => (
-        <Option key={option.name} {...option} />
-      ))}
-    </>
-  );
+export type PluginCardListProps = Omit<OptionProps, 'name'> & {
+  placeholder?: string;
+  cols?: number;
+  h?: number | string;
+  mah?: number | string;
+  search: string;
+  plugins: string[];
 };
-
-export type PluginCardListProps = Omit<OptionProps, 'name'> &
-  Pick<TextInputProps, 'placeholder'> & {
-    cols?: number;
-    h?: number | string;
-    mah?: number | string;
-    search: string;
-    plugins: string[];
-  };
 
 export const PluginCardList = (props: PluginCardListProps) => {
   const { search = '', cols = 3, h, mah, plugins } = props;
   const { mode, onAdd, onEdit, onDelete, onView } = props;
   const { t } = useTranslation();
-  const combobox = useVirtualizedCombobox();
+
   const optionsOb = useLocalObservable(() => ({
     search: '',
     plugins: [] as string[],
-    mode: 'add' as OptionProps['mode'],
+    mode: 'add' as PluginCardProps['mode'],
     setSearch(search: string) {
       this.search = search.toLowerCase().trim();
     },
@@ -124,14 +96,7 @@ export const PluginCardList = (props: PluginCardListProps) => {
       const arr = !this.search
         ? this.plugins
         : this.plugins.filter((d) => d.toLowerCase().includes(this.search));
-      return arr.map((name) => ({
-        name,
-        mode: this.mode,
-        onAdd,
-        onEdit,
-        onDelete,
-        onView,
-      }));
+      return arr;
     },
   }));
 
@@ -139,19 +104,39 @@ export const PluginCardList = (props: PluginCardListProps) => {
   useEffect(() => optionsOb.setSearch(search), [optionsOb, search]);
   useEffect(() => optionsOb.setMode(mode), [optionsOb, mode]);
 
+  const scrollStyle: React.CSSProperties = {
+    overflowY: 'auto',
+    ...(h !== undefined && { height: h }),
+    ...(mah !== undefined && { maxHeight: mah }),
+  };
+
   return (
-    <Combobox store={combobox}>
-      <Combobox.Options mt="1em">
-        <ScrollArea.Autosize h={h} mah={mah} type="scroll">
-          {!optionsOb.list.length ? (
-            <Combobox.Empty>{t('noData')}</Combobox.Empty>
-          ) : (
-            <SimpleGrid cols={cols}>
-              <Options list={optionsOb.list} />
-            </SimpleGrid>
-          )}
-        </ScrollArea.Autosize>
-      </Combobox.Options>
-    </Combobox>
+    <div style={{ marginTop: '1em' }}>
+      <div style={scrollStyle}>
+        {!optionsOb.list.length ? (
+          <Empty description={t('noData')} />
+        ) : (
+          <div
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gap: 8,
+            }}
+          >
+            {optionsOb.list.map((name) => (
+              <PluginCard
+                key={name}
+                mode={optionsOb.mode}
+                name={name}
+                onAdd={() => onAdd?.(name)}
+                onEdit={() => onEdit?.(name)}
+                onDelete={() => onDelete?.(name)}
+                onView={() => onView?.(name)}
+              />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 };

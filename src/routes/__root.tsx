@@ -14,11 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppShell } from '@mantine/core';
-import { useDisclosure } from '@mantine/hooks';
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
+import { useState } from 'react';
 import { I18nextProvider } from 'react-i18next';
 
 import { Header } from '@/components/Header';
@@ -31,27 +30,23 @@ import {
 import i18n from '@/config/i18n';
 
 const Root = () => {
-  const [opened, { toggle }] = useDisclosure(false);
+  const [opened, setOpened] = useState(false);
+  const toggle = () => setOpened((v) => !v);
   return (
     <I18nextProvider i18n={i18n}>
       <HeadContent />
-      <AppShell
-        header={{ height: APPSHELL_HEADER_HEIGHT }}
-        navbar={{
-          width: APPSHELL_NAVBAR_WIDTH,
-          breakpoint: 'sm',
-          collapsed: { mobile: !opened },
+      <Header opened={opened} toggle={toggle} />
+      <Navbar />
+      <div
+        style={{
+          marginTop: APPSHELL_HEADER_HEIGHT,
+          marginLeft: APPSHELL_NAVBAR_WIDTH,
+          padding: 16,
+          minHeight: `calc(100vh - ${APPSHELL_HEADER_HEIGHT}px)`,
         }}
-        padding="md"
       >
-        <Header opened={opened} toggle={toggle} />
-
-        <Navbar />
-
-        <AppShell.Main>
-          <Outlet />
-        </AppShell.Main>
-      </AppShell>
+        <Outlet />
+      </div>
       <TanStackRouterDevtools />
       <ReactQueryDevtools initialIsOpen={false} />
       <SettingsModal />

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Text } from '@mantine/core';
+import { Typography } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -222,9 +222,9 @@ const FormSectionChecksPassiveCore = () => {
     );
   }
   return (
-    <Text c="gray.6" size="sm">
+    <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
       {t('form.disabled')}
-    </Text>
+    </Typography.Text>
   );
 };
 
@@ -270,9 +270,9 @@ const FormSectionChecksCore = () => {
     );
   }
   return (
-    <Text c="gray.6" size="sm">
+    <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
       {t('form.disabled')}
-    </Text>
+    </Typography.Text>
   );
 };
 

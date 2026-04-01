@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useListState, useMap } from '@mantine/hooks';
+import { useListState, useMap } from '@/utils/hooks';
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
 import { useDeepCompareEffect } from 'react-use';
 
@@ -47,7 +47,7 @@ export const usePluginMetadataList = () => {
       : [],
   });
   const [hasConfigNames, hasConfigNamesOp] = useListState<string>();
-  const pluginInfoMap = useMap<string, PluginInfo>();
+  const [pluginInfoMap, pluginInfoMapOp] = useMap<string, PluginInfo>();
   const isLoading =
     pluginsListQuery.isPending ||
     metadataQueries.some((query) => query.isPending);
@@ -56,6 +56,7 @@ export const usePluginMetadataList = () => {
     if (isLoading) return;
     // clear the list first
     hasConfigNamesOp.setState([]);
+    pluginInfoMapOp.clear();
     for (const [index, pluginName] of names.entries()) {
       const req = metadataQueries[index];
       const info = {
@@ -63,7 +64,7 @@ export const usePluginMetadataList = () => {
         config: req.isSuccess ? req.data?.value : {},
         schema: originObj[pluginName].metadata_schema as object,
       };
-      pluginInfoMap.set(pluginName, info);
+      pluginInfoMapOp.set(pluginName, info);
       if (req.isSuccess) {
         hasConfigNamesOp.append(pluginName);
       }

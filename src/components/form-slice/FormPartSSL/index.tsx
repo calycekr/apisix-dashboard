@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputWrapper, Text } from '@mantine/core';
+import { Typography } from 'antd';
+
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -62,9 +64,9 @@ const FormSectionClient = () => {
           </InputWrapper>
         </>
       ) : (
-        <Text c="gray.6" size="sm">
+        <Typography.Text style={{ color: '#8c8c8c', fontSize: 14 }}>
           {t('form.disabled')}
-        </Text>
+        </Typography.Text>
       )}
     </FormSection>
   );

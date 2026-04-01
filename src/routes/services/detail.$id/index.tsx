@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group, Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -76,9 +76,9 @@ const ServiceDetailForm = (props: Props) => {
         pipeProduce(produceRmUpstreamWhenHas('upstream_id'))(d)
       ),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('services.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -86,7 +86,7 @@ const ServiceDetailForm = (props: Props) => {
   });
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -95,12 +95,12 @@ const ServiceDetailForm = (props: Props) => {
         <FormSectionGeneral />
         <FormPartService />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -120,11 +120,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('services.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -135,7 +135,7 @@ function RouteComponent() {
                 api={`${API_SERVICES}/${id}`}
                 onSuccess={() => navigate({ to: '/services' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

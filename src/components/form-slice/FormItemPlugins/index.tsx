@@ -14,14 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Drawer,
-  Group,
-  InputWrapper,
-  type InputWrapperProps,
-} from '@mantine/core';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { toJS } from 'mobx';
+import type { InputWrapperProps } from '@/types/input-wrapper';
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { useLocalObservable } from 'mobx-react-lite';
 import { difference } from 'rambdax';
 import { useEffect, useMemo } from 'react';
@@ -151,8 +147,8 @@ export const FormItemPlugins = <T extends FieldValues>(
   return (
     <InputWrapper error={fieldState.error?.message} {...restProps}>
       <input name={fName} type="hidden" />
-      <Drawer.Stack>
-        <Group>
+      <>
+        <div style={{ display: 'flex', gap: 8 }}>
           <PluginCardListSearch
             search={pluginsOb.search}
             setSearch={pluginsOb.setSearch}
@@ -164,7 +160,7 @@ export const FormItemPlugins = <T extends FieldValues>(
             onAdd={(name) => pluginsOb.on('add', name)}
             disabled={restField.disabled}
           />
-        </Group>
+        </div>
         <PluginCardList
           mode={isView ? 'view' : 'edit'}
           placeholder={t('form.plugins.searchForSelectedPlugins')}
@@ -183,7 +179,7 @@ export const FormItemPlugins = <T extends FieldValues>(
           plugin={toJS(pluginsOb.curPlugin)}
           onSave={pluginsOb.update}
         />
-      </Drawer.Stack>
+      </>
     </InputWrapper>
   );
 };

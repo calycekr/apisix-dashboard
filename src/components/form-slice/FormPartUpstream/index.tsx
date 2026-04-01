@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider } from '@mantine/core';
+import { Divider } from 'antd';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -56,7 +56,7 @@ export const FormSectionTLS = () => {
           name={np('tls.client_key')}
           label={t('form.upstreams.tls.clientKey')}
         />
-        <Divider my="xs" label={t('or')} />
+        <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
         <FormItemTextInput
           control={control}
           name={np('tls.client_cert_id')}
@@ -233,7 +233,7 @@ export const FormPartUpstream = () => {
         <FormSection legend={t('form.upstreams.nodes.title')}>
           <FormItemNodes name={np('nodes')} required />
         </FormSection>
-        <Divider my="xs" label={t('or')} />
+        <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
         <FormSectionDiscovery />
       </FormSection>
       <FormSection legend={t('form.upstreams.connectionConfiguration')}>

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import axios, { AxiosError, type AxiosResponse, HttpStatusCode } from 'axios';
 import { getDefaultStore } from 'jotai';
 import { stringify } from 'qs';
@@ -79,10 +79,10 @@ req.interceptors.response.use(
       if (matchSkipInterceptor(err)) return Promise.reject(err);
       const res = err.response as AxiosResponse<APISIXRespErr>;
       const d = res.data;
-      notifications.show({
+      showNotification({
         id: d?.error_msg || d?.message,
-        message: d?.error_msg || d?.message,
-        color: 'red',
+        message: d?.error_msg || d?.message || '',
+        type: 'error',
       });
       // Requires to enter admin key at 401
       if (res.status === HttpStatusCode.Unauthorized) {

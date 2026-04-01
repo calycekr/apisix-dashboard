@@ -14,8 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputWrapper, type InputWrapperProps,Text } from '@mantine/core';
+import { Typography } from 'antd';
 import dayjs from 'dayjs';
+
+import { InputWrapper } from '@/components/form/InputWrapper';
+import type { InputWrapperProps } from '@/types/input-wrapper';
 
 type FormDisplayDateProps = InputWrapperProps & {
   date: dayjs.ConfigType;
@@ -26,9 +29,9 @@ export const FormDisplayDate = (props: FormDisplayDateProps) => {
   const d = typeof date === 'number' ? date * 1000 : date;
   return (
     <InputWrapper {...rest}>
-      <Text size="sm" c="gray.6">
+      <Typography.Text style={{ fontSize: 14, color: '#8c8c8c' }}>
         {d ? dayjs(d).format(format) : '-'}
-      </Text>
+      </Typography.Text>
     </InputWrapper>
   );
 };

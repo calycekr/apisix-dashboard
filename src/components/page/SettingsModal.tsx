@@ -14,13 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Divider,
-  InputWrapper,
-  Modal,
-  PasswordInput,
-  Text,
-} from '@mantine/core';
+import { Divider, Input, Modal, Typography } from 'antd';
 import { useAtom } from 'jotai';
 import { useTranslation } from 'react-i18next';
 
@@ -33,29 +27,33 @@ const AdminKey = () => {
   const [adminKey, setAdminKey] = useAtom(adminKeyAtom);
 
   return (
-    <PasswordInput
-      label={t('settings.adminKey')}
-      value={adminKey}
-      onChange={(e) => {
-        setAdminKey(e.currentTarget.value);
-        setTimeout(() => {
-          queryClient.invalidateQueries();
-          queryClient.refetchQueries();
-        });
-      }}
-      required
-    />
+    <div>
+      <label style={{ display: 'block', marginBottom: 4 }}>
+        {t('settings.adminKey')} <span style={{ color: 'red' }}>*</span>
+      </label>
+      <Input.Password
+        value={adminKey}
+        onChange={(e) => {
+          setAdminKey(e.currentTarget.value);
+          setTimeout(() => {
+            queryClient.invalidateQueries();
+            queryClient.refetchQueries();
+          });
+        }}
+      />
+    </div>
   );
 };
 
 const UICommitSha = () => {
   const { t } = useTranslation();
   return (
-    <InputWrapper label={t('settings.ui-commit-sha')}>
-      <Text c="gray.6" size="sm">
+    <div>
+      <label style={{ display: 'block', marginBottom: 4 }}>{t('settings.ui-commit-sha')}</label>
+      <Typography.Text type="secondary" style={{ fontSize: 14 }}>
         {sha}
-      </Text>
-    </InputWrapper>
+      </Typography.Text>
+    </div>
   );
 };
 
@@ -65,13 +63,14 @@ export const SettingsModal = () => {
 
   return (
     <Modal
-      opened={isSettingsOpen}
-      onClose={() => setIsSettingsOpen(false)}
+      open={isSettingsOpen}
+      onCancel={() => setIsSettingsOpen(false)}
       centered
       title={t('settings.title')}
+      footer={null}
     >
       <AdminKey />
-      <Divider my="lg" />
+      <Divider style={{ marginBlock: 16 }} />
       <UICommitSha />
     </Modal>
   );

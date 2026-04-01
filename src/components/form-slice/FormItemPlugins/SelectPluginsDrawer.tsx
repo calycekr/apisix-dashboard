@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Drawer } from '@mantine/core';
+import { Button, Drawer } from 'antd';
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
@@ -43,19 +43,18 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
   return (
     <>
       <Drawer
-        offset={0}
-        radius="md"
-        position="right"
-        size="xl"
-        closeOnEscape={false}
-        opened={opened}
+        placement="right"
+        width={720}
+        keyboard={false}
+        open={opened}
         onClose={() => setOpened(false)}
         title={t('form.plugins.selectPlugins.title')}
+        extra={
+          <div style={{ minHeight: 60 }}>
+            <PluginCardListSearch search={search} setSearch={setSearch} />
+          </div>
+        }
       >
-        <Drawer.Header p={0} mih="60px">
-          <PluginCardListSearch search={search} setSearch={setSearch} />
-        </Drawer.Header>
-
         <PluginCardList
           mode="add"
           cols={2}
@@ -66,7 +65,7 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
         />
       </Drawer>
       {!disabled && (
-        <Button ml={8} onClick={() => setOpened(true)}>
+        <Button style={{ marginLeft: 8 }} onClick={() => setOpened(true)}>
           {t('form.plugins.selectPlugins.title')}
         </Button>
       )}

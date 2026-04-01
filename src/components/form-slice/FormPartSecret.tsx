@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider, InputWrapper } from '@mantine/core';
+import { Divider } from 'antd';
+
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -108,7 +110,7 @@ const GCPSecretForm = () => {
           name="auth_file"
           label={t('form.secrets.gcp.auth_file')}
         />
-        <Divider my="xs" label={t('or')} />
+        <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
         <FormSection legend={t('form.secrets.gcp.auth_config')}>
           <FormItemTextInput
             control={control}

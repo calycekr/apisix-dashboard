@@ -29,9 +29,9 @@ export type ToAddPageBtnProps = {
 export const ToAddPageBtn = ({ to, params, label }: ToAddPageBtnProps) => {
   return (
     <RouteLinkBtn
-      leftSection={<IconPlus />}
-      size="compact-sm"
-      variant="gradient"
+      icon={<IconPlus />}
+      size="small"
+      type="primary"
       to={to}
       params={params}
     >
@@ -50,7 +50,7 @@ export const ToDetailPageBtn = (props: ToDetailPageBtnProps) => {
   const { params, to } = props;
   const { t } = useTranslation();
   return (
-    <RouteLinkBtn size="compact-xs" variant="light" to={to} params={params}>
+    <RouteLinkBtn size="small" to={to} params={params}>
       {t('form.btn.view')}
     </RouteLinkBtn>
   );

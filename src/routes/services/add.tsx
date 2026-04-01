@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -42,9 +42,9 @@ const ServiceAddForm = () => {
         pipeProduce(produceRmUpstreamWhenHas('upstream_id'))(d)
       ),
     async onSuccess(res) {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', { name: t('services.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await router.navigate({
         to: '/services/detail/$id',

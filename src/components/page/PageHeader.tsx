@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Box, Group, Stack,Text, Title } from '@mantine/core';
+import { Typography } from 'antd';
 import { type FC } from 'react';
 
 type PageHeaderProps = {
@@ -26,19 +26,19 @@ type PageHeaderProps = {
 const PageHeader: FC<PageHeaderProps> = (props) => {
   const { title, desc, extra } = props;
   return (
-    <Box py="md" mb="lg">
-      <Group justify="space-between" align="center">
-        <Stack gap="xs">
-          <Title order={2}>{title}</Title>
+    <div style={{ paddingBlock: 16, marginBottom: 24 }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+          <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
           {desc && (
-            <Text c="gray" size="sm">
+            <Typography.Text type="secondary" style={{ fontSize: 14 }}>
               {desc}
-            </Text>
+            </Typography.Text>
           )}
-        </Stack>
+        </div>
         {extra}
-      </Group>
-    </Box>
+      </div>
+    </div>
   );
 };
 

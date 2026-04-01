@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -42,10 +42,10 @@ const GlobalRuleAddForm = () => {
   const putGlobalRule = useMutation({
     mutationFn: (d: APISIXType['GlobalRulePut']) => putGlobalRuleReq(req, d),
     async onSuccess(res) {
-      notifications.show({
+      showNotification({
         id: 'add-global_rule',
         message: t('info.add.success', { name: t('globalRules.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await router.navigate({
         to: '/global_rules/detail/$id',

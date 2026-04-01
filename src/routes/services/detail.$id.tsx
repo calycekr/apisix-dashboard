@@ -56,7 +56,6 @@ export const DetailTabs = () => {
   return (
     <Tabs
       items={items}
-      variant="outline"
       value={
         items
           .slice()

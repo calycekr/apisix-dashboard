@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -40,9 +40,9 @@ const SSLAddForm = () => {
   const postSSL = useMutation({
     mutationFn: (d: SSLPostType) => postSSLReq(req, pipeProduce()(d)),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', { name: t('ssls.singular') }),
-        color: 'green',
+        type: 'success',
       });
       // Invalidate SSLs list query to refetch fresh data
       await queryClient.invalidateQueries({ queryKey: ['ssls'] });

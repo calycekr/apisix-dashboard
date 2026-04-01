@@ -1,6 +1,6 @@
 .monaco-editor,
 .monaco-editor .overflow-guard {
-  border-radius: var(--mantine-radius-sm);
+  border-radius: 6px;
 }
 
 /* This is to fix the suggest widget offset problem */
@@ -14,23 +14,23 @@
 }
 
 .editor-wrapper {
-  border: 1px solid var(--mantine-color-gray-4);
-  border-radius: var(--mantine-radius-sm);
+  border: 1px solid #ced4da;
+  border-radius: 6px;
   position: relative;
   height: 100%;
 
   &:focus-within {
-    border-color: var(--mantine-color-blue-6);
+    border-color: #1677ff;
   }
 }
 
 .editor-wrapper--disabled {
-  background-color: var(--mantine-color-gray-0);
-  border-color: var(--mantine-color-gray-3);
+  background-color: #f8f9fa;
+  border-color: #dee2e6;
   cursor: not-allowed !important;
 
   &:focus-within {
-    border-color: var(--mantine-color-gray-3);
+    border-color: #dee2e6;
   }
 
   & * {
@@ -42,11 +42,11 @@
   .monaco-editor .monaco-editor-background,
   .monaco-editor .overflow-guard,
   .monaco-editor .margin-view-overlays {
-    background-color: var(--mantine-color-gray-0) !important;
+    background-color: #f8f9fa !important;
   }
 
   .monaco-editor .view-lines,
   .monaco-editor .view-line * {
-    color: var(--mantine-color-gray-5) !important;
+    color: #adb5bd !important;
   }
 }

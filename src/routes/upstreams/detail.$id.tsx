@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import {
   queryOptions,
   useMutation,
@@ -78,9 +78,9 @@ const UpstreamDetailForm = (
   const putUpstream = useMutation({
     mutationFn: (d: APISIXType['Upstream']) => putUpstreamReq(req, d),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('upstreams.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -94,7 +94,7 @@ const UpstreamDetailForm = (
   }, [upstreamData, form, isLoading]);
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -108,12 +108,12 @@ const UpstreamDetailForm = (
           <FormSectionGeneral readOnly />
           <FormPartUpstream />
           {!readOnly && (
-            <Group>
+            <Space>
               <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-              <Button variant="outline" onClick={() => setReadOnly(true)}>
+              <Button variant="outlined" onClick={() => setReadOnly(true)}>
                 {t('form.btn.cancel')}
               </Button>
-            </Group>
+            </Space>
           )}
         </form>
       </FormProvider>
@@ -134,11 +134,11 @@ function RouteComponent() {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('upstreams.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -149,7 +149,7 @@ function RouteComponent() {
                 api={`${API_UPSTREAMS}/${id}`}
                 onSuccess={() => navigate({ to: '/upstreams' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

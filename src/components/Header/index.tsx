@@ -14,11 +14,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { AppShell, Burger, Group, Image } from '@mantine/core';
+import { Button } from 'antd';
 import type { FC } from 'react';
 import { useTranslation } from 'react-i18next';
 
 import apisixLogo from '@/assets/apisix-logo.svg';
+import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
+import IconMenu from '~icons/material-symbols/menu';
 
 import { LanguageMenu } from './LanguageMenu';
 import { SettingModalBtn } from './SettingModalBtn';
@@ -26,7 +28,7 @@ import { SettingModalBtn } from './SettingModalBtn';
 const Logo = () => {
   const { t } = useTranslation();
   return (
-    <Image src={apisixLogo} alt={t('apisix.logo')} w={24} h={24} fit="fill" />
+    <img src={apisixLogo} alt={t('apisix.logo')} width={24} height={24} style={{ objectFit: 'fill' }} />
   );
 };
 
@@ -35,21 +37,41 @@ type HeaderProps = {
   toggle: () => void;
 };
 export const Header: FC<HeaderProps> = (props) => {
-  const { opened, toggle } = props;
+  const { toggle } = props;
   const { t } = useTranslation();
   return (
-    <AppShell.Header>
-      <Group h="100%" px="md" justify="space-between">
-        <Group h="100%" gap="sm">
-          <Burger opened={opened} onClick={toggle} hiddenFrom="sm" size="sm" />
-          <Logo />
-          <div>{t('apisix.dashboard')}</div>
-        </Group>
-        <Group h="100%" gap="sm">
-          <SettingModalBtn />
-          <LanguageMenu />
-        </Group>
-      </Group>
-    </AppShell.Header>
+    <div
+      style={{
+        height: APPSHELL_HEADER_HEIGHT,
+        display: 'flex',
+        alignItems: 'center',
+        paddingInline: 16,
+        justifyContent: 'space-between',
+        borderBottom: '1px solid #f0f0f0',
+        background: '#fff',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        zIndex: 100,
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Button
+          variant="filled"
+          color="default"
+          size="small"
+          icon={<IconMenu />}
+          onClick={toggle}
+          style={{ display: 'none' }}
+        />
+        <Logo />
+        <div>{t('apisix.dashboard')}</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <SettingModalBtn />
+        <LanguageMenu />
+      </div>
+    </div>
   );
 };

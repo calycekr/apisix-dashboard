@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider } from '@mantine/core';
+import { Divider } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -63,7 +63,7 @@ export const FormSectionGeneral = (props: FormSectionGeneralProps) => {
   return (
     <FormSection legend={t('form.general.title')} disabled={readOnly}>
       {showID && <FormItemID />}
-      {showID && showDate && <Divider my="lg" />}
+      {showID && showDate && <Divider style={{ margin: '16px 0' }} />}
       <input type="hidden" {...register('create_time')} />
       <input type="hidden" {...register('update_time')} />
       {showDate && <DisplayDate />}

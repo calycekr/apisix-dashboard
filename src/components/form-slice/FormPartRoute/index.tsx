@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider, InputWrapper } from '@mantine/core';
+import { Divider } from 'antd';
+
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -117,7 +119,7 @@ export const FormSectionUpstream = () => {
       <FormSection legend={t('form.upstreams.upstreamId')}>
         <FormItemTextInput control={control} name="upstream_id" />
       </FormSection>
-      <Divider my="xs" label={t('or')} />
+      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
       <NamePrefixProvider value="upstream">
         <FormPartUpstream />
       </NamePrefixProvider>
@@ -135,7 +137,7 @@ export const FormSectionPlugins = () => {
         name="plugin_config_id"
         label={t('form.plugins.configId')}
       />
-      <Divider my="xs" label={t('or')} />
+      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
@@ -151,7 +153,7 @@ export const FormSectionScript = () => {
         name="script_id"
         label={t('form.routes.scriptId')}
       />
-      <Divider my="xs" label={t('or')} />
+      <Divider style={{ margin: '8px 0' }}>{t('or')}</Divider>
       <FormItemEditor
         control={control}
         name="script"

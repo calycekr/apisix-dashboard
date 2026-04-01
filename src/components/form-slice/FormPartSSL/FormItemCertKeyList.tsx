@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Fieldset, type FieldsetProps,Stack } from '@mantine/core';
-import type { PropsWithChildren } from 'react';
+import { Button } from 'antd';
+import type { PropsWithChildren, ReactNode } from 'react';
 import { useFieldArray, useFormContext, useFormState } from 'react-hook-form';
 import { useTranslation } from 'react-i18next';
 
@@ -26,15 +26,16 @@ import { FormSection } from '../FormSection';
 import type { SSLPostType } from './schema';
 
 const PairWrapper = (
-  props: PropsWithChildren & Pick<FieldsetProps, 'legend'>
+  props: PropsWithChildren & { legend?: ReactNode }
 ) => {
   const { children, legend } = props;
   return (
-    <Fieldset p={8} mb={5} legend={legend}>
-      <Stack flex={1} gap={1}>
+    <fieldset style={{ padding: 8, marginBottom: 5, border: '1px solid #d9d9d9', borderRadius: 4 }}>
+      {legend && <legend>{legend}</legend>}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {children}
-      </Stack>
-    </Fieldset>
+      </div>
+    </fieldset>
   );
 };
 
@@ -75,11 +76,9 @@ const CertKeyPairList = () => {
           legend={
             !certsState.disabled && (
               <Button
-                leftSection={<IconDelete />}
-                justify="flex-end"
-                size="compact-xs"
-                color="red"
-                variant="outline"
+                icon={<IconDelete />}
+                size="small"
+                danger
                 onClick={() => {
                   certs.remove(idx);
                   keys.remove(idx);
@@ -104,10 +103,8 @@ const CertKeyPairList = () => {
       ))}
       {!certsState.disabled && (
         <Button
-          mt={16}
-          fullWidth
-          size="compact-sm"
-          variant="outline"
+          style={{ marginTop: 16, width: '100%' }}
+          size="small"
           onClick={() => {
             keys.append('');
             certs.append('');

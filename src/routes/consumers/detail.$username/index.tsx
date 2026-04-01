@@ -15,8 +15,8 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Group,Skeleton } from '@mantine/core';
-import { notifications } from '@mantine/notifications';
+import { Button, Skeleton, Space } from 'antd';
+import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -71,9 +71,9 @@ const ConsumerDetailForm = (props: Props) => {
   const putConsumer = useMutation({
     mutationFn: (d: APISIXType['ConsumerPut']) => putConsumerReq(req, d),
     async onSuccess() {
-      notifications.show({
+      showNotification({
         message: t('info.edit.success', { name: t('consumers.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await refetch();
       setReadOnly(true);
@@ -81,7 +81,7 @@ const ConsumerDetailForm = (props: Props) => {
   });
 
   if (isLoading) {
-    return <Skeleton height={400} />;
+    return <Skeleton active />;
   }
 
   return (
@@ -94,12 +94,12 @@ const ConsumerDetailForm = (props: Props) => {
         <FormSectionGeneral showID={false} readOnly />
         <FormPartConsumer />
         {!readOnly && (
-          <Group>
+          <Space>
             <FormSubmitBtn>{t('form.btn.save')}</FormSubmitBtn>
-            <Button variant="outline" onClick={() => setReadOnly(true)}>
+            <Button variant="outlined" onClick={() => setReadOnly(true)}>
               {t('form.btn.cancel')}
             </Button>
-          </Group>
+          </Space>
         )}
       </form>
     </FormProvider>
@@ -119,11 +119,11 @@ const ConsumerDetailTab = () => {
         {...(readOnly && {
           title: t('info.detail.title', { name: t('consumers.singular') }),
           extra: (
-            <Group>
+            <Space>
               <Button
                 onClick={() => setReadOnly(false)}
-                size="compact-sm"
-                variant="gradient"
+                size="small"
+                type="primary"
               >
                 {t('form.btn.edit')}
               </Button>
@@ -134,7 +134,7 @@ const ConsumerDetailTab = () => {
                 api={`${API_CONSUMERS}/${username}`}
                 onSuccess={() => navigate({ to: '/consumer_groups' })}
               />
-            </Group>
+            </Space>
           ),
         })}
       />

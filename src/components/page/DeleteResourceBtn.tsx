@@ -14,15 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, type ButtonProps, Text } from '@mantine/core';
-import { useCallbackRef } from '@mantine/hooks';
-import { modals } from '@mantine/modals';
-import { notifications } from '@mantine/notifications';
+import { Button, type ButtonProps, Modal, Typography } from 'antd';
 import type { AxiosResponse } from 'axios';
 import { useTranslation } from 'react-i18next';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
+import { useCallbackRef } from '@/utils/hooks';
+import { showNotification } from '@/utils/notification';
 
 type DeleteResourceProps = {
   name: string;
@@ -35,7 +34,7 @@ type DeleteResourceProps = {
     | (() => Promise<void>);
   DeleteBtn?: typeof Button;
   mode?: 'detail' | 'list';
-} & ButtonProps;
+} & Omit<ButtonProps, 'onClick'>;
 export const DeleteResourceBtn = (props: DeleteResourceProps) => {
   const {
     name,
@@ -47,36 +46,35 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
     ...btnProps
   } = props;
   const { t } = useTranslation();
-  const openModal = useCallbackRef(() =>
-    modals.openConfirmModal({
+  const openModal = useCallbackRef(() => {
+    Modal.confirm({
       centered: true,
-      confirmProps: { color: 'red' },
+      okButtonProps: { danger: true },
       title: t('info.delete.title', { name: name }),
-      children: (
-        <Text>
+      content: (
+        <Typography.Text>
           {t('info.delete.content', { name: name })}
           {target && (
-            <Text
-              component="span"
-              fw={700}
-              mx="0.25em"
-              style={{ wordBreak: 'break-all' }}
+            <Typography.Text
+              strong
+              style={{ wordBreak: 'break-all', marginInline: '0.25em' }}
             >
               {target}
-            </Text>
+            </Typography.Text>
           )}
           {t('mark.question')}
-        </Text>
+        </Typography.Text>
       ),
-      labels: { confirm: t('form.btn.delete'), cancel: t('form.btn.cancel') },
-      onConfirm: () =>
+      okText: t('form.btn.delete'),
+      cancelText: t('form.btn.cancel'),
+      onOk: () =>
         req
           .delete(api)
           .then((res) => Promise.resolve(onSuccess?.(res)))
           .then(() => {
-            notifications.show({
+            showNotification({
               message: t('info.delete.success', { name: name }),
-              color: 'green',
+              type: 'success',
             });
             // force invalidate all queries
             // because in playwright, if without this, the navigated page will not refresh
@@ -86,21 +84,19 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
             // TODO: remove this
             queryClient.invalidateQueries();
           }),
-    })
-  );
+    });
+  });
   if (DeleteBtn) {
     return <DeleteBtn onClick={openModal} />;
   }
   return (
     <Button
       onClick={openModal}
-      size="compact-xs"
-      variant="light"
+      size="small"
+      danger
       {...(mode === 'detail' && {
-        size: 'compact-sm',
-        variant: 'filled',
+        type: 'primary',
       })}
-      color="red"
       {...btnProps}
     >
       {t('form.btn.delete')}

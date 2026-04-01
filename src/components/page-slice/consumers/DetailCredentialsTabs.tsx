@@ -44,7 +44,6 @@ export const DetailCredentialsTabs = () => {
   return (
     <Tabs
       items={items}
-      variant="outline"
       value={pathname.includes('credentials') ? 'credentials' : 'detail'}
       onChange={(v) => {
         navigate({

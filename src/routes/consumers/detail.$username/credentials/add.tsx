@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useParams, useRouter } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
@@ -43,11 +43,11 @@ const CredentialAddForm = () => {
     mutationFn: (d: APISIXType['CredentialPut']) =>
       putCredentialReq(req, pipeProduce()({ ...d, username })),
     async onSuccess(_, res) {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', {
           name: t('credentials.singular'),
         }),
-        color: 'green',
+        type: 'success',
       });
       await router.navigate({
         to: '/consumers/detail/$username/credentials/detail/$id',

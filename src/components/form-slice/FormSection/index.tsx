@@ -14,14 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import {
-  Fieldset,
-  type FieldsetProps,
-  Group,
-  TableOfContents,
-  type TableOfContentsProps,
-} from '@mantine/core';
-import { useShallowEffect } from '@mantine/hooks';
+import { Anchor } from 'antd';
 import { clsx } from 'clsx';
 import { debounce } from 'rambdax';
 import {
@@ -30,11 +23,13 @@ import {
   type ReactNode,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
-  useRef,
+  useState,
 } from 'react';
 
 import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
+import { useShallowEffect } from '@/utils/hooks';
 
 import classes from './style.module.css';
 
@@ -42,7 +37,7 @@ const SectionDepthCtx = createContext<number>(0);
 
 const SectionDepthProvider = SectionDepthCtx.Provider;
 
-// `form-section` class is for TableOfContents
+// `form-section` class is for TOC scroll-spy
 const tocSelector = 'form-section';
 const tocValue = 'data-label';
 const tocDepth = 'data-depth';
@@ -53,8 +48,11 @@ const FormTOCCtx = createContext<{
   refreshTOC: () => {},
 });
 
-export type FormSectionProps = Omit<FieldsetProps, 'form'> & {
+export type FormSectionProps = PropsWithChildren & {
+  legend?: ReactNode;
   extra?: ReactNode;
+  disabled?: boolean;
+  className?: string;
 };
 
 const LegendGroup = ({
@@ -68,21 +66,21 @@ const LegendGroup = ({
     return null;
   }
   return (
-    <Group>
+    <div style={{ display: 'flex', gap: 8 }}>
       {legend}
       {extra}
-    </Group>
+    </div>
   );
 };
 
 export const FormSection = (props: FormSectionProps) => {
-  const { className, legend, extra, children, ...restProps } = props;
+  const { className, legend, extra, children, disabled, ...restProps } = props;
   const parentDepth = useContext(SectionDepthCtx);
   const { refreshTOC } = useContext(FormTOCCtx);
   const depth = useMemo(() => parentDepth + 1, [parentDepth]);
   const dataAttrs = useMemo(
     () => ({
-      [tocValue]: legend,
+      [tocValue]: typeof legend === 'string' ? legend : undefined,
       [tocDepth]: depth,
     }),
     [legend, depth]
@@ -93,78 +91,98 @@ export const FormSection = (props: FormSectionProps) => {
 
   return (
     <SectionDepthProvider value={depth}>
-      <Fieldset
+      <fieldset
         className={clsx(tocSelector, classes.root, className)}
-        legend={<LegendGroup legend={legend} extra={extra} />}
-        {...restProps}
+        disabled={disabled}
+        style={{ border: '1px solid #d9d9d9', borderRadius: 4, padding: 12, marginBottom: 8 }}
         {...dataAttrs}
+        {...(restProps as React.HTMLAttributes<HTMLFieldSetElement>)}
       >
+        {(legend || extra) && (
+          <legend style={{ padding: '0 4px', width: 'auto' }}>
+            <LegendGroup legend={legend} extra={extra} />
+          </legend>
+        )}
         {children}
-      </Fieldset>
+      </fieldset>
     </SectionDepthProvider>
   );
 };
 
-const TOC = (props: Pick<TableOfContentsProps, 'reinitializeRef'>) => {
-  return (
-    <TableOfContents
-      variant="light"
-      color="blue"
-      size="sm"
-      radius="sm"
-      style={{
-        flexShrink: 0,
-        position: 'sticky',
-        top: APPSHELL_HEADER_HEIGHT + 20,
-      }}
-      w={200}
-      mt={10}
-      minDepthToOffset={0}
-      depthOffset={20}
-      scrollSpyOptions={{
-        selector: `.${tocSelector}`,
-        getDepth: (el) => Number(el.getAttribute(tocDepth)),
-        getValue: (el) => el.getAttribute(tocValue) || '',
-      }}
-      getControlProps={({ data }) => ({
-        onClick: () => {
-          return data.getNode().scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-            inline: 'end',
-          });
-        },
-        children: data.value,
-      })}
-      {...props}
-    />
-  );
+type TOCItem = {
+  key: string;
+  href: string;
+  title: string;
+  depth: number;
+};
+
+const buildTOCItems = (): TOCItem[] => {
+  const elements = document.querySelectorAll<HTMLElement>(`.${tocSelector}`);
+  const items: TOCItem[] = [];
+  elements.forEach((el) => {
+    const label = el.getAttribute(tocValue);
+    const depth = Number(el.getAttribute(tocDepth)) || 1;
+    if (!label) return;
+    // generate an id for scrolling if not present
+    if (!el.id) {
+      el.id = `toc-${label.replace(/\s+/g, '-').toLowerCase()}-${depth}`;
+    }
+    items.push({
+      key: el.id,
+      href: `#${el.id}`,
+      title: label,
+      depth,
+    });
+  });
+  return items;
 };
 
 export type FormTOCBoxProps = PropsWithChildren;
 
 export const FormTOCBox = (props: FormTOCBoxProps) => {
   const { children } = props;
-  const reinitializeRef = useRef(() => {});
+  const [tocItems, setTocItems] = useState<TOCItem[]>([]);
+
   const refreshTOC = useCallback(
-    () => debounce(reinitializeRef.current, 200),
+    () => debounce(() => setTocItems(buildTOCItems()), 200),
     []
   );
 
+  // build TOC after initial render
+  useEffect(() => {
+    setTocItems(buildTOCItems());
+  }, []);
+
   return (
-    <Group
-      preventGrowOverflow={false}
-      wrap="nowrap"
-      align="start"
-      gap={30}
-      style={{ paddingInlineEnd: '10%', position: 'relative' }}
-    >
-      <TOC reinitializeRef={reinitializeRef} />
-      <div style={{ width: '80%' }}>
-        <FormTOCCtx.Provider value={{ refreshTOC }}>
+    <FormTOCCtx.Provider value={{ refreshTOC }}>
+      <div
+        style={{
+          display: 'flex',
+          gap: 30,
+          paddingInlineEnd: '10%',
+          position: 'relative',
+          flexWrap: 'nowrap',
+          alignItems: 'flex-start',
+        }}
+      >
+        <Anchor
+          items={tocItems.map((item) => ({
+            key: item.key,
+            href: item.href,
+            title: item.title,
+          }))}
+          style={{
+            flexShrink: 0,
+            position: 'sticky',
+            top: APPSHELL_HEADER_HEIGHT + 20,
+            width: 200,
+            marginTop: 10,
+          }}
+        />
+        <div style={{ width: '80%' }}>
           {children}
-        </FormTOCCtx.Provider>
+        </div>
       </div>
-    </Group>
+    </FormTOCCtx.Provider>
   );
 };

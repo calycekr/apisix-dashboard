@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { ActionIcon } from '@mantine/core';
+import { Button } from 'antd';
 import { useSetAtom } from 'jotai';
 
 import { isSettingsOpenAtom } from '@/stores/global';
@@ -24,12 +24,12 @@ export const SettingModalBtn = () => {
   const setIsSettingsOpen = useSetAtom(isSettingsOpenAtom);
 
   return (
-    <ActionIcon
+    <Button
       onClick={() => setIsSettingsOpen(true)}
-      variant="light"
-      size="sm"
-    >
-      <IconSettings />
-    </ActionIcon>
+      variant="filled"
+      color="default"
+      size="small"
+      icon={<IconSettings />}
+    />
   );
 };

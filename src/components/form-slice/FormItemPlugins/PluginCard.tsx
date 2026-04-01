@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Card,Group, Text } from '@mantine/core';
+import { Button, Card, Space, Typography } from 'antd';
 import { useTranslation } from 'react-i18next';
 
 export type PluginCardProps = {
@@ -31,60 +31,56 @@ export const PluginCard = (props: PluginCardProps) => {
   const { name, desc, mode, onAdd, onEdit, onView, onDelete } = props;
   const { t } = useTranslation();
   return (
-    <Card withBorder radius="md" p="md" data-testid={`plugin-${name}`}>
-      <Card.Section withBorder inheritPadding py="xs">
-        <Group justify="space-between">
-          <Group>
-            <Text fw={500}>{name}</Text>
-          </Group>
-        </Group>
-      </Card.Section>
-
-      <Text size="sm" c="dimmed" mt="xs">
+    <Card
+      bordered
+      size="small"
+      data-testid={`plugin-${name}`}
+      title={<Typography.Text strong>{name}</Typography.Text>}
+      extra={
+        <Space>
+          {mode === 'add' && (
+            <Button
+              size="small"
+              type="text"
+              onClick={() => onAdd?.(name)}
+            >
+              {t('form.btn.add')}
+            </Button>
+          )}
+          {mode === 'view' && (
+            <Button
+              size="small"
+              type="text"
+              onClick={() => onView?.(name)}
+            >
+              {t('form.btn.view')}
+            </Button>
+          )}
+          {mode === 'edit' && (
+            <>
+              <Button
+                size="small"
+                type="text"
+                onClick={() => onEdit?.(name)}
+              >
+                {t('form.btn.edit')}
+              </Button>
+              <Button
+                size="small"
+                type="text"
+                danger
+                onClick={() => onDelete?.(name)}
+              >
+                {t('form.btn.delete')}
+              </Button>
+            </>
+          )}
+        </Space>
+      }
+    >
+      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
         {desc}
-      </Text>
-
-      <Group mt="md" justify="flex-end">
-        {mode === 'add' && (
-          <Button
-            size="compact-xs"
-            variant="light"
-            color="blue"
-            onClick={() => onAdd?.(name)}
-          >
-            {t('form.btn.add')}
-          </Button>
-        )}
-        {mode === 'view' && (
-          <Button
-            size="compact-xs"
-            variant="light"
-            onClick={() => onView?.(name)}
-          >
-            {t('form.btn.view')}
-          </Button>
-        )}
-        {mode === 'edit' && (
-          <>
-            <Button
-              size="compact-xs"
-              variant="light"
-              color="blue"
-              onClick={() => onEdit?.(name)}
-            >
-              {t('form.btn.edit')}
-            </Button>
-            <Button
-              size="compact-xs"
-              variant="light"
-              color="red"
-              onClick={() => onDelete?.(name)}
-            >
-              {t('form.btn.delete')}
-            </Button>
-          </>
-        )}
-      </Group>
+      </Typography.Text>
     </Card>
   );
 };

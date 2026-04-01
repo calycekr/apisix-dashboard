@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { notifications } from '@mantine/notifications';
+import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -43,9 +43,9 @@ const UpstreamAddForm = () => {
   const postUpstream = useMutation({
     mutationFn: (d: PostUpstreamType) => postUpstreamReq(req, d),
     async onSuccess(data) {
-      notifications.show({
+      showNotification({
         message: t('info.add.success', { name: t('upstreams.singular') }),
-        color: 'green',
+        type: 'success',
       });
       await router.navigate({
         to: '/upstreams/detail/$id',
