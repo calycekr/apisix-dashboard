@@ -24,6 +24,7 @@ import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SSLS } from '@/config/constant';
@@ -32,7 +33,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination } = useSSLList();
+  const { data, isLoading, refetch, pagination, setParams } = useSSLList();
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -120,23 +121,10 @@ function RouteComponent() {
           headerTitle="SSLs"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
-          toolbar={{
-            menu: {
-              type: 'inline',
-              items: [
-                {
-                  key: 'add',
-                  label: (
-                    <ToAddPageBtn
-                      key="add"
-                      to="/ssls/add"
-                      label={`Add ${'SSL'}`}
-                    />
-                  ),
-                },
-              ],
-            },
-          }}
+          toolBarRender={() => [
+            <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+            <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
+          ]}
         />
       </AntdConfigProvider>
     </>

@@ -26,6 +26,7 @@ import { MethodTags } from '@/components/MethodTags';
 import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_ROUTES } from '@/config/constant';
@@ -44,7 +45,7 @@ export type RouteListProps = {
 
 export const RouteList = (props: RouteListProps) => {
   const { routeKey, ToDetailBtn, defaultParams } = props;
-  const { data, isLoading, refetch, pagination } = useRouteList(
+  const { data, isLoading, refetch, pagination, setParams } = useRouteList(
     routeKey,
     defaultParams
   );
@@ -141,23 +142,10 @@ export const RouteList = (props: RouteListProps) => {
         headerTitle="Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    label={`Add ${'Route'}`}
-                    to={`${routeKey}add`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
+        ]}
       />
     </AntdConfigProvider>
   );

@@ -25,6 +25,7 @@ import type { WithServiceIdFilter } from '@/apis/routes';
 import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -47,7 +48,7 @@ export type StreamRouteListProps = {
 
 export const StreamRouteList = (props: StreamRouteListProps) => {
   const { routeKey, ToDetailBtn, defaultParams } = props;
-  const { data, isLoading, refetch, pagination } = useStreamRouteList(
+  const { data, isLoading, refetch, pagination, setParams } = useStreamRouteList(
     routeKey,
     defaultParams
   );
@@ -136,23 +137,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         headerTitle="Stream Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    label={`Add ${'Stream Route'}`}
-                    to={`${routeKey}add`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Stream Route" to={`${routeKey}add`} />,
+        ]}
       />
     </AntdConfigProvider>
   );

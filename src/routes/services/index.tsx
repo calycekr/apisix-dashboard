@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SERVICES } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 const ServiceList = () => {
-  const { data, isLoading, refetch, pagination } = useServiceList();
+  const { data, isLoading, refetch, pagination, setParams } = useServiceList();
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -105,23 +106,10 @@ const ServiceList = () => {
         headerTitle="Services"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    label={`Add ${'Service'}`}
-                    to="/services/add"
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Service" to="/services/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );

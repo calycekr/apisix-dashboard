@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getProtoListQueryOptions, useProtoList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_PROTOS } from '@/config/constant';
@@ -32,7 +33,7 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
 
-  const { data, isLoading, refetch, pagination } = useProtoList();
+  const { data, isLoading, refetch, pagination, setParams } = useProtoList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespProtoList']['data']['list'][number]>[]
@@ -94,23 +95,10 @@ function RouteComponent() {
           headerTitle="Protos"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
-          toolbar={{
-            menu: {
-              type: 'inline',
-              items: [
-                {
-                  key: 'add',
-                  label: (
-                    <ToAddPageBtn
-                      key="add"
-                      to="/protos/add"
-                      label={`Add ${'Proto'}`}
-                    />
-                  ),
-                },
-              ],
-            },
-          }}
+          toolBarRender={() => [
+            <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+            <ToAddPageBtn key="add" label="Add Proto" to="/protos/add" />,
+          ]}
         />
       </AntdConfigProvider>
     </>

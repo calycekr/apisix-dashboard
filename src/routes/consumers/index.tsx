@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_CONSUMERS } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function ConsumersList() {
-  const { data, isLoading, refetch, pagination } = useConsumerList();
+  const { data, isLoading, refetch, pagination, setParams } = useConsumerList();
 
   const columns = useMemo<ProColumns<APISIXType['RespConsumerItem']>[]>(() => {
     return [
@@ -105,23 +106,10 @@ function ConsumersList() {
         headerTitle="Consumers"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/consumers/add"
-                    label={`Add ${'Consumer'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Consumer" to="/consumers/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );

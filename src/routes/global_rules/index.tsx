@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_GLOBAL_RULES } from '@/config/constant';
@@ -42,7 +43,7 @@ function RouteComponent() {
 }
 
 function GlobalRulesList() {
-  const { data, isLoading, refetch, pagination } = useGlobalRuleList();
+  const { data, isLoading, refetch, pagination, setParams } = useGlobalRuleList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespConsumerGroupItem']>[]
@@ -113,23 +114,10 @@ function GlobalRulesList() {
         headerTitle="Global Rules"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/global_rules/add"
-                    label={`Add ${'Global Rule'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );

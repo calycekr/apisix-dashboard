@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_CONSUMER_GROUPS } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function ConsumerGroupsList() {
-  const { data, isLoading, refetch, pagination } = useConsumerGroupList();
+  const { data, isLoading, refetch, pagination, setParams } = useConsumerGroupList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespConsumerGroupItem']>[]
@@ -109,23 +110,10 @@ function ConsumerGroupsList() {
         headerTitle="Consumer Groups"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/consumer_groups/add"
-                    label={`Add ${'Consumer Group'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Consumer Group" to="/consumer_groups/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );

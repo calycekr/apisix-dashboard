@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_UPSTREAMS } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination } = useUpstreamList();
+  const { data, isLoading, refetch, pagination, setParams } = useUpstreamList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespUpstreamList']['data']['list'][number]>[]
@@ -121,23 +122,10 @@ function RouteComponent() {
           headerTitle="Upstreams"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
-          toolbar={{
-            menu: {
-              type: 'inline',
-              items: [
-                {
-                  key: 'add',
-                  label: (
-                    <ToAddPageBtn
-                      key="add"
-                      to="/upstreams/add"
-                      label={`Add ${'Upstream'}`}
-                    />
-                  ),
-                },
-              ],
-            },
-          }}
+          toolBarRender={() => [
+            <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+            <ToAddPageBtn key="add" label="Add Upstream" to="/upstreams/add" />,
+          ]}
         />
       </AntdConfigProvider>
     </>

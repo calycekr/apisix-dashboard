@@ -117,24 +117,9 @@ function CredentialsList() {
         headerTitle="Credentials"
         pagination={false}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/consumers/detail/$username/credentials/add"
-                    params={{ username }}
-                    label={`Add ${'Credential'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <ToAddPageBtn key="add" label="Add Credential" to="/consumers/detail/$username/credentials/add" params={{ username }} />,
+        ]}
       />
     </AntdConfigProvider>
   );

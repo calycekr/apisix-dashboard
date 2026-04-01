@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SECRETS } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function SecretList() {
-  const { data, isLoading, refetch, pagination } = useSecretList();
+  const { data, isLoading, refetch, pagination, setParams } = useSecretList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespSecretList']['data']['list'][number]>[]
@@ -101,23 +102,10 @@ function SecretList() {
         headerTitle="Secrets"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/secrets/add"
-                    label={`Add ${'Secret'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Secret" to="/secrets/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );

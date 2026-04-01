@@ -27,6 +27,27 @@ import {
 
 import type { UseSearchParams } from './useSearchParams';
 
+const PAGE_SIZE_KEY = 'table:pageSize';
+const PAGE_SIZE_OPTIONS = ['10', '20', '50', '100'];
+
+const getSavedPageSize = (): number => {
+  try {
+    const saved = localStorage.getItem(PAGE_SIZE_KEY);
+    if (saved) return Number(saved);
+  } catch {
+    // ignore
+  }
+  return 10;
+};
+
+const savePageSize = (size: number) => {
+  try {
+    localStorage.setItem(PAGE_SIZE_KEY, String(size));
+  } catch {
+    // ignore
+  }
+};
+
 export type ListPageKeys = `${keyof FilterKeys<FileRoutesByTo, 's'>}/`;
 type Props<T, P extends PageSearchType> = {
   data: APISIXListResponse<T>;
@@ -38,14 +59,17 @@ export const useTablePagination = <T, P extends PageSearchType>(
   props: Props<T, P>
 ) => {
   const { data, refetch, setParams } = props;
+  const savedPageSize = useMemo(() => getSavedPageSize(), []);
   const params = useMemo(
     () => pageSearchSchema.parse(props.params),
     [props.params]
   );
-  const { page, page_size } = params;
+  const page = params.page;
+  const page_size = params.page_size || savedPageSize;
 
   const onChange: TablePaginationConfig['onChange'] = useCallback(
     (page: number, page_size: number) => {
+      savePageSize(page_size);
       setParams({ page, page_size } as P);
       refetch?.();
     },
@@ -57,6 +81,8 @@ export const useTablePagination = <T, P extends PageSearchType>(
     pageSize: page_size,
     total: data.total ?? 0,
     showSizeChanger: true,
+    pageSizeOptions: PAGE_SIZE_OPTIONS,
+    showTotal: (total: number) => `Total ${total} items`,
     onChange: onChange,
   } as TablePaginationConfig;
   return pagination;

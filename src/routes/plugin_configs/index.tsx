@@ -23,6 +23,7 @@ import { useMemo } from 'react';
 import { getPluginConfigListQueryOptions, usePluginConfigList } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_PLUGIN_CONFIGS } from '@/config/constant';
@@ -31,7 +32,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function PluginConfigsList() {
-  const { data, isLoading, refetch, pagination } = usePluginConfigList();
+  const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
 
   const columns = useMemo<
     ProColumns<APISIXType['RespPluginConfigItem']>[]
@@ -111,23 +112,10 @@ function PluginConfigsList() {
         headerTitle="Plugin Configs"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolbar={{
-          menu: {
-            type: 'inline',
-            items: [
-              {
-                key: 'add',
-                label: (
-                  <ToAddPageBtn
-                    key="add"
-                    to="/plugin_configs/add"
-                    label={`Add ${'Plugin Config'}`}
-                  />
-                ),
-              },
-            ],
-          },
-        }}
+        toolBarRender={() => [
+          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ToAddPageBtn key="add" label="Add Plugin Config" to="/plugin_configs/add" />,
+        ]}
       />
     </AntdConfigProvider>
   );
