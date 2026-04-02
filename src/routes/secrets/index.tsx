@@ -19,9 +19,11 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -34,6 +36,7 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function SecretList() {
   const { data, isLoading, refetch, pagination, setParams } = useSecretList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespSecretList']['data']['list'][number]>[]
@@ -50,7 +53,8 @@ function SecretList() {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        width: 150,
+        render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -92,12 +96,24 @@ function SecretList() {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        selectedCount={selectedRowKeys.length}
+        resourceName="Secret"
+        apiBase={API_SECRETS}
+        selectedIds={selectedRowKeys.map(String)}
+        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+        onClear={() => setSelectedRowKeys([])}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list || []}
-        rowKey="id"
+        rowKey={(record) => `${record.value.manager}/${record.value.id}`}
         loading={isLoading}
         search={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Secrets"
@@ -113,7 +129,6 @@ function SecretList() {
 }
 
 function RouteComponent() {
-
   return (
     <>
       <PageHeader title="Secrets" />

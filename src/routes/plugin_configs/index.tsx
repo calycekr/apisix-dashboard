@@ -19,9 +19,11 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getPluginConfigListQueryOptions, usePluginConfigList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -35,11 +37,19 @@ import { renderPluginCount } from '@/utils/columns';
 
 function PluginConfigsList() {
   const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespPluginConfigItem']>[]
   >(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'name'],
         title: 'Name',
@@ -98,12 +108,24 @@ function PluginConfigsList() {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        selectedCount={selectedRowKeys.length}
+        resourceName="Plugin Config"
+        apiBase={API_PLUGIN_CONFIGS}
+        selectedIds={selectedRowKeys.map(String)}
+        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+        onClear={() => setSelectedRowKeys([])}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Plugin Configs"

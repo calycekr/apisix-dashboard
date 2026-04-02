@@ -19,9 +19,11 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getProtoListQueryOptions, useProtoList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -33,8 +35,8 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-
   const { data, isLoading, refetch, pagination, setParams } = useProtoList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespProtoList']['data']['list'][number]>[]
@@ -44,7 +46,8 @@ function RouteComponent() {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
         dataIndex: ['value', 'content'],
@@ -100,12 +103,24 @@ function RouteComponent() {
     <>
       <PageHeader title="Protos" />
       <AntdConfigProvider>
+        <BulkDeleteBar
+          selectedCount={selectedRowKeys.length}
+          resourceName="Proto"
+          apiBase={API_PROTOS}
+          selectedIds={selectedRowKeys.map(String)}
+          onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+          onClear={() => setSelectedRowKeys([])}
+        />
         <ProTable
           columns={columns}
           dataSource={data?.list || []}
-          rowKey="id"
+          rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
           options={{ density: false, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="Protos"

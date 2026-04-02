@@ -19,9 +19,11 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -33,19 +35,9 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { renderPluginCount } from '@/utils/columns';
 
-
-function RouteComponent() {
-
-  return (
-    <>
-      <PageHeader title="Global Rules" />
-      <GlobalRulesList />
-    </>
-  );
-}
-
 function GlobalRulesList() {
   const { data, isLoading, refetch, pagination, setParams } = useGlobalRuleList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespGlobalRuleItem']>[]
@@ -55,7 +47,8 @@ function GlobalRulesList() {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
         dataIndex: ['value', 'plugins'],
@@ -100,23 +93,44 @@ function GlobalRulesList() {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        selectedCount={selectedRowKeys.length}
+        resourceName="Global Rule"
+        apiBase={API_GLOBAL_RULES}
+        selectedIds={selectedRowKeys.map(String)}
+        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+        onClear={() => setSelectedRowKeys([])}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Global Rules"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search by ID..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,
         ]}
       />
     </AntdConfigProvider>
+  );
+}
+
+function RouteComponent() {
+  return (
+    <>
+      <PageHeader title="Global Rules" />
+      <GlobalRulesList />
+    </>
   );
 }
 
