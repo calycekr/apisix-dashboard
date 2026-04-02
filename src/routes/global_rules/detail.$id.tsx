@@ -99,10 +99,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Global Rule'}`}
-        {...(readOnly && {
-          title: `${'Global Rule'} Detail`,
-          extra: (
+        title={`Global Rule: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -119,8 +119,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/global_rules' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <GlobalRuleDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

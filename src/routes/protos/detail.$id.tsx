@@ -106,10 +106,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Proto'}`}
-        {...(readOnly && {
-          title: `${'Proto'} Detail`,
-          extra: (
+        title={`Proto: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -126,8 +126,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/protos' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <ProtoDetailForm

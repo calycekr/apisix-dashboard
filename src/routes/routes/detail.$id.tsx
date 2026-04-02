@@ -120,10 +120,10 @@ export const RouteDetail = (props: RouteDetailProps) => {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Route'}`}
-        {...(readOnly && {
-          title: `${'Route'} Detail`,
-          extra: (
+        title={`Route: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -140,8 +140,8 @@ export const RouteDetail = (props: RouteDetailProps) => {
                 onSuccess={onDeleteSuccess}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <RouteDetailForm

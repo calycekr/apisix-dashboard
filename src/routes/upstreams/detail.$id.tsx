@@ -120,10 +120,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Upstream'}`}
-        {...(readOnly && {
-          title: `${'Upstream'} Detail`,
-          extra: (
+        title={`Upstream: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -140,8 +140,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/upstreams' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <UpstreamDetailForm
         id={id}

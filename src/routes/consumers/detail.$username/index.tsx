@@ -105,10 +105,10 @@ const ConsumerDetailTab = () => {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Consumer'}`}
-        {...(readOnly && {
-          title: `${'Consumer'} Detail`,
-          extra: (
+        title={`Consumer: ${username}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -125,8 +125,8 @@ const ConsumerDetailTab = () => {
                 onSuccess={() => navigate({ to: '/consumers' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <ConsumerDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

@@ -111,10 +111,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'SSL'}`}
-        {...(readOnly && {
-          title: `${'SSL'} Detail`,
-          extra: (
+        title={`SSL: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -131,8 +131,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/ssls' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <SSLDetailForm id={id} readOnly={readOnly} setReadOnly={setReadOnly} />
     </>

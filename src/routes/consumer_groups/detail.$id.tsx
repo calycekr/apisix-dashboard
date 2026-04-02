@@ -102,10 +102,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Consumer Group'}`}
-        {...(readOnly && {
-          title: `${'Consumer Group'} Detail`,
-          extra: (
+        title={`Consumer Group: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -122,8 +122,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/consumer_groups' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <ConsumerGroupDetailForm

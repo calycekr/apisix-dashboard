@@ -110,10 +110,10 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Stream Route'}`}
-        {...(readOnly && {
-          title: `${'Stream Route'} Detail`,
-          extra: (
+        title={`Stream Route: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -130,8 +130,8 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
                 onSuccess={onDeleteSuccess}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <StreamRouteDetailForm
