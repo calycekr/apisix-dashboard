@@ -27,7 +27,7 @@ import {
   type RecentItem,
   type ResourceCounts,
 } from '@/apis/dashboard';
-import { getOperationalAlerts, type OperationalAlerts } from '@/apis/operational';
+import { getOperationalAlerts, type OperationalAlerts, type PluginUsage } from '@/apis/operational';
 import PageHeader from '@/components/page/PageHeader';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconDns from '~icons/material-symbols/dns';
@@ -308,6 +308,24 @@ function OperationalAlertsSection({ alerts, isLoading }: { alerts?: OperationalA
   );
 }
 
+function PluginUsageSection({ plugins }: { plugins?: PluginUsage[] }) {
+  if (!plugins?.length) return null;
+  return (
+    <Card title="Most Used Plugins" size="small" style={{ marginTop: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {plugins.map((p) => (
+          <Tag key={p.name} style={{ fontSize: 13, padding: '4px 10px' }}>
+            {p.name}
+            <Typography.Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>
+              ×{p.count}
+            </Typography.Text>
+          </Tag>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function DashboardPage() {
   const {
     data: dashboardData,
@@ -335,6 +353,7 @@ function DashboardPage() {
       />
       <ResourceCountCards counts={dashboardData?.counts} alerts={alerts} isLoading={dashboardLoading} />
       <OperationalAlertsSection alerts={alerts} isLoading={alertsLoading} />
+      <PluginUsageSection plugins={alerts?.pluginUsage} />
       <RecentChangesTable items={dashboardData?.recentChanges} isLoading={dashboardLoading} />
     </>
   );
