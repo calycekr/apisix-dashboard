@@ -33,6 +33,7 @@ import { FormItemPlugins } from '../FormItemPlugins';
 import { FormPartBasic } from '../FormPartBasic';
 import { FormPartUpstream, FormSectionTimeout } from '../FormPartUpstream';
 import { FormSection } from '../FormSection';
+import { FormItemVars } from './FormItemVars';
 import type { RoutePostType } from './schema';
 
 const FormPartBasicWithPriority = () => {
@@ -93,12 +94,7 @@ const FormSectionMatchRules = () => {
         name="remote_addrs"
         label="Remote Addresses"
       />
-      <FormItemEditor
-        control={control}
-        name="vars"
-        label="Vars"
-        description='Matching conditions as JSON array, e.g. [["arg_name", "==", "json"]]'
-      />
+      <FormItemVars />
       <FormItemEditor
         control={control}
         name="filter_func"
