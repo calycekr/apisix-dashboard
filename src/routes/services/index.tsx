@@ -26,6 +26,7 @@ import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { ServiceExpandedRow } from '@/components/page/ExpandedRowComponents';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -149,6 +150,10 @@ const ServiceList = () => {
         headerTitle="Services"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        expandable={{
+          expandedRowRender: (record) => <ServiceExpandedRow service={record.value} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,

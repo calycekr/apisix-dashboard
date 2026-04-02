@@ -25,6 +25,7 @@ import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { ConsumerExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -122,6 +123,10 @@ function ConsumersList() {
         headerTitle="Consumers"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        expandable={{
+          expandedRowRender: (record) => <ConsumerExpandedRow consumer={record.value} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumers..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Consumer" to="/consumers/add" />,

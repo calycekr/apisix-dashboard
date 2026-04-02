@@ -25,6 +25,7 @@ import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { GlobalRuleExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -111,6 +112,10 @@ function GlobalRulesList() {
         headerTitle="Global Rules"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        expandable={{
+          expandedRowRender: (record) => <GlobalRuleExpandedRow rule={record.value} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,

@@ -26,6 +26,7 @@ import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { UpstreamExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -184,6 +185,10 @@ function RouteComponent() {
           headerTitle="Upstreams"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
+          expandable={{
+            expandedRowRender: (record) => <UpstreamExpandedRow upstream={record.value} />,
+            rowExpandable: () => true,
+          }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add Upstream" to="/upstreams/add" />,

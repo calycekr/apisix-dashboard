@@ -25,6 +25,7 @@ import { getPluginConfigListQueryOptions, usePluginConfigList } from '@/apis/hoo
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { PluginConfigExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -126,6 +127,10 @@ function PluginConfigsList() {
         headerTitle="Plugin Configs"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        expandable={{
+          expandedRowRender: (record) => <PluginConfigExpandedRow config={record.value} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search plugin configs..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Plugin Config" to="/plugin_configs/add" />,
