@@ -73,10 +73,11 @@ const ServiceAddForm = ({ defaultValues }: { defaultValues?: ServicePostType }) 
 
 const addSearchSchema = z.object({
   clone_from: z.string().optional(),
+  upstream_id: z.string().optional(),
 });
 
 function RouteComponent() {
-  const { clone_from } = useSearch({ from: '/services/add' });
+  const { clone_from, upstream_id } = useSearch({ from: '/services/add' });
 
   const { data: sourceData, isLoading } = useQuery({
     ...getServiceQueryOptions(clone_from ?? ''),
@@ -111,7 +112,7 @@ function RouteComponent() {
         desc={clone_from ? `Cloning from ${clone_from}` : undefined}
       />
       <FormTOCBox>
-        <ServiceAddForm defaultValues={cloneValues} />
+        <ServiceAddForm defaultValues={cloneValues ?? (upstream_id ? { upstream_id } as ServicePostType : undefined)} />
       </FormTOCBox>
     </>
   );

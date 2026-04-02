@@ -128,6 +128,9 @@ function RouteComponent() {
         extra={
           readOnly ? (
             <Space>
+              <Link to="/services/add" search={{ upstream_id: id }}>
+                <Button size="small">+ Service</Button>
+              </Link>
               <Link to="/upstreams/add" search={{ clone_from: id }}>
                 <Button size="small">Clone</Button>
               </Link>

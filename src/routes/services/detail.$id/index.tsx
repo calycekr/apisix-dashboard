@@ -118,6 +118,9 @@ function RouteComponent() {
         extra={
           readOnly ? (
             <Space>
+              <Link to="/routes/add" search={{ service_id: id }}>
+                <Button size="small">+ Route</Button>
+              </Link>
               <Link to="/services/add" search={{ clone_from: id }}>
                 <Button size="small">Clone</Button>
               </Link>

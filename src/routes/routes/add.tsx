@@ -74,11 +74,12 @@ export const RouteAddForm = (props: Props) => {
 
 const addSearchSchema = z.object({
   clone_from: z.string().optional(),
+  service_id: z.string().optional(),
 });
 
 function RouteComponent() {
   const navigate = useNavigate();
-  const { clone_from } = useSearch({ from: '/routes/add' });
+  const { clone_from, service_id } = useSearch({ from: '/routes/add' });
 
   const { data: sourceData, isLoading } = useQuery({
     ...getRouteQueryOptions(clone_from ?? ''),
@@ -114,7 +115,7 @@ function RouteComponent() {
       />
       <FormTOCBox>
         <RouteAddForm
-          defaultValues={cloneValues}
+          defaultValues={cloneValues ?? (service_id ? { service_id } as Partial<RoutePostType> : undefined)}
           navigate={(res) =>
             navigate({
               to: '/routes/detail/$id',

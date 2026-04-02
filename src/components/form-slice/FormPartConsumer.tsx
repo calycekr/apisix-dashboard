@@ -16,7 +16,9 @@
  */
 import { useFormContext } from 'react-hook-form';
 
+import { ResourceSelect } from '@/components/form/ResourceSelect';
 import { FormItemTextInput } from '@/components/form/TextInput';
+import { API_CONSUMER_GROUPS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 
 import { FormItemPlugins } from './FormItemPlugins';
@@ -47,10 +49,11 @@ export const FormPartConsumer = () => {
           />
         }
       />
-      <FormItemTextInput
+      <ResourceSelect
         control={control}
         name="group_id"
-        label="Group ID"
+        resourceApi={API_CONSUMER_GROUPS}
+        resourceLabel="Consumer Group"
       />
       <FormSectionPluginsOnly />
     </>
