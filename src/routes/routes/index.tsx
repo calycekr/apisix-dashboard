@@ -19,16 +19,19 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { MethodTags } from '@/components/MethodTags';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
-import { StatusTag } from '@/components/StatusTag';
+import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -50,9 +53,17 @@ export const RouteList = (props: RouteListProps) => {
     routeKey,
     defaultParams
   );
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'name'],
         title: 'Name',
@@ -138,7 +149,23 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
-        render: (_, record) => <StatusTag status={record.value.status} />,
+        filters: [
+          { text: 'Enabled', value: 1 },
+          { text: 'Disabled', value: 0 },
+        ],
+        onFilter: (value, record) => record.value.status === value,
+        render: (_, record) => (
+          <StatusSwitch
+            status={record.value.status}
+            api={`${API_ROUTES}/${record.value.id}`}
+          />
+        ),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -173,12 +200,24 @@ export const RouteList = (props: RouteListProps) => {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        selectedCount={selectedRowKeys.length}
+        resourceName="Route"
+        apiBase={API_ROUTES}
+        selectedIds={selectedRowKeys.map(String)}
+        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+        onClear={() => setSelectedRowKeys([])}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Routes"

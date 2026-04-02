@@ -19,9 +19,12 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -34,11 +37,19 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
   const { data, isLoading, refetch, pagination, setParams } = useUpstreamList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespUpstreamList']['data']['list'][number]>[]
   >(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'name'],
         title: 'Name',
@@ -52,6 +63,13 @@ function RouteComponent() {
         title: 'Type',
         key: 'type',
         valueType: 'text',
+        filters: [
+          { text: 'roundrobin', value: 'roundrobin' },
+          { text: 'chash', value: 'chash' },
+          { text: 'least_conn', value: 'least_conn' },
+          { text: 'ewma', value: 'ewma' },
+        ],
+        onFilter: (value, record) => record.value.type === value,
         render: (_, record) => record.value.type || '-',
       },
       {
@@ -83,6 +101,12 @@ function RouteComponent() {
           ) : (
             <Tag>None</Tag>
           ),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -123,12 +147,24 @@ function RouteComponent() {
     <>
       <PageHeader title="Upstreams" />
       <AntdConfigProvider>
+        <BulkDeleteBar
+          selectedCount={selectedRowKeys.length}
+          resourceName="Upstream"
+          apiBase={API_UPSTREAMS}
+          selectedIds={selectedRowKeys.map(String)}
+          onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+          onClear={() => setSelectedRowKeys([])}
+        />
         <ProTable
           columns={columns}
           dataSource={data?.list}
-          rowKey="id"
+          rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
           options={{ density: false, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="Upstreams"

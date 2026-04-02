@@ -22,11 +22,13 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
-import { StatusTag } from '@/components/StatusTag';
+import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SSLS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -34,11 +36,18 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination } = useSSLList();
-  const [sniFilter, setSniFilter] = useState('');
+  const { data, isLoading, refetch, pagination, setParams } = useSSLList();
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'sni'],
         title: 'SNI',
@@ -62,7 +71,17 @@ function RouteComponent() {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
-        render: (_, record) => <StatusTag status={record.value.status} />,
+        filters: [
+          { text: 'Enabled', value: 1 },
+          { text: 'Disabled', value: 0 },
+        ],
+        onFilter: (value, record) => record.value.status === value,
+        render: (_, record) => (
+          <StatusSwitch
+            status={record.value.status}
+            api={`${API_SSLS}/${record.value.id}`}
+          />
+        ),
       },
       {
         dataIndex: ['value', 'validity_end'],
@@ -138,28 +157,31 @@ function RouteComponent() {
     <>
       <PageHeader title="SSLs" />
       <AntdConfigProvider>
+        <BulkDeleteBar
+          selectedCount={selectedRowKeys.length}
+          resourceName="SSL"
+          apiBase={API_SSLS}
+          selectedIds={selectedRowKeys.map(String)}
+          onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+          onClear={() => setSelectedRowKeys([])}
+        />
         <ProTable
           columns={columns}
-          dataSource={
-            sniFilter
-              ? (data?.list ?? []).filter((item) => {
-                  const q = sniFilter.toLowerCase();
-                  const sni = item.value.sni?.toLowerCase() ?? '';
-                  const snis = item.value.snis?.map((s) => s.toLowerCase()) ?? [];
-                  return sni.includes(q) || snis.some((s) => s.includes(q));
-                })
-              : data?.list
-          }
-          rowKey="id"
+          dataSource={data?.list}
+          rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
           options={{ density: false, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="SSLs"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
-            <SearchInput key="search" placeholder="Search by SNI..." onSearch={(q) => setSniFilter(q)} />,
+            <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
           ]}
         />

@@ -14,10 +14,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Tag } from 'antd';
+import { Switch, Tag } from 'antd';
+import { useState } from 'react';
+
+import { queryClient } from '@/config/global';
+import { req } from '@/config/req';
+import { showNotification } from '@/utils/notification';
 
 export const StatusTag = ({ status }: { status?: 0 | 1 }) => {
   if (status === 1) return <Tag color="success">Enabled</Tag>;
   if (status === 0) return <Tag color="default">Disabled</Tag>;
   return <Tag>Unknown</Tag>;
+};
+
+type StatusSwitchProps = {
+  status?: 0 | 1;
+  api: string;
+};
+
+export const StatusSwitch = ({ status, api }: StatusSwitchProps) => {
+  const [loading, setLoading] = useState(false);
+
+  if (status === undefined) return <Tag>Unknown</Tag>;
+
+  const handleToggle = async (checked: boolean) => {
+    setLoading(true);
+    try {
+      await req.patch(api, { status: checked ? 1 : 0 });
+      queryClient.invalidateQueries();
+      showNotification({
+        message: `Status changed to ${checked ? 'Enabled' : 'Disabled'}`,
+        type: 'success',
+      });
+    } catch {
+      showNotification({
+        message: 'Failed to update status',
+        type: 'error',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <Switch
+      checked={status === 1}
+      onChange={handleToggle}
+      loading={loading}
+      checkedChildren="On"
+      unCheckedChildren="Off"
+      size="small"
+    />
+  );
 };

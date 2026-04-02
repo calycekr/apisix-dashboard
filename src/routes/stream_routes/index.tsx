@@ -19,16 +19,18 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
-import { StatusTag } from '@/components/StatusTag';
+import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -53,11 +55,19 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
     routeKey,
     defaultParams
   );
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
   >(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'server_addr'],
         title: 'Server Addr',
@@ -112,7 +122,17 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
-        render: (_, record) => <StatusTag status={record.value.status} />,
+        filters: [
+          { text: 'Enabled', value: 1 },
+          { text: 'Disabled', value: 0 },
+        ],
+        onFilter: (value, record) => record.value.status === value,
+        render: (_, record) => (
+          <StatusSwitch
+            status={record.value.status}
+            api={`${API_STREAM_ROUTES}/${record.value.id}`}
+          />
+        ),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -147,12 +167,24 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        selectedCount={selectedRowKeys.length}
+        resourceName="Stream Route"
+        apiBase={API_STREAM_ROUTES}
+        selectedIds={selectedRowKeys.map(String)}
+        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+        onClear={() => setSelectedRowKeys([])}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
+        rowSelection={{
+          selectedRowKeys,
+          onChange: setSelectedRowKeys,
+        }}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Stream Routes"

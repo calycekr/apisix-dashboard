@@ -40,7 +40,15 @@ export const SSLPostSchema = APISIX.SSL.omit({
 
 export type SSLPostType = z.input<typeof SSLPostSchema>;
 
-export const SSLPutSchema = APISIX.SSL.merge(SSLForm);
+export const SSLPutSchema = APISIX.SSL.merge(SSLForm)
+  .refine((data) => data.cert || (data.certs && data.certs.length > 0), {
+    message: 'At least one certificate is required (cert or certs)',
+    path: ['cert'],
+  })
+  .refine((data) => data.key || (data.keys && data.keys.length > 0), {
+    message: 'At least one key is required (key or keys)',
+    path: ['key'],
+  });
 
 export type SSLPutType = z.infer<typeof SSLPutSchema>;
 
