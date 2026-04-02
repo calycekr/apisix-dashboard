@@ -40,18 +40,12 @@ function ConsumerGroupsList() {
   >(() => {
     return [
       {
-        dataIndex: ['value', 'name'],
-        title: 'Name',
-        key: 'name',
-        render: (_, record) => (
-          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
-        ),
-      },
-      {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.id}</Typography.Text>
+        ),
       },
       {
         dataIndex: ['value', 'desc'],
