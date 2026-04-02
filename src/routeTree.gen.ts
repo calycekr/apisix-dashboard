@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UpstreamsIndexRouteImport } from './routes/upstreams/index'
+import { Route as TopologyIndexRouteImport } from './routes/topology/index'
 import { Route as Stream_routesIndexRouteImport } from './routes/stream_routes/index'
 import { Route as SslsIndexRouteImport } from './routes/ssls/index'
 import { Route as ServicesIndexRouteImport } from './routes/services/index'
@@ -65,6 +66,11 @@ const IndexRoute = IndexRouteImport.update({
 const UpstreamsIndexRoute = UpstreamsIndexRouteImport.update({
   id: '/upstreams/',
   path: '/upstreams/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const TopologyIndexRoute = TopologyIndexRouteImport.update({
+  id: '/topology/',
+  path: '/topology/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const Stream_routesIndexRoute = Stream_routesIndexRouteImport.update({
@@ -328,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesIndexRoute
   '/ssls': typeof SslsIndexRoute
   '/stream_routes': typeof Stream_routesIndexRoute
+  '/topology': typeof TopologyIndexRoute
   '/upstreams': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/consumers/detail/$username': typeof ConsumersDetailUsernameRouteWithChildren
@@ -377,6 +384,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesIndexRoute
   '/ssls': typeof SslsIndexRoute
   '/stream_routes': typeof Stream_routesIndexRoute
+  '/topology': typeof TopologyIndexRoute
   '/upstreams': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/global_rules/detail/$id': typeof Global_rulesDetailIdRoute
@@ -425,6 +433,7 @@ export interface FileRoutesById {
   '/services/': typeof ServicesIndexRoute
   '/ssls/': typeof SslsIndexRoute
   '/stream_routes/': typeof Stream_routesIndexRoute
+  '/topology/': typeof TopologyIndexRoute
   '/upstreams/': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/consumers/detail/$username': typeof ConsumersDetailUsernameRouteWithChildren
@@ -476,6 +485,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/ssls'
     | '/stream_routes'
+    | '/topology'
     | '/upstreams'
     | '/consumer_groups/detail/$id'
     | '/consumers/detail/$username'
@@ -525,6 +535,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/ssls'
     | '/stream_routes'
+    | '/topology'
     | '/upstreams'
     | '/consumer_groups/detail/$id'
     | '/global_rules/detail/$id'
@@ -572,6 +583,7 @@ export interface FileRouteTypes {
     | '/services/'
     | '/ssls/'
     | '/stream_routes/'
+    | '/topology/'
     | '/upstreams/'
     | '/consumer_groups/detail/$id'
     | '/consumers/detail/$username'
@@ -622,6 +634,7 @@ export interface RootRouteChildren {
   ServicesIndexRoute: typeof ServicesIndexRoute
   SslsIndexRoute: typeof SslsIndexRoute
   Stream_routesIndexRoute: typeof Stream_routesIndexRoute
+  TopologyIndexRoute: typeof TopologyIndexRoute
   UpstreamsIndexRoute: typeof UpstreamsIndexRoute
   Consumer_groupsDetailIdRoute: typeof Consumer_groupsDetailIdRoute
   ConsumersDetailUsernameRoute: typeof ConsumersDetailUsernameRouteWithChildren
@@ -650,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/upstreams'
       fullPath: '/upstreams'
       preLoaderRoute: typeof UpstreamsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topology/': {
+      id: '/topology/'
+      path: '/topology'
+      fullPath: '/topology'
+      preLoaderRoute: typeof TopologyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stream_routes/': {
@@ -1044,6 +1064,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIndexRoute: ServicesIndexRoute,
   SslsIndexRoute: SslsIndexRoute,
   Stream_routesIndexRoute: Stream_routesIndexRoute,
+  TopologyIndexRoute: TopologyIndexRoute,
   UpstreamsIndexRoute: UpstreamsIndexRoute,
   Consumer_groupsDetailIdRoute: Consumer_groupsDetailIdRoute,
   ConsumersDetailUsernameRoute: ConsumersDetailUsernameRouteWithChildren,

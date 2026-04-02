@@ -25,6 +25,7 @@ import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconCode from '~icons/material-symbols/code';
 import IconDashboard from '~icons/material-symbols/dashboard';
 import IconDataObject from '~icons/material-symbols/data-object';
+import IconDeviceHub from '~icons/material-symbols/device-hub';
 import IconDns from '~icons/material-symbols/dns';
 import IconExtension from '~icons/material-symbols/extension';
 import IconGroup from '~icons/material-symbols/group';
@@ -75,7 +76,9 @@ export const Navbar = () => {
   const selectedKey =
     currentPath.startsWith('/dashboard')
       ? '/dashboard'
-      : navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
+      : currentPath.startsWith('/topology')
+        ? '/topology'
+        : navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
 
   return (
     <Layout.Sider
@@ -133,6 +136,12 @@ export const Navbar = () => {
             icon: iconMap['dashboard'],
             label: 'Dashboard',
             onClick: () => navigate({ to: '/dashboard' as Parameters<typeof navigate>[0]['to'] }),
+          },
+          {
+            key: '/topology',
+            icon: <IconDeviceHub />,
+            label: 'Topology',
+            onClick: () => navigate({ to: '/topology' as Parameters<typeof navigate>[0]['to'] }),
           },
           { type: 'divider' },
           {
