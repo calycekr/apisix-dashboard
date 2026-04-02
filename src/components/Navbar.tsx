@@ -23,7 +23,9 @@ import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconCode from '~icons/material-symbols/code';
+import IconDashboard from '~icons/material-symbols/dashboard';
 import IconDataObject from '~icons/material-symbols/data-object';
+import IconDeviceHub from '~icons/material-symbols/device-hub';
 import IconDns from '~icons/material-symbols/dns';
 import IconExtension from '~icons/material-symbols/extension';
 import IconGroup from '~icons/material-symbols/group';
@@ -35,6 +37,7 @@ import IconRoute from '~icons/material-symbols/route';
 import IconStream from '~icons/material-symbols/stream';
 
 const iconMap: Record<string, ReactNode> = {
+  dashboard: <IconDashboard />,
   route: <IconRoute />,
   dns: <IconDns />,
   'cloud-upload': <IconCloudUpload />,
@@ -71,7 +74,11 @@ export const Navbar = () => {
   const { token } = theme.useToken();
 
   const selectedKey =
-    navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
+    currentPath.startsWith('/dashboard')
+      ? '/dashboard'
+      : currentPath.startsWith('/topology')
+        ? '/topology'
+        : navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
 
   return (
     <Layout.Sider
@@ -124,6 +131,19 @@ export const Navbar = () => {
         selectedKeys={[selectedKey]}
         style={{ borderRight: 'none', marginTop: 8 }}
         items={[
+          {
+            key: '/dashboard',
+            icon: iconMap['dashboard'],
+            label: 'Dashboard',
+            onClick: () => navigate({ to: '/dashboard' as Parameters<typeof navigate>[0]['to'] }),
+          },
+          {
+            key: '/topology',
+            icon: <IconDeviceHub />,
+            label: 'Topology',
+            onClick: () => navigate({ to: '/topology' as Parameters<typeof navigate>[0]['to'] }),
+          },
+          { type: 'divider' },
           {
             type: 'group',
             label: 'Traffic',

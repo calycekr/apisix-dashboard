@@ -40,9 +40,33 @@ export const FormItemJsonInput = <T extends FieldValues>(
 ) => {
   const { objValue = {} } = props;
   const {
-    controllerProps,
+    controllerProps: rawControllerProps,
     restProps: { toObject, label, description, ...restProps },
   } = genControllerProps(props, props.toObject ? objValue : '');
+  const controllerProps = useMemo(() => {
+    if (!toObject) return rawControllerProps;
+    return {
+      ...rawControllerProps,
+      rules: {
+        ...rawControllerProps.rules,
+        validate: {
+          ...(typeof rawControllerProps.rules?.validate === 'object'
+            ? rawControllerProps.rules.validate
+            : {}),
+          validJson: (val: unknown) => {
+            if (typeof val !== 'string') return true;
+            if (val.trim() === '') return true;
+            try {
+              JSON.parse(val);
+              return true;
+            } catch {
+              return 'Invalid JSON';
+            }
+          },
+        },
+      },
+    };
+  }, [rawControllerProps, toObject]);
   const {
     field: { value: rawVal, onChange: fOnChange, onBlur: fOnBlur, ...restField },
     fieldState,

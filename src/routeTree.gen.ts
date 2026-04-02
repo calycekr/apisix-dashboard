@@ -11,6 +11,7 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as UpstreamsIndexRouteImport } from './routes/upstreams/index'
+import { Route as TopologyIndexRouteImport } from './routes/topology/index'
 import { Route as Stream_routesIndexRouteImport } from './routes/stream_routes/index'
 import { Route as SslsIndexRouteImport } from './routes/ssls/index'
 import { Route as ServicesIndexRouteImport } from './routes/services/index'
@@ -20,6 +21,7 @@ import { Route as ProtosIndexRouteImport } from './routes/protos/index'
 import { Route as Plugin_metadataIndexRouteImport } from './routes/plugin_metadata/index'
 import { Route as Plugin_configsIndexRouteImport } from './routes/plugin_configs/index'
 import { Route as Global_rulesIndexRouteImport } from './routes/global_rules/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ConsumersIndexRouteImport } from './routes/consumers/index'
 import { Route as Consumer_groupsIndexRouteImport } from './routes/consumer_groups/index'
 import { Route as UpstreamsAddRouteImport } from './routes/upstreams/add'
@@ -66,6 +68,11 @@ const UpstreamsIndexRoute = UpstreamsIndexRouteImport.update({
   path: '/upstreams/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TopologyIndexRoute = TopologyIndexRouteImport.update({
+  id: '/topology/',
+  path: '/topology/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Stream_routesIndexRoute = Stream_routesIndexRouteImport.update({
   id: '/stream_routes/',
   path: '/stream_routes/',
@@ -109,6 +116,11 @@ const Plugin_configsIndexRoute = Plugin_configsIndexRouteImport.update({
 const Global_rulesIndexRoute = Global_rulesIndexRouteImport.update({
   id: '/global_rules/',
   path: '/global_rules/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsumersIndexRoute = ConsumersIndexRouteImport.update({
@@ -312,6 +324,7 @@ export interface FileRoutesByFullPath {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups': typeof Consumer_groupsIndexRoute
   '/consumers': typeof ConsumersIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/global_rules': typeof Global_rulesIndexRoute
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
@@ -321,6 +334,7 @@ export interface FileRoutesByFullPath {
   '/services': typeof ServicesIndexRoute
   '/ssls': typeof SslsIndexRoute
   '/stream_routes': typeof Stream_routesIndexRoute
+  '/topology': typeof TopologyIndexRoute
   '/upstreams': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/consumers/detail/$username': typeof ConsumersDetailUsernameRouteWithChildren
@@ -360,6 +374,7 @@ export interface FileRoutesByTo {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups': typeof Consumer_groupsIndexRoute
   '/consumers': typeof ConsumersIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/global_rules': typeof Global_rulesIndexRoute
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
@@ -369,6 +384,7 @@ export interface FileRoutesByTo {
   '/services': typeof ServicesIndexRoute
   '/ssls': typeof SslsIndexRoute
   '/stream_routes': typeof Stream_routesIndexRoute
+  '/topology': typeof TopologyIndexRoute
   '/upstreams': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/global_rules/detail/$id': typeof Global_rulesDetailIdRoute
@@ -407,6 +423,7 @@ export interface FileRoutesById {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups/': typeof Consumer_groupsIndexRoute
   '/consumers/': typeof ConsumersIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/global_rules/': typeof Global_rulesIndexRoute
   '/plugin_configs/': typeof Plugin_configsIndexRoute
   '/plugin_metadata/': typeof Plugin_metadataIndexRoute
@@ -416,6 +433,7 @@ export interface FileRoutesById {
   '/services/': typeof ServicesIndexRoute
   '/ssls/': typeof SslsIndexRoute
   '/stream_routes/': typeof Stream_routesIndexRoute
+  '/topology/': typeof TopologyIndexRoute
   '/upstreams/': typeof UpstreamsIndexRoute
   '/consumer_groups/detail/$id': typeof Consumer_groupsDetailIdRoute
   '/consumers/detail/$username': typeof ConsumersDetailUsernameRouteWithChildren
@@ -457,6 +475,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups'
     | '/consumers'
+    | '/dashboard'
     | '/global_rules'
     | '/plugin_configs'
     | '/plugin_metadata'
@@ -466,6 +485,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/ssls'
     | '/stream_routes'
+    | '/topology'
     | '/upstreams'
     | '/consumer_groups/detail/$id'
     | '/consumers/detail/$username'
@@ -505,6 +525,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups'
     | '/consumers'
+    | '/dashboard'
     | '/global_rules'
     | '/plugin_configs'
     | '/plugin_metadata'
@@ -514,6 +535,7 @@ export interface FileRouteTypes {
     | '/services'
     | '/ssls'
     | '/stream_routes'
+    | '/topology'
     | '/upstreams'
     | '/consumer_groups/detail/$id'
     | '/global_rules/detail/$id'
@@ -551,6 +573,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups/'
     | '/consumers/'
+    | '/dashboard/'
     | '/global_rules/'
     | '/plugin_configs/'
     | '/plugin_metadata/'
@@ -560,6 +583,7 @@ export interface FileRouteTypes {
     | '/services/'
     | '/ssls/'
     | '/stream_routes/'
+    | '/topology/'
     | '/upstreams/'
     | '/consumer_groups/detail/$id'
     | '/consumers/detail/$username'
@@ -600,6 +624,7 @@ export interface RootRouteChildren {
   UpstreamsAddRoute: typeof UpstreamsAddRoute
   Consumer_groupsIndexRoute: typeof Consumer_groupsIndexRoute
   ConsumersIndexRoute: typeof ConsumersIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   Global_rulesIndexRoute: typeof Global_rulesIndexRoute
   Plugin_configsIndexRoute: typeof Plugin_configsIndexRoute
   Plugin_metadataIndexRoute: typeof Plugin_metadataIndexRoute
@@ -609,6 +634,7 @@ export interface RootRouteChildren {
   ServicesIndexRoute: typeof ServicesIndexRoute
   SslsIndexRoute: typeof SslsIndexRoute
   Stream_routesIndexRoute: typeof Stream_routesIndexRoute
+  TopologyIndexRoute: typeof TopologyIndexRoute
   UpstreamsIndexRoute: typeof UpstreamsIndexRoute
   Consumer_groupsDetailIdRoute: typeof Consumer_groupsDetailIdRoute
   ConsumersDetailUsernameRoute: typeof ConsumersDetailUsernameRouteWithChildren
@@ -637,6 +663,13 @@ declare module '@tanstack/react-router' {
       path: '/upstreams'
       fullPath: '/upstreams'
       preLoaderRoute: typeof UpstreamsIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/topology/': {
+      id: '/topology/'
+      path: '/topology'
+      fullPath: '/topology'
+      preLoaderRoute: typeof TopologyIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/stream_routes/': {
@@ -700,6 +733,13 @@ declare module '@tanstack/react-router' {
       path: '/global_rules'
       fullPath: '/global_rules'
       preLoaderRoute: typeof Global_rulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/consumers/': {
@@ -1014,6 +1054,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpstreamsAddRoute: UpstreamsAddRoute,
   Consumer_groupsIndexRoute: Consumer_groupsIndexRoute,
   ConsumersIndexRoute: ConsumersIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   Global_rulesIndexRoute: Global_rulesIndexRoute,
   Plugin_configsIndexRoute: Plugin_configsIndexRoute,
   Plugin_metadataIndexRoute: Plugin_metadataIndexRoute,
@@ -1023,6 +1064,7 @@ const rootRouteChildren: RootRouteChildren = {
   ServicesIndexRoute: ServicesIndexRoute,
   SslsIndexRoute: SslsIndexRoute,
   Stream_routesIndexRoute: Stream_routesIndexRoute,
+  TopologyIndexRoute: TopologyIndexRoute,
   UpstreamsIndexRoute: UpstreamsIndexRoute,
   Consumer_groupsDetailIdRoute: Consumer_groupsDetailIdRoute,
   ConsumersDetailUsernameRoute: ConsumersDetailUsernameRouteWithChildren,
