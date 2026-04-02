@@ -69,7 +69,7 @@ const UpstreamAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Upstream'}`}
       />
       <FormTOCBox>

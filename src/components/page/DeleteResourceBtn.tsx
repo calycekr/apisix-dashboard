@@ -75,6 +75,13 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
               type: 'success',
             });
             queryClient.invalidateQueries();
+          })
+          .catch((err) => {
+            showNotification({
+              message: `Failed to delete ${name}: ${err instanceof Error ? err.message : 'Unknown error'}`,
+              type: 'error',
+            });
+            throw err;
           }),
     });
   });

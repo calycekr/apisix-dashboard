@@ -119,7 +119,7 @@ export const RouteDetail = (props: RouteDetailProps) => {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Route'}`}
         {...(readOnly && {
           title: `${'Route'} Detail`,

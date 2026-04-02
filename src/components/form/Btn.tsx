@@ -21,7 +21,7 @@ import { useFormContext, useFormState } from 'react-hook-form';
 export const FormSubmitBtn = (props: ButtonProps) => {
   const form = useFormContext();
   const { isSubmitting } = useFormState(form);
-  return <Button type="primary" size="middle" htmlType="submit" loading={isSubmitting} {...props} />;
+  return <Button type="primary" size="middle" htmlType="submit" loading={isSubmitting} disabled={isSubmitting} {...props} />;
 };
 
 export const FormSubmitBtnWithCancel = (props: ButtonProps) => {

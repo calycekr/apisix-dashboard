@@ -77,7 +77,7 @@ const GlobalRuleAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Global Rule'}`}
       />
       <FormTOCBox>

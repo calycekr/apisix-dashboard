@@ -103,7 +103,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Plugin Config'}`}
         {...(readOnly && {
           title: `${'Plugin Config'} Detail`,

@@ -72,7 +72,7 @@ const PluginConfigAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Plugin Config'}`}
       />
       <FormTOCBox>

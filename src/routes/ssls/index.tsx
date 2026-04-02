@@ -43,6 +43,7 @@ function RouteComponent() {
         dataIndex: ['value', 'sni'],
         title: 'SNI',
         key: 'sni',
+        ellipsis: true,
         render: (_, record) => {
           const sni = record.value.sni;
           const snis = record.value.snis;

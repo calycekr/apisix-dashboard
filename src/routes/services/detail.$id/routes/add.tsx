@@ -30,7 +30,7 @@ function RouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/routes/add' });
   return (
     <CommonFormContext.Provider value={{ readOnlyFields: ['service_id'] }}>
-      <PageHeader title={`Add ${'Route'}`} />
+      <PageHeader showBackBtn title={`Add ${'Route'}`} />
       <FormTOCBox>
         <RouteAddForm
           navigate={(res) =>

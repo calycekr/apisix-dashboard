@@ -110,7 +110,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'SSL'}`}
         {...(readOnly && {
           title: `${'SSL'} Detail`,

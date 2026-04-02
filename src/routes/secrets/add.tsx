@@ -75,7 +75,7 @@ const SecretAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Secret'}`}
       />
       <FormTOCBox>

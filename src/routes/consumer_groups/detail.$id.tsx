@@ -101,7 +101,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Consumer Group'}`}
         {...(readOnly && {
           title: `${'Consumer Group'} Detail`,

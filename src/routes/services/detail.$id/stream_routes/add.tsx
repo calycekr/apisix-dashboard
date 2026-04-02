@@ -31,7 +31,7 @@ function RouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/stream_routes/add' });
   return (
     <CommonFormContext.Provider value={{ readOnlyFields: ['service_id'] }}>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Stream Route'}`}
       />
       <FormTOCBox>
