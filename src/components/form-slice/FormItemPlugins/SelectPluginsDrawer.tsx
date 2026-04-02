@@ -24,7 +24,7 @@ import {
 } from './PluginCardList';
 import { type PluginEditorDrawerProps } from './PluginEditorDrawer';
 
-export type SelectPluginsDrawerProps = Pick<PluginCardListProps, 'plugins'> &
+export type SelectPluginsDrawerProps = Pick<PluginCardListProps, 'plugins' | 'descriptions'> &
   Pick<PluginEditorDrawerProps, 'schema'> & {
     onAdd: (name: string) => void;
     opened: boolean;
@@ -35,7 +35,7 @@ export type SelectPluginsDrawerProps = Pick<PluginCardListProps, 'plugins'> &
  * because we need keep the drawer order when using the Drawer.Stack, so we pass disabled to the btn
  */
 export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
-  const { plugins, onAdd, opened, setOpened, disabled = false } = props;
+  const { plugins, descriptions, onAdd, opened, setOpened, disabled = false } = props;
   const [search, setSearch] = useState('');
 
   return (
@@ -60,6 +60,7 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
           search={search}
           onAdd={onAdd}
           plugins={plugins}
+          descriptions={descriptions}
         />
       </Drawer>
       {!disabled && (

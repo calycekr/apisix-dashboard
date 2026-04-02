@@ -73,10 +73,12 @@ export type PluginCardListProps = Omit<OptionProps, 'name'> & {
   mah?: number | string;
   search: string;
   plugins: string[];
+  /** Dynamic descriptions from API schema (overrides hardcoded) */
+  descriptions?: Map<string, string>;
 };
 
 export const PluginCardList = (props: PluginCardListProps) => {
-  const { search = '', cols = 3, h, mah, plugins } = props;
+  const { search = '', cols = 3, h, mah, plugins, descriptions } = props;
   const { mode, onAdd, onEdit, onDelete, onView } = props;
 
   const optionsOb = useLocalObservable(() => ({
@@ -128,7 +130,7 @@ export const PluginCardList = (props: PluginCardListProps) => {
                 key={name}
                 mode={optionsOb.mode}
                 name={name}
-                desc={PLUGIN_DESCRIPTIONS[name]}
+                desc={descriptions?.get(name) || PLUGIN_DESCRIPTIONS[name]}
                 onAdd={() => onAdd?.(name)}
                 onEdit={() => onEdit?.(name)}
                 onDelete={() => onDelete?.(name)}
