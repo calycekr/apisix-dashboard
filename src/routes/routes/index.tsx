@@ -207,6 +207,7 @@ export const RouteList = (props: RouteListProps) => {
         selectedIds={selectedRowKeys.map(String)}
         onComplete={() => { setSelectedRowKeys([]); refetch(); }}
         onClear={() => setSelectedRowKeys([])}
+        showStatusActions
       />
       <ProTable
         columns={columns}

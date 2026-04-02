@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
+  Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
@@ -125,6 +126,9 @@ export const RouteDetail = (props: RouteDetailProps) => {
         extra={
           readOnly ? (
             <Space>
+              <Link to="/routes/add" search={{ clone_from: id }}>
+                <Button size="small">Clone</Button>
+              </Link>
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"

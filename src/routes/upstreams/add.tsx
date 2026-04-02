@@ -15,11 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { createFileRoute, useRouter } from '@tanstack/react-router';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { createFileRoute, useRouter, useSearch } from '@tanstack/react-router';
+import { Skeleton } from 'antd';
 import { FormProvider, useForm } from 'react-hook-form';
-import type { z } from 'zod';
+import { z } from 'zod';
 
+import { getUpstreamQueryOptions } from '@/apis/hooks';
 import { postUpstreamReq } from '@/apis/upstreams';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartUpstream } from '@/components/form-slice/FormPartUpstream';
@@ -36,7 +38,7 @@ const PostUpstreamSchema = FormPartUpstreamSchema.omit({
 
 type PostUpstreamType = z.infer<typeof PostUpstreamSchema>;
 
-const UpstreamAddForm = () => {
+const UpstreamAddForm = ({ defaultValues }: { defaultValues?: PostUpstreamType }) => {
   const router = useRouter();
   const postUpstream = useMutation({
     mutationFn: (d: PostUpstreamType) => postUpstreamReq(req, d),
@@ -55,6 +57,7 @@ const UpstreamAddForm = () => {
     resolver: zodResolver(PostUpstreamSchema),
     shouldUnregister: true,
     mode: 'all',
+    defaultValues,
   });
 
   return (
@@ -66,14 +69,45 @@ const UpstreamAddForm = () => {
   );
 };
 
+const addSearchSchema = z.object({
+  clone_from: z.string().optional(),
+});
+
 function RouteComponent() {
+  const { clone_from } = useSearch({ from: '/upstreams/add' });
+
+  const { data: sourceData, isLoading } = useQuery({
+    ...getUpstreamQueryOptions(clone_from ?? ''),
+    enabled: !!clone_from,
+  });
+
+  const cloneValues = sourceData?.value
+    ? (() => {
+        const copy = { ...sourceData.value } as Record<string, unknown>;
+        delete copy.id;
+        if (copy.name) copy.name = `${copy.name} (copy)`;
+        return copy as PostUpstreamType;
+      })()
+    : undefined;
+
+  if (clone_from && isLoading) {
+    return (
+      <>
+        <PageHeader showBackBtn title="Clone Upstream" />
+        <Skeleton active />
+      </>
+    );
+  }
+
   return (
     <>
-      <PageHeader showBackBtn
-        title={`Add ${'Upstream'}`}
+      <PageHeader
+        showBackBtn
+        title={clone_from ? 'Clone Upstream' : 'Add Upstream'}
+        desc={clone_from ? `Cloning from ${clone_from}` : undefined}
       />
       <FormTOCBox>
-        <UpstreamAddForm />
+        <UpstreamAddForm defaultValues={cloneValues} />
       </FormTOCBox>
     </>
   );
@@ -81,4 +115,5 @@ function RouteComponent() {
 
 export const Route = createFileRoute('/upstreams/add')({
   component: RouteComponent,
+  validateSearch: addSearchSchema,
 });

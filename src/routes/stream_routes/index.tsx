@@ -174,6 +174,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         selectedIds={selectedRowKeys.map(String)}
         onComplete={() => { setSelectedRowKeys([]); refetch(); }}
         onClear={() => setSelectedRowKeys([])}
+        showStatusActions
       />
       <ProTable
         columns={columns}
