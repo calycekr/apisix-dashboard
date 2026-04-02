@@ -87,7 +87,6 @@ req.interceptors.response.use(
       // Requires to enter admin key at 401
       if (res.status === HttpStatusCode.Unauthorized) {
         getDefaultStore().set(isSettingsOpenAtom, true);
-        return Promise.resolve({ data: {} });
       }
     }
     return Promise.reject(err);

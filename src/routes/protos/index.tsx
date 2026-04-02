@@ -22,6 +22,8 @@ import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getProtoListQueryOptions, useProtoList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -31,10 +33,11 @@ import { API_PROTOS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
-
   const { data, isLoading, refetch, pagination, setParams } = useProtoList();
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespProtoList']['data']['list'][number]>[]
@@ -44,7 +47,8 @@ function RouteComponent() {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
         dataIndex: ['value', 'content'],
@@ -100,13 +104,19 @@ function RouteComponent() {
     <>
       <PageHeader title="Protos" />
       <AntdConfigProvider>
+        <BulkDeleteBar
+          {...bulkBarProps}
+          resourceName="Proto"
+          apiBase={API_PROTOS}
+        />
         <ProTable
           columns={columns}
           dataSource={data?.list || []}
-          rowKey="id"
+          rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
-          options={{ density: false, fullScreen: false, reload: true, setting: true }}
+          rowSelection={rowSelection}
+          options={{ density: true, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="Protos"
           pagination={pagination}

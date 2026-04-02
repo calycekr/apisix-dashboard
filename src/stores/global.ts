@@ -43,3 +43,11 @@ export const useThemeMode = () => {
   const toggle = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
   return { mode, toggle };
 };
+
+// Sidebar collapsed state with persistent storage
+export const sidebarCollapsedAtom = atomWithStorage<boolean>(
+  'sidebar:collapsed',
+  false,
+  undefined,
+  { getOnInit: true }
+);

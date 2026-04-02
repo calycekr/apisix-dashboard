@@ -22,6 +22,8 @@ import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -31,9 +33,11 @@ import { API_SECRETS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function SecretList() {
   const { data, isLoading, refetch, pagination, setParams } = useSecretList();
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespSecretList']['data']['list'][number]>[]
@@ -50,7 +54,8 @@ function SecretList() {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
-        valueType: 'text',
+        width: 150,
+        render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -92,13 +97,19 @@ function SecretList() {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        {...bulkBarProps}
+        resourceName="Secret"
+        apiBase={API_SECRETS}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list || []}
-        rowKey="id"
+        rowKey={(record) => `${record.value.manager}/${record.value.id}`}
         loading={isLoading}
         search={false}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Secrets"
         pagination={pagination}
@@ -113,7 +124,6 @@ function SecretList() {
 }
 
 function RouteComponent() {
-
   return (
     <>
       <PageHeader title="Secrets" />

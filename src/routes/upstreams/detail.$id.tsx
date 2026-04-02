@@ -22,6 +22,7 @@ import {
 } from '@tanstack/react-query';
 import {
   createFileRoute,
+  Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
@@ -39,6 +40,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { ReverseReferences } from '@/components/page/ReverseReferences';
 import { API_UPSTREAMS } from '@/config/constant';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
@@ -103,6 +105,8 @@ const UpstreamDetailForm = (
           onSubmit={(d) => { putUpstream.mutateAsync(pipeProduce()(d)); }}
           submitLabel="Save"
           disabled={readOnly}
+          rawData={upstreamData}
+          patchApi={`${API_UPSTREAMS}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartUpstream />
@@ -120,11 +124,17 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Upstream'}`}
-        {...(readOnly && {
-          title: `${'Upstream'} Detail`,
-          extra: (
+        title={`Upstream: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
+              <Link to="/services/add" search={{ upstream_id: id }}>
+                <Button size="small">+ Service</Button>
+              </Link>
+              <Link to="/upstreams/add" search={{ clone_from: id }}>
+                <Button size="small">Clone</Button>
+              </Link>
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"
@@ -140,14 +150,15 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/upstreams' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <UpstreamDetailForm
         id={id}
         readOnly={readOnly}
         setReadOnly={setReadOnly}
       />
+      <ReverseReferences resourceType="upstream" resourceId={id} />
     </>
   );
 }

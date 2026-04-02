@@ -17,6 +17,7 @@ import { Route as SslsIndexRouteImport } from './routes/ssls/index'
 import { Route as ServicesIndexRouteImport } from './routes/services/index'
 import { Route as SecretsIndexRouteImport } from './routes/secrets/index'
 import { Route as RoutesIndexRouteImport } from './routes/routes/index'
+import { Route as Raw_apiIndexRouteImport } from './routes/raw_api/index'
 import { Route as ProtosIndexRouteImport } from './routes/protos/index'
 import { Route as Plugin_metadataIndexRouteImport } from './routes/plugin_metadata/index'
 import { Route as Plugin_configsIndexRouteImport } from './routes/plugin_configs/index'
@@ -97,6 +98,11 @@ const SecretsIndexRoute = SecretsIndexRouteImport.update({
 const RoutesIndexRoute = RoutesIndexRouteImport.update({
   id: '/routes/',
   path: '/routes/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const Raw_apiIndexRoute = Raw_apiIndexRouteImport.update({
+  id: '/raw_api/',
+  path: '/raw_api/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ProtosIndexRoute = ProtosIndexRouteImport.update({
@@ -336,6 +342,7 @@ export interface FileRoutesByFullPath {
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
   '/protos': typeof ProtosIndexRoute
+  '/raw_api': typeof Raw_apiIndexRoute
   '/routes': typeof RoutesIndexRoute
   '/secrets': typeof SecretsIndexRoute
   '/services': typeof ServicesIndexRoute
@@ -387,6 +394,7 @@ export interface FileRoutesByTo {
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
   '/protos': typeof ProtosIndexRoute
+  '/raw_api': typeof Raw_apiIndexRoute
   '/routes': typeof RoutesIndexRoute
   '/secrets': typeof SecretsIndexRoute
   '/services': typeof ServicesIndexRoute
@@ -437,6 +445,7 @@ export interface FileRoutesById {
   '/plugin_configs/': typeof Plugin_configsIndexRoute
   '/plugin_metadata/': typeof Plugin_metadataIndexRoute
   '/protos/': typeof ProtosIndexRoute
+  '/raw_api/': typeof Raw_apiIndexRoute
   '/routes/': typeof RoutesIndexRoute
   '/secrets/': typeof SecretsIndexRoute
   '/services/': typeof ServicesIndexRoute
@@ -490,6 +499,7 @@ export interface FileRouteTypes {
     | '/plugin_configs'
     | '/plugin_metadata'
     | '/protos'
+    | '/raw_api'
     | '/routes'
     | '/secrets'
     | '/services'
@@ -541,6 +551,7 @@ export interface FileRouteTypes {
     | '/plugin_configs'
     | '/plugin_metadata'
     | '/protos'
+    | '/raw_api'
     | '/routes'
     | '/secrets'
     | '/services'
@@ -590,6 +601,7 @@ export interface FileRouteTypes {
     | '/plugin_configs/'
     | '/plugin_metadata/'
     | '/protos/'
+    | '/raw_api/'
     | '/routes/'
     | '/secrets/'
     | '/services/'
@@ -642,6 +654,7 @@ export interface RootRouteChildren {
   Plugin_configsIndexRoute: typeof Plugin_configsIndexRoute
   Plugin_metadataIndexRoute: typeof Plugin_metadataIndexRoute
   ProtosIndexRoute: typeof ProtosIndexRoute
+  Raw_apiIndexRoute: typeof Raw_apiIndexRoute
   RoutesIndexRoute: typeof RoutesIndexRoute
   SecretsIndexRoute: typeof SecretsIndexRoute
   ServicesIndexRoute: typeof ServicesIndexRoute
@@ -718,6 +731,13 @@ declare module '@tanstack/react-router' {
       path: '/routes'
       fullPath: '/routes'
       preLoaderRoute: typeof RoutesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/raw_api/': {
+      id: '/raw_api/'
+      path: '/raw_api'
+      fullPath: '/raw_api'
+      preLoaderRoute: typeof Raw_apiIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/protos/': {
@@ -1080,6 +1100,7 @@ const rootRouteChildren: RootRouteChildren = {
   Plugin_configsIndexRoute: Plugin_configsIndexRoute,
   Plugin_metadataIndexRoute: Plugin_metadataIndexRoute,
   ProtosIndexRoute: ProtosIndexRoute,
+  Raw_apiIndexRoute: Raw_apiIndexRoute,
   RoutesIndexRoute: RoutesIndexRoute,
   SecretsIndexRoute: SecretsIndexRoute,
   ServicesIndexRoute: ServicesIndexRoute,

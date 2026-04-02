@@ -88,6 +88,7 @@ const PluginConfigDetailForm = (props: Props) => {
         onSubmit={(d) => putPluginConfig.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={data?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig />
@@ -104,10 +105,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Plugin Config'}`}
-        {...(readOnly && {
-          title: `${'Plugin Config'} Detail`,
-          extra: (
+        title={`Plugin Config: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -124,8 +125,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/plugin_configs' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <PluginConfigDetailForm

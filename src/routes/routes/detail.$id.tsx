@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
+  Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
@@ -41,8 +42,10 @@ import {
 import { produceToUpstreamForm } from '@/components/form-slice/FormPartUpstream/util';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
+import { ApiTestPanel } from '@/components/page/ApiTestPanel';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { StatusSwitch } from '@/components/StatusTag';
 import { API_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { type APISIXType } from '@/types/schema/apisix';
@@ -96,17 +99,28 @@ const RouteDetailForm = (props: Props) => {
   }
 
   return (
-    <FormProvider {...form}>
-      <FormJsonTabs
-        form={form}
-        onSubmit={(d) => putRoute.mutateAsync(d)}
-        submitLabel="Save"
-        disabled={readOnly}
-      >
-        <FormSectionGeneral readOnly />
-        <FormPartRoute />
-      </FormJsonTabs>
-    </FormProvider>
+    <>
+      <FormProvider {...form}>
+        <FormJsonTabs
+          form={form}
+          onSubmit={(d) => putRoute.mutateAsync(d)}
+          submitLabel="Save"
+          disabled={readOnly}
+          rawData={routeData?.value}
+          patchApi={`${API_ROUTES}/${id}`}
+        >
+          <FormSectionGeneral readOnly />
+          <FormPartRoute />
+        </FormJsonTabs>
+      </FormProvider>
+      {readOnly && routeData?.value && (
+        <ApiTestPanel
+          defaultUri={routeData.value.uri || routeData.value.uris?.[0] || '/'}
+          defaultHost={routeData.value.host || routeData.value.hosts?.[0]}
+          defaultMethod={routeData.value.methods?.[0] || 'GET'}
+        />
+      )}
+    </>
   );
 };
 
@@ -120,11 +134,15 @@ export const RouteDetail = (props: RouteDetailProps) => {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Route'}`}
-        {...(readOnly && {
-          title: `${'Route'} Detail`,
-          extra: (
+        title={`Route: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
+              <StatusSwitch api={`${API_ROUTES}/${id}`} />
+              <Link to="/routes/add" search={{ clone_from: id }}>
+                <Button size="small">Clone</Button>
+              </Link>
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"
@@ -140,8 +158,8 @@ export const RouteDetail = (props: RouteDetailProps) => {
                 onSuccess={onDeleteSuccess}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <RouteDetailForm

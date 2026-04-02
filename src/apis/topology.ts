@@ -14,13 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AxiosInstance } from 'axios';
-
+import { fetchAllResources } from '@/apis/fetchAll';
 import { getRouteListReq } from '@/apis/routes';
 import { getServiceListReq } from '@/apis/services';
 import { getStreamRouteListReq } from '@/apis/stream_routes';
 import { getUpstreamListReq } from '@/apis/upstreams';
-import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
 
 export type TopologyData = {
@@ -29,25 +27,6 @@ export type TopologyData = {
   services: Array<{ id: string; name?: string; upstream_id?: string; hasInlineUpstream: boolean }>;
   upstreams: Array<{ id: string; name?: string; nodes: string[] }>;
 };
-
-async function fetchAll<T>(
-  fetcher: (r: AxiosInstance, params: { page: number; page_size: number }) => Promise<{ list: Array<{ value: T }>; total: number }>,
-): Promise<T[]> {
-  const first = await fetcher(req, { page: 1, page_size: 100 });
-  const items = first.list.map((i) => i.value);
-  const totalPages = Math.ceil(first.total / 100);
-  if (totalPages > 1) {
-    const rest = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, i) =>
-        fetcher(req, { page: i + 2, page_size: 100 })
-      )
-    );
-    for (const page of rest) {
-      items.push(...page.list.map((i) => i.value));
-    }
-  }
-  return items;
-}
 
 function extractNodes(upstream: APISIXType['Upstream']): string[] {
   const nodes = upstream.nodes;
@@ -60,10 +39,10 @@ function extractNodes(upstream: APISIXType['Upstream']): string[] {
 
 export const getTopologyData = async (): Promise<TopologyData> => {
   const [routes, streamRoutes, services, upstreams] = await Promise.all([
-    fetchAll<APISIXType['Route']>(getRouteListReq),
-    fetchAll<APISIXType['StreamRoute']>(getStreamRouteListReq),
-    fetchAll<APISIXType['Service']>(getServiceListReq),
-    fetchAll<APISIXType['Upstream']>(getUpstreamListReq),
+    fetchAllResources<APISIXType['Route']>(getRouteListReq),
+    fetchAllResources<APISIXType['StreamRoute']>(getStreamRouteListReq),
+    fetchAllResources<APISIXType['Service']>(getServiceListReq),
+    fetchAllResources<APISIXType['Upstream']>(getUpstreamListReq),
   ]);
 
   return {

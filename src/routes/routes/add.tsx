@@ -15,10 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation } from '@tanstack/react-query';
-import { createFileRoute, useNavigate } from '@tanstack/react-router';
+import { useMutation, useQuery } from '@tanstack/react-query';
+import { createFileRoute, useNavigate, useSearch } from '@tanstack/react-router';
+import { Skeleton } from 'antd';
 import { FormProvider, useForm } from 'react-hook-form';
+import { z } from 'zod';
 
+import { getRouteQueryOptions } from '@/apis/hooks';
 import { postRouteReq } from '@/apis/routes';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartRoute } from '@/components/form-slice/FormPartRoute';
@@ -69,13 +72,50 @@ export const RouteAddForm = (props: Props) => {
   );
 };
 
+const addSearchSchema = z.object({
+  clone_from: z.string().optional(),
+  service_id: z.string().optional(),
+});
+
 function RouteComponent() {
   const navigate = useNavigate();
+  const { clone_from, service_id } = useSearch({ from: '/routes/add' });
+
+  const { data: sourceData, isLoading } = useQuery({
+    ...getRouteQueryOptions(clone_from ?? ''),
+    enabled: !!clone_from,
+  });
+
+  const cloneValues = sourceData?.value
+    ? (() => {
+        const copy = { ...sourceData.value } as Record<string, unknown>;
+        delete copy.id;
+        delete copy.create_time;
+        delete copy.update_time;
+        if (copy.name) copy.name = `${copy.name} (copy)`;
+        return copy as Partial<RoutePostType>;
+      })()
+    : undefined;
+
+  if (clone_from && isLoading) {
+    return (
+      <>
+        <PageHeader showBackBtn title="Clone Route" />
+        <Skeleton active />
+      </>
+    );
+  }
+
   return (
     <>
-      <PageHeader showBackBtn title={`Add ${'Route'}`} />
+      <PageHeader
+        showBackBtn
+        title={clone_from ? 'Clone Route' : 'Add Route'}
+        desc={clone_from ? `Cloning from ${clone_from}` : undefined}
+      />
       <FormTOCBox>
         <RouteAddForm
+          defaultValues={cloneValues ?? (service_id ? { service_id } as Partial<RoutePostType> : undefined)}
           navigate={(res) =>
             navigate({
               to: '/routes/detail/$id',
@@ -90,4 +130,5 @@ function RouteComponent() {
 
 export const Route = createFileRoute('/routes/add')({
   component: RouteComponent,
+  validateSearch: addSearchSchema,
 });

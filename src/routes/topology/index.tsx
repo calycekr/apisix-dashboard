@@ -17,7 +17,7 @@
 import '@xyflow/react/dist/style.css';
 
 import { useQuery } from '@tanstack/react-query';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import {
   Background,
   Controls,
@@ -245,6 +245,7 @@ function NodeLabel({ type, name, detail }: { type: string; name: string; detail:
 
 function TopologyGraph({ data }: { data: TopologyData }) {
   const { token } = theme.useToken();
+  const navigate = useNavigate();
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
     () => buildNodesAndEdges(data),
@@ -290,6 +291,14 @@ function TopologyGraph({ data }: { data: TopologyData }) {
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onInit={onInit}
+        onNodeDoubleClick={(_, node) => {
+          // node.id format: "route-123", "service-456", "upstream-789", "stream-route-123"
+          const id = node.id;
+          if (id.startsWith('route-')) navigate({ to: '/routes/detail/$id', params: { id: id.slice(6) } });
+          else if (id.startsWith('service-')) navigate({ to: '/services/detail/$id', params: { id: id.slice(8) } });
+          else if (id.startsWith('upstream-')) navigate({ to: '/upstreams/detail/$id', params: { id: id.slice(9) } });
+          else if (id.startsWith('stream-route-')) navigate({ to: '/stream_routes/detail/$id', params: { id: id.slice(13) } });
+        }}
         fitView
         proOptions={{ hideAttribution: true }}
         defaultEdgeOptions={{ type: 'smoothstep' }}
@@ -311,6 +320,9 @@ function TopologyGraph({ data }: { data: TopologyData }) {
             <Tag color="green">Service ({data.services.length})</Tag>
             <Tag color="purple">Upstream ({data.upstreams.length})</Tag>
           </div>
+          <Typography.Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: 'block' }}>
+            Double-click a node to open its detail page
+          </Typography.Text>
         </Panel>
       </ReactFlow>
     </div>

@@ -16,6 +16,8 @@
  */
 import type { MessageInstance } from 'antd/es/message/interface';
 
+import { addLogEntry } from '@/stores/activityLog';
+
 export type NotificationType = 'success' | 'error' | 'info' | 'warning';
 
 export type ShowNotificationOptions = {
@@ -30,11 +32,21 @@ export const setupNotification = (msg: MessageInstance): void => {
   messageApi = msg;
 };
 
+const DURATION: Record<NotificationType, number> = {
+  success: 3,
+  info: 5,
+  warning: 6,
+  error: 8,
+};
+
 export const showNotification = ({
   message,
   type,
   id,
 }: ShowNotificationOptions): void => {
+  // Always log to activity log for persistence
+  addLogEntry(type, message);
+
   if (!messageApi) {
     // eslint-disable-next-line no-console
     console.warn('[notification] setupNotification not called yet:', message);
@@ -45,5 +57,6 @@ export const showNotification = ({
     type,
     content: message,
     key: id,
+    duration: DURATION[type],
   });
 };

@@ -14,10 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { AxiosInstance } from 'axios';
-
 import { getConsumerGroupListReq } from '@/apis/consumer_groups';
 import { getConsumerListReq } from '@/apis/consumers';
+import { fetchAllResources } from '@/apis/fetchAll';
 import { getGlobalRuleListReq } from '@/apis/global_rules';
 import { getPluginConfigListReq } from '@/apis/plugin_configs';
 import { getProtoListReq } from '@/apis/protos';
@@ -107,40 +106,22 @@ const RESOURCE_API_MAP: Record<ResourceKey, string> = {
   secrets: API_SECRETS,
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function fetchAll(fetcher: (r: AxiosInstance, params: any) => Promise<{ list: Array<{ value: unknown }>; total: number }>): Promise<Record<string, unknown>[]> {
-  const first = await fetcher(req, { page: 1, page_size: 100 });
-  const items = first.list.map((i) => i.value as Record<string, unknown>);
-  const totalPages = Math.ceil(first.total / 100);
-  if (totalPages > 1) {
-    const rest = await Promise.all(
-      Array.from({ length: totalPages - 1 }, (_, i) =>
-        fetcher(req, { page: i + 2, page_size: 100 })
-      )
-    );
-    for (const page of rest) {
-      items.push(...page.list.map((i) => i.value as Record<string, unknown>));
-    }
-  }
-  return items;
-}
-
 export async function exportAllResources(): Promise<ExportData> {
   const [
     upstreams, services, routes, streamRoutes, consumers,
     consumerGroups, ssls, globalRules, pluginConfigs, protos, secrets,
   ] = await Promise.all([
-    fetchAll(getUpstreamListReq),
-    fetchAll(getServiceListReq),
-    fetchAll(getRouteListReq),
-    fetchAll(getStreamRouteListReq),
-    fetchAll(getConsumerListReq),
-    fetchAll(getConsumerGroupListReq),
-    fetchAll(getSSLListReq),
-    fetchAll(getGlobalRuleListReq),
-    fetchAll(getPluginConfigListReq),
-    fetchAll(getProtoListReq),
-    fetchAll(getSecretListReq),
+    fetchAllResources(getUpstreamListReq),
+    fetchAllResources(getServiceListReq),
+    fetchAllResources(getRouteListReq),
+    fetchAllResources(getStreamRouteListReq),
+    fetchAllResources(getConsumerListReq),
+    fetchAllResources(getConsumerGroupListReq),
+    fetchAllResources(getSSLListReq),
+    fetchAllResources(getGlobalRuleListReq),
+    fetchAllResources(getPluginConfigListReq),
+    fetchAllResources(getProtoListReq),
+    fetchAllResources(getSecretListReq),
   ]);
 
   return {

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useRouter } from '@tanstack/react-router';
-import { Button, Typography } from 'antd';
+import { Button, Tag, Typography } from 'antd';
 import { type FC } from 'react';
 
 import IconArrowBack from '~icons/material-symbols/arrow-back';
@@ -25,10 +25,11 @@ type PageHeaderProps = {
   desc?: string;
   extra?: React.ReactNode;
   showBackBtn?: boolean;
+  tag?: { label: string; color: string };
 };
 
 const PageHeader: FC<PageHeaderProps> = (props) => {
-  const { title, desc, extra, showBackBtn = false } = props;
+  const { title, desc, extra, showBackBtn = false, tag } = props;
   const router = useRouter();
   return (
     <div style={{ paddingBlock: 16, marginBottom: 24 }}>
@@ -43,7 +44,10 @@ const PageHeader: FC<PageHeaderProps> = (props) => {
             />
           )}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
+              {tag && <Tag color={tag.color}>{tag.label}</Tag>}
+            </div>
             {desc && (
               <Typography.Text type="secondary" style={{ fontSize: 14 }}>
                 {desc}

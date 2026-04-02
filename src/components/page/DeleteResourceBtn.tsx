@@ -76,12 +76,8 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
             });
             queryClient.invalidateQueries();
           })
-          .catch((err) => {
-            showNotification({
-              message: `Failed to delete ${name}: ${err instanceof Error ? err.message : 'Unknown error'}`,
-              type: 'error',
-            });
-            throw err;
+          .catch(() => {
+            // Error notification already shown by global interceptor with APISIX error details
           }),
     });
   });

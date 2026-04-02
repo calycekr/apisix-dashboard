@@ -18,6 +18,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
+  Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
@@ -34,6 +35,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { ReverseReferences } from '@/components/page/ReverseReferences';
 import { API_SERVICES } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
@@ -94,6 +96,8 @@ const ServiceDetailForm = (props: Props) => {
         onSubmit={(d) => putService.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={serviceData?.value}
+        patchApi={`${API_SERVICES}/${id}`}
       >
         <FormSectionGeneral />
         <FormPartService />
@@ -110,11 +114,17 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Service'}`}
-        {...(readOnly && {
-          title: `${'Service'} Detail`,
-          extra: (
+        title={`Service: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
+              <Link to="/routes/add" search={{ service_id: id }}>
+                <Button size="small">+ Route</Button>
+              </Link>
+              <Link to="/services/add" search={{ clone_from: id }}>
+                <Button size="small">Clone</Button>
+              </Link>
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"
@@ -130,12 +140,13 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/services' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <ServiceDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />
       </FormTOCBox>
+      <ReverseReferences resourceType="service" resourceId={id} />
     </>
   );
 }

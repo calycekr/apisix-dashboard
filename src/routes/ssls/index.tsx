@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -34,10 +34,11 @@ import { API_SSLS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
   const { data, isLoading, refetch, pagination, setParams } = useSSLList();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -158,12 +159,10 @@ function RouteComponent() {
       <PageHeader title="SSLs" />
       <AntdConfigProvider>
         <BulkDeleteBar
-          selectedCount={selectedRowKeys.length}
+          {...bulkBarProps}
           resourceName="SSL"
           apiBase={API_SSLS}
-          selectedIds={selectedRowKeys.map(String)}
-          onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-          onClear={() => setSelectedRowKeys([])}
+          showStatusActions
         />
         <ProTable
           columns={columns}
@@ -171,11 +170,8 @@ function RouteComponent() {
           rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
-          rowSelection={{
-            selectedRowKeys,
-            onChange: setSelectedRowKeys,
-          }}
-          options={{ density: false, fullScreen: false, reload: true, setting: true }}
+          rowSelection={rowSelection}
+          options={{ density: true, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="SSLs"
           pagination={pagination}

@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useQuery } from '@tanstack/react-query';
 import { Switch, Tag } from 'antd';
 import { useState } from 'react';
 
@@ -28,14 +29,25 @@ export const StatusTag = ({ status }: { status?: 0 | 1 }) => {
 };
 
 type StatusSwitchProps = {
+  /** Current status — if omitted, auto-fetches from API */
   status?: 0 | 1;
   api: string;
 };
 
-export const StatusSwitch = ({ status, api }: StatusSwitchProps) => {
+export const StatusSwitch = ({ status: statusProp, api }: StatusSwitchProps) => {
   const [loading, setLoading] = useState(false);
 
-  if (status === undefined) return <Tag>Unknown</Tag>;
+  // Auto-fetch status when not provided (e.g., detail page header)
+  const { data: fetchedStatus } = useQuery({
+    queryKey: ['status', api],
+    queryFn: () => req.get(api).then((r) => (r.data?.value?.status as 0 | 1 | undefined) ?? undefined),
+    enabled: statusProp === undefined,
+    staleTime: 10_000,
+  });
+
+  const status = statusProp ?? fetchedStatus;
+
+  if (status === undefined) return <Tag>—</Tag>;
 
   const handleToggle = async (checked: boolean) => {
     setLoading(true);
@@ -47,10 +59,7 @@ export const StatusSwitch = ({ status, api }: StatusSwitchProps) => {
         type: 'success',
       });
     } catch {
-      showNotification({
-        message: 'Failed to update status',
-        type: 'error',
-      });
+      // Error notification already shown by global interceptor
     } finally {
       setLoading(false);
     }

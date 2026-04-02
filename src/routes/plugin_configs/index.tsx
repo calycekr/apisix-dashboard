@@ -22,6 +22,8 @@ import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getPluginConfigListQueryOptions, usePluginConfigList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -32,14 +34,23 @@ import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { renderPluginCount } from '@/utils/columns';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function PluginConfigsList() {
   const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespPluginConfigItem']>[]
   >(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'name'],
         title: 'Name',
@@ -98,13 +109,19 @@ function PluginConfigsList() {
 
   return (
     <AntdConfigProvider>
+      <BulkDeleteBar
+        {...bulkBarProps}
+        resourceName="Plugin Config"
+        apiBase={API_PLUGIN_CONFIGS}
+      />
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Plugin Configs"
         pagination={pagination}

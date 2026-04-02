@@ -96,6 +96,7 @@ const SecretDetailForm = (props: Props) => {
         onSubmit={(d) => putSecret.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={secretData?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartSecret readOnlyManager />
@@ -112,10 +113,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Secret'}`}
-        {...(readOnly && {
-          title: `${'Secret'} Detail`,
-          extra: (
+        title={`Secret: ${manager}/${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -132,8 +133,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/secrets' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <SecretDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

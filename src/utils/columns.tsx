@@ -14,11 +14,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Tag, Tooltip } from 'antd';
+
+const MAX_VISIBLE = 2;
 
 export const renderPluginCount = (
   plugins: Record<string, unknown> | undefined
 ) => {
   if (!plugins) return '-';
-  const count = Object.keys(plugins).length;
-  return `${count} plugin${count !== 1 ? 's' : ''}`;
+  const names = Object.keys(plugins);
+  if (names.length === 0) return '-';
+
+  const visible = names.slice(0, MAX_VISIBLE);
+  const remaining = names.length - MAX_VISIBLE;
+
+  return (
+    <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 3 }}>
+      {visible.map((n) => (
+        <Tag key={n} style={{ margin: 0, fontSize: 11 }}>
+          {n}
+        </Tag>
+      ))}
+      {remaining > 0 && (
+        <Tooltip title={names.slice(MAX_VISIBLE).join(', ')}>
+          <Tag style={{ margin: 0, fontSize: 11 }}>+{remaining}</Tag>
+        </Tooltip>
+      )}
+    </span>
+  );
 };

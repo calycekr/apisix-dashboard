@@ -23,11 +23,11 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import type { ReactNode } from 'react';
 
 import {
-  getRecentChanges,
-  getResourceCounts,
+  getDashboardData,
   type RecentItem,
   type ResourceCounts,
 } from '@/apis/dashboard';
+import { getOperationalAlerts, type OperationalAlerts } from '@/apis/operational';
 import PageHeader from '@/components/page/PageHeader';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconDns from '~icons/material-symbols/dns';
@@ -172,23 +172,129 @@ function RecentChangesTable({ items, isLoading }: { items?: RecentItem[]; isLoad
   );
 }
 
+function OperationalAlertsSection({ alerts, isLoading }: { alerts?: OperationalAlerts; isLoading: boolean }) {
+  if (isLoading || !alerts) return null;
+  const { expiringSSLs, disabledRoutes } = alerts;
+  const hasAlerts = expiringSSLs.length > 0 || disabledRoutes.length > 0;
+  if (!hasAlerts) return null;
+
+  return (
+    <div style={{ marginTop: 24 }}>
+      {expiringSSLs.length > 0 && (
+        <Card
+          title={
+            <span>
+              <Tag color="warning" style={{ marginRight: 8 }}>
+                {expiringSSLs.length}
+              </Tag>
+              SSL Certificates Expiring Within 30 Days
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
+          <Table
+            dataSource={expiringSSLs}
+            rowKey="id"
+            pagination={false}
+            size="small"
+            columns={[
+              {
+                title: 'SNI',
+                dataIndex: 'sni',
+                key: 'sni',
+                render: (sni: string, record) => (
+                  <Link to="/ssls/detail/$id" params={{ id: record.id }}>
+                    <Typography.Text strong>{sni}</Typography.Text>
+                  </Link>
+                ),
+              },
+              {
+                title: 'Expires',
+                dataIndex: 'expiryDate',
+                key: 'expiryDate',
+              },
+              {
+                title: 'Days Left',
+                dataIndex: 'daysLeft',
+                key: 'daysLeft',
+                render: (days: number) => (
+                  <Tag color={days <= 0 ? 'error' : days <= 7 ? 'warning' : 'default'}>
+                    {days <= 0 ? 'EXPIRED' : `${days} days`}
+                  </Tag>
+                ),
+              },
+            ]}
+          />
+        </Card>
+      )}
+      {disabledRoutes.length > 0 && (
+        <Card
+          title={
+            <span>
+              <Tag color="default" style={{ marginRight: 8 }}>
+                {disabledRoutes.length}
+              </Tag>
+              Disabled Routes
+            </span>
+          }
+          size="small"
+          style={{ marginBottom: 16 }}
+        >
+          <Table
+            dataSource={disabledRoutes}
+            rowKey="id"
+            pagination={false}
+            size="small"
+            columns={[
+              {
+                title: 'ID',
+                dataIndex: 'id',
+                key: 'id',
+                width: 120,
+                render: (id: string) => (
+                  <Link to="/routes/detail/$id" params={{ id }}>
+                    <Typography.Text code style={{ fontSize: 12 }}>{id}</Typography.Text>
+                  </Link>
+                ),
+              },
+              {
+                title: 'Name',
+                dataIndex: 'name',
+                key: 'name',
+                render: (name: string) => name || '-',
+              },
+              {
+                title: 'URI',
+                dataIndex: 'uri',
+                key: 'uri',
+                render: (uri: string) => uri || '-',
+              },
+            ]}
+          />
+        </Card>
+      )}
+    </div>
+  );
+}
+
 function DashboardPage() {
   const {
-    data: counts,
-    isLoading: countsLoading,
+    data: dashboardData,
+    isLoading: dashboardLoading,
   } = useQuery({
-    queryKey: ['dashboard', 'resourceCounts'],
-    queryFn: getResourceCounts,
+    queryKey: ['dashboard', 'data'],
+    queryFn: getDashboardData,
     staleTime: 30_000,
   });
 
   const {
-    data: recentChanges,
-    isLoading: recentLoading,
+    data: alerts,
+    isLoading: alertsLoading,
   } = useQuery({
-    queryKey: ['dashboard', 'recentChanges'],
-    queryFn: getRecentChanges,
-    staleTime: 30_000,
+    queryKey: ['dashboard', 'operationalAlerts'],
+    queryFn: getOperationalAlerts,
+    staleTime: 60_000,
   });
 
   return (
@@ -197,8 +303,9 @@ function DashboardPage() {
         title="Dashboard"
         desc="Overview of your APISIX gateway resources"
       />
-      <ResourceCountCards counts={counts} isLoading={countsLoading} />
-      <RecentChangesTable items={recentChanges} isLoading={recentLoading} />
+      <ResourceCountCards counts={dashboardData?.counts} isLoading={dashboardLoading} />
+      <OperationalAlertsSection alerts={alerts} isLoading={alertsLoading} />
+      <RecentChangesTable items={dashboardData?.recentChanges} isLoading={dashboardLoading} />
     </>
   );
 }

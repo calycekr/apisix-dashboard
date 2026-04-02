@@ -101,6 +101,7 @@ export const FormSectionLoadbalancing = () => {
         label="Type"
         defaultValue={APISIX.UpstreamBalancer.options[0].value}
         data={APISIX.UpstreamBalancer.options.map((v) => v.value)}
+        description="roundrobin: weighted round-robin. chash: consistent hashing. least_conn: least connections. ewma: exponentially weighted moving average latency."
       />
       <FormItemSelect
         control={control}
@@ -108,13 +109,13 @@ export const FormSectionLoadbalancing = () => {
         label="Hash On"
         defaultValue={APISIX.UpstreamHashOn.options[0].value}
         data={APISIX.UpstreamHashOn.options.map((v) => v.value)}
-        description="This will be valid when `type` is `chash`"
+        description="Only used when type is chash. Determines what to hash on: vars (Nginx variables), header, cookie, or consumer."
       />
       <FormItemTextInput
         control={control}
         name={np('key')}
         label="Key"
-        description="This will be valid when `type` is `chash`"
+        description="Only used when type is chash. The specific variable/header/cookie name to hash on (e.g., remote_addr, X-Forwarded-For)."
       />
     </FormSection>
   );
@@ -131,12 +132,13 @@ export const FormSectionPassHost = () => {
         label="Pass Host"
         defaultValue={APISIX.UpstreamPassHost.options[0].value}
         data={APISIX.UpstreamPassHost.options.map((v) => v.value)}
+        description="pass: forward the client Host header. node: use the host from the upstream node. rewrite: use the custom Upstream Host value below."
       />
       <FormItemTextInput
         control={control}
         name={np('upstream_host')}
         label="Upstream Host"
-        description="Set this when `pass_host` is `rewrite`"
+        description="Required when Pass Host is 'rewrite'. The Host header sent to the upstream."
       />
     </FormSection>
   );
@@ -152,6 +154,7 @@ export const FormSectionRetry = () => {
         name={np('retries')}
         label="Retries"
         allowDecimal={false}
+        description="Number of retries on failure. Default uses the number of backend nodes."
       />
       <FormItemNumberInput
         control={control}
@@ -159,6 +162,7 @@ export const FormSectionRetry = () => {
         label="Retry timeout"
         suffix="s"
         allowDecimal={false}
+        description="Max time in seconds to spend retrying. 0 means no limit."
       />
     </FormSection>
   );

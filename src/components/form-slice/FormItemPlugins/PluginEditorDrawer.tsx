@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Drawer, Tabs, Typography } from 'antd';
+import { Alert, Drawer, Tabs, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -53,6 +53,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const [formValue, setFormValue] = useState<Record<string, unknown>>(
     config as Record<string, unknown>
   );
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const methods = useForm<{ config: string }>({
     criteriaMode: 'all',
@@ -65,6 +66,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     methods.reset();
     setFormValue(config as Record<string, unknown>);
     setActiveTab(canUseForm ? 'form' : 'json');
+    setSaveError(null);
   };
 
   useEffect(() => {
@@ -154,9 +156,14 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       title={title}
       styles={{ body: { paddingTop: '18px' } }}
     >
-      <Typography.Title level={3} style={{ marginBottom: 10 }}>
+      <Typography.Title level={3} style={{ marginBottom: 4 }}>
         {name}
       </Typography.Title>
+      {schema && typeof schema === 'object' && 'description' in schema && (
+        <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
+          {String((schema as { description: string }).description)}
+        </Typography.Text>
+      )}
       <FormProvider {...methods}>
         <form>
           {canUseForm ? (
@@ -176,19 +183,50 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
         </form>
 
         {mode !== 'view' && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
-            <FormSubmitBtn
-              size="small"
-              type="text"
-              onClick={methods.handleSubmit(() => {
-                onSave({ name, config: getCurrentConfig() });
-                handleClose();
-              })}
-            >
-              {mode === 'add' && 'Add'}
-              {mode === 'edit' && 'Save'}
-            </FormSubmitBtn>
-          </div>
+          <>
+            {saveError && (
+              <Alert
+                type="error"
+                showIcon
+                message={saveError}
+                closable
+                onClose={() => setSaveError(null)}
+                style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}
+              />
+            )}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: 8 }}>
+              <FormSubmitBtn
+                size="small"
+                type="text"
+                onClick={methods.handleSubmit(
+                  () => {
+                    setSaveError(null);
+                    const cfg = getCurrentConfig();
+                    if (activeTab === 'json') {
+                      // Validate JSON is parseable
+                      try {
+                        JSON.parse(methods.getValues('config') || '{}');
+                      } catch (e) {
+                        setSaveError('Invalid JSON: ' + String(e));
+                        return;
+                      }
+                    }
+                    onSave({ name, config: cfg });
+                    handleClose();
+                  },
+                  (errors) => {
+                    const msgs = Object.entries(errors)
+                      .map(([k, v]) => `${k}: ${(v as { message?: string })?.message ?? 'invalid'}`)
+                      .join('\n');
+                    setSaveError(msgs || 'Validation failed');
+                  }
+                )}
+              >
+                {mode === 'add' && 'Add'}
+                {mode === 'edit' && 'Save'}
+              </FormSubmitBtn>
+            </div>
+          </>
         )}
       </FormProvider>
     </Drawer>

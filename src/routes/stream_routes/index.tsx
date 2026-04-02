@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -36,6 +36,7 @@ import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
 export type StreamRouteListProps = {
@@ -55,7 +56,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
     routeKey,
     defaultParams
   );
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
@@ -168,12 +169,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Stream Route"
         apiBase={API_STREAM_ROUTES}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
+        showStatusActions
       />
       <ProTable
         columns={columns}
@@ -181,11 +180,8 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Stream Routes"
         pagination={pagination}

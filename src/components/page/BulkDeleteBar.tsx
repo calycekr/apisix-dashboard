@@ -28,6 +28,7 @@ type BulkDeleteBarProps = {
   selectedIds: string[];
   onComplete: () => void;
   onClear: () => void;
+  showStatusActions?: boolean;
 };
 
 export const BulkDeleteBar = ({
@@ -37,6 +38,7 @@ export const BulkDeleteBar = ({
   selectedIds,
   onComplete,
   onClear,
+  showStatusActions = false,
 }: BulkDeleteBarProps) => {
   const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
@@ -90,6 +92,52 @@ export const BulkDeleteBar = ({
     });
   };
 
+  const handleBulkStatus = (status: 0 | 1) => {
+    const label = status === 1 ? 'Enable' : 'Disable';
+    Modal.confirm({
+      centered: true,
+      title: `${label} ${selectedCount} ${resourceName}(s)`,
+      content: (
+        <Typography.Text>
+          {label} {selectedCount} selected {resourceName}(s)?
+        </Typography.Text>
+      ),
+      okText: label,
+      cancelText: 'Cancel',
+      onOk: async () => {
+        setLoading(true);
+        let successCount = 0;
+        const errors: string[] = [];
+
+        for (const id of selectedIds) {
+          try {
+            await req.patch(`${apiBase}/${id}`, { status });
+            successCount++;
+          } catch (e) {
+            errors.push(`${id}: ${e instanceof Error ? e.message : 'Unknown error'}`);
+          }
+        }
+
+        setLoading(false);
+
+        if (errors.length === 0) {
+          showNotification({
+            message: `${label}d ${successCount} ${resourceName}(s) successfully`,
+            type: 'success',
+          });
+        } else {
+          showNotification({
+            message: `${label}d ${successCount}/${selectedIds.length}. ${errors.length} failed: ${errors.slice(0, 3).join('; ')}`,
+            type: 'error',
+          });
+        }
+
+        queryClient.invalidateQueries();
+        onComplete();
+      },
+    });
+  };
+
   return (
     <div
       style={{
@@ -108,10 +156,20 @@ export const BulkDeleteBar = ({
       </Typography.Text>
       <Space>
         <Button size="small" onClick={onClear}>
-          Clear Selection
+          Clear
         </Button>
+        {showStatusActions && (
+          <>
+            <Button size="small" loading={loading} onClick={() => handleBulkStatus(1)}>
+              Enable
+            </Button>
+            <Button size="small" loading={loading} onClick={() => handleBulkStatus(0)}>
+              Disable
+            </Button>
+          </>
+        )}
         <Button size="small" danger type="primary" loading={loading} onClick={handleBulkDelete}>
-          Delete Selected
+          Delete
         </Button>
       </Space>
     </div>

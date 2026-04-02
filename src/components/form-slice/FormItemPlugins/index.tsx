@@ -141,6 +141,18 @@ export const FormItemPlugins = <T extends FieldValues>(
     pluginsOb.initPlugins(pluginsListReq.data);
   }, [pluginsOb, pluginsListReq.data]);
 
+  // Extract descriptions from plugin schemas (dynamic, from API)
+  const pluginDescriptions = useMemo(() => {
+    const map = new Map<string, string>();
+    for (const [name, schemaObj] of pluginsOb.pluginSchemaObj.entries()) {
+      const s = schemaObj?.[schema];
+      if (s && typeof s === 'object' && 'description' in s) {
+        map.set(name, String((s as { description: string }).description));
+      }
+    }
+    return map;
+  }, [pluginsOb.pluginSchemaObj, schema]);
+
   return (
     <InputWrapper error={fieldState.error?.message} {...restProps}>
       <input name={fName} type="hidden" />
@@ -152,6 +164,7 @@ export const FormItemPlugins = <T extends FieldValues>(
           />
           <SelectPluginsDrawer
             plugins={pluginsOb.unSelected}
+            descriptions={pluginDescriptions}
             opened={pluginsOb.selectPluginsOpened}
             setOpened={pluginsOb.setSelectPluginsOpened}
             onAdd={(name) => pluginsOb.on('add', name)}
@@ -164,6 +177,8 @@ export const FormItemPlugins = <T extends FieldValues>(
           mah="60vh"
           search={pluginsOb.search}
           plugins={pluginsOb.selected}
+          descriptions={pluginDescriptions}
+          configs={pluginsOb.__map}
           onDelete={pluginsOb.delete}
           onView={(name) => pluginsOb.on('view', name)}
           onEdit={(name) => pluginsOb.on('edit', name)}

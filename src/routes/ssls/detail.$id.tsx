@@ -39,6 +39,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { StatusSwitch } from '@/components/StatusTag';
 import { API_SSLS } from '@/config/constant';
 import { req } from '@/config/req';
 import { showNotification } from '@/utils/notification';
@@ -94,6 +95,8 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
           submitLabel="Save"
           disabled={readOnly}
+          rawData={sslData}
+          patchApi={`${API_SSLS}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartSSL />
@@ -111,11 +114,12 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'SSL'}`}
-        {...(readOnly && {
-          title: `${'SSL'} Detail`,
-          extra: (
+        title={`SSL: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
+              <StatusSwitch api={`${API_SSLS}/${id}`} />
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"
@@ -131,8 +135,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/ssls' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <SSLDetailForm id={id} readOnly={readOnly} setReadOnly={setReadOnly} />
     </>

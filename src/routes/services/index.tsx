@@ -16,16 +16,17 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -35,10 +36,11 @@ import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { renderPluginCount } from '@/utils/columns';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams } = useServiceList();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -67,10 +69,17 @@ const ServiceList = () => {
       },
       {
         dataIndex: ['value', 'upstream_id'],
-        title: 'Upstream ID',
+        title: 'Upstream',
         key: 'upstream_id',
-        valueType: 'text',
-        render: (_, record) => record.value.upstream_id || '-',
+        render: (_, record) => {
+          const id = record.value.upstream_id;
+          if (!id) return record.value.upstream?.nodes ? 'Inline' : '-';
+          return (
+            <Typography.Link>
+              <Link to="/upstreams/detail/$id" params={{ id }}>{id}</Link>
+            </Typography.Link>
+          );
+        },
       },
       {
         dataIndex: ['value', 'plugins'],
@@ -82,6 +91,7 @@ const ServiceList = () => {
         dataIndex: ['value', 'labels'],
         title: 'Labels',
         key: 'labels',
+        hideInTable: true,
         render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
@@ -123,12 +133,9 @@ const ServiceList = () => {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Service"
         apiBase={API_SERVICES}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
       />
       <ProTable
         columns={columns}
@@ -136,17 +143,15 @@ const ServiceList = () => {
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Services"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Service" to="/services/add" />,
         ]}
       />

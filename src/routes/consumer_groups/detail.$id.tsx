@@ -86,6 +86,7 @@ const ConsumerGroupDetailForm = (props: Props) => {
         onSubmit={(d) => putConsumerGroup.mutateAsync(pipeProduce()({ ...d, id }))}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={data?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig basicProps={{ showName: false }} />
@@ -102,10 +103,10 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Consumer Group'}`}
-        {...(readOnly && {
-          title: `${'Consumer Group'} Detail`,
-          extra: (
+        title={`Consumer Group: ${id}`}
+        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
+        extra={
+          readOnly ? (
             <Space>
               <Button
                 onClick={() => setReadOnly(false)}
@@ -122,8 +123,8 @@ function RouteComponent() {
                 onSuccess={() => navigate({ to: '/consumer_groups' })}
               />
             </Space>
-          ),
-        })}
+          ) : undefined
+        }
       />
       <FormTOCBox>
         <ConsumerGroupDetailForm

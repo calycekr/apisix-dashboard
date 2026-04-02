@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -28,6 +28,7 @@ import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { MethodTags } from '@/components/MethodTags';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -37,6 +38,7 @@ import { API_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
 export type RouteListProps = {
@@ -53,7 +55,7 @@ export const RouteList = (props: RouteListProps) => {
     routeKey,
     defaultParams
   );
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
@@ -90,6 +92,7 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'methods'],
         title: 'Methods',
         key: 'methods',
+        hideInTable: true,
         render: (_, record) => <MethodTags methods={record.value.methods} />,
       },
       {
@@ -98,6 +101,7 @@ export const RouteList = (props: RouteListProps) => {
         key: 'host',
         valueType: 'text',
         ellipsis: true,
+        hideInTable: true,
         render: (_, record) => {
           const host = record.value.host;
           const hosts = record.value.hosts;
@@ -143,6 +147,7 @@ export const RouteList = (props: RouteListProps) => {
         title: 'Priority',
         key: 'priority',
         width: 80,
+        hideInTable: true,
         renderText: (text) => text ?? 0,
       },
       {
@@ -165,6 +170,7 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'labels'],
         title: 'Labels',
         key: 'labels',
+        hideInTable: true,
         render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
@@ -201,12 +207,10 @@ export const RouteList = (props: RouteListProps) => {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Route"
         apiBase={API_ROUTES}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
+        showStatusActions
       />
       <ProTable
         columns={columns}
@@ -214,17 +218,16 @@ export const RouteList = (props: RouteListProps) => {
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
+          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
       />
