@@ -49,6 +49,87 @@ export type RouteListProps = {
   }) => React.ReactNode;
 };
 
+const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
+  const plugins = route.plugins ? Object.entries(route.plugins) : [];
+  const host = route.host || route.hosts?.join(', ') || '-';
+  const methods = route.methods?.join(', ') || 'ANY';
+
+  return (
+    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: '8px 0' }}>
+      <div>
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+          Matching
+        </Typography.Text>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <Typography.Text style={{ fontSize: 13 }}>
+            <strong>Methods:</strong> {methods}
+          </Typography.Text>
+          <Typography.Text style={{ fontSize: 13 }}>
+            <strong>Host:</strong> {host}
+          </Typography.Text>
+          <Typography.Text style={{ fontSize: 13 }}>
+            <strong>URI:</strong> <Typography.Text code>{route.uri || route.uris?.join(', ') || '/'}</Typography.Text>
+          </Typography.Text>
+          {route.remote_addr && (
+            <Typography.Text style={{ fontSize: 13 }}>
+              <strong>Remote Addr:</strong> {route.remote_addr}
+            </Typography.Text>
+          )}
+        </div>
+      </div>
+      <div>
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+          Backend
+        </Typography.Text>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {route.service_id && (
+            <Typography.Text style={{ fontSize: 13 }}>
+              <strong>Service:</strong>{' '}
+              <Link to="/services/detail/$id" params={{ id: route.service_id }}>{route.service_id}</Link>
+            </Typography.Text>
+          )}
+          {route.upstream_id && (
+            <Typography.Text style={{ fontSize: 13 }}>
+              <strong>Upstream:</strong>{' '}
+              <Link to="/upstreams/detail/$id" params={{ id: route.upstream_id }}>{route.upstream_id}</Link>
+            </Typography.Text>
+          )}
+          {route.upstream?.nodes && (
+            <Typography.Text style={{ fontSize: 13 }}>
+              <strong>Inline nodes:</strong>{' '}
+              {Array.isArray(route.upstream.nodes)
+                ? route.upstream.nodes.map((n) => `${n.host}:${n.port}`).join(', ')
+                : Object.keys(route.upstream.nodes).join(', ')}
+            </Typography.Text>
+          )}
+        </div>
+      </div>
+      {plugins.length > 0 && (
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+            Plugins ({plugins.length})
+          </Typography.Text>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+            {plugins.map(([name, cfg]) => {
+              const entries = cfg && typeof cfg === 'object' ? Object.entries(cfg as Record<string, unknown>).slice(0, 3) : [];
+              return (
+                <Tag key={name} style={{ fontSize: 12, padding: '2px 8px' }}>
+                  <strong>{name}</strong>
+                  {entries.length > 0 && (
+                    <span style={{ marginLeft: 6, color: 'var(--ant-color-text-secondary)' }}>
+                      {entries.map(([k, v]) => `${k}=${typeof v === 'object' ? '...' : v}`).join(' ')}
+                    </span>
+                  )}
+                </Tag>
+              );
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export const RouteList = (props: RouteListProps) => {
   const { routeKey, ToDetailBtn, defaultParams } = props;
   const { data, isLoading, refetch, pagination, setParams } = useRouteList(
@@ -247,6 +328,10 @@ export const RouteList = (props: RouteListProps) => {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         scroll={{ x: 'max-content' }}
+        expandable={{
+          expandedRowRender: (record) => <RouteExpandedRow route={record.value} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
