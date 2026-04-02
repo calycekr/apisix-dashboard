@@ -36,8 +36,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination } = useSSLList();
-  const [sniFilter, setSniFilter] = useState('');
+  const { data, isLoading, refetch, pagination, setParams } = useSSLList();
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
@@ -72,6 +71,11 @@ function RouteComponent() {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
+        filters: [
+          { text: 'Enabled', value: 1 },
+          { text: 'Disabled', value: 0 },
+        ],
+        onFilter: (value, record) => record.value.status === value,
         render: (_, record) => (
           <StatusSwitch
             status={record.value.status}
@@ -163,16 +167,7 @@ function RouteComponent() {
         />
         <ProTable
           columns={columns}
-          dataSource={
-            sniFilter
-              ? (data?.list ?? []).filter((item) => {
-                  const q = sniFilter.toLowerCase();
-                  const sni = item.value.sni?.toLowerCase() ?? '';
-                  const snis = item.value.snis?.map((s) => s.toLowerCase()) ?? [];
-                  return sni.includes(q) || snis.some((s) => s.includes(q));
-                })
-              : data?.list
-          }
+          dataSource={data?.list}
           rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
@@ -186,7 +181,7 @@ function RouteComponent() {
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
-            <SearchInput key="search" placeholder="Search by SNI..." onSearch={(q) => setSniFilter(q)} />,
+            <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
           ]}
         />

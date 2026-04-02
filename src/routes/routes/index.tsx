@@ -148,6 +148,11 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
+        filters: [
+          { text: 'Enabled', value: 1 },
+          { text: 'Disabled', value: 0 },
+        ],
+        onFilter: (value, record) => record.value.status === value,
         render: (_, record) => (
           <StatusSwitch
             status={record.value.status}

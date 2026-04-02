@@ -62,6 +62,13 @@ function RouteComponent() {
         title: 'Type',
         key: 'type',
         valueType: 'text',
+        filters: [
+          { text: 'roundrobin', value: 'roundrobin' },
+          { text: 'chash', value: 'chash' },
+          { text: 'least_conn', value: 'least_conn' },
+          { text: 'ewma', value: 'ewma' },
+        ],
+        onFilter: (value, record) => record.value.type === value,
         render: (_, record) => record.value.type || '-',
       },
       {
