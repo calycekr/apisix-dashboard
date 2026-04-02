@@ -51,28 +51,33 @@ const FormSectionChecksActive = () => {
         name={np('checks.active.timeout')}
         label="Timeout"
         suffix="s"
+        description="Timeout in seconds for the probe request. Default: 1."
       />
       <FormItemNumberInput
         control={control}
         name={np('checks.active.concurrency')}
         label="Concurrency"
         allowDecimal={false}
+        description="Number of targets to check concurrently in active checks. Default: 10."
       />
       <FormItemTextInput
         control={control}
         name={np('checks.active.host')}
         label="Host"
+        description="Host header for the probe request. Defaults to the upstream node host."
       />
       <FormItemNumberInput
         control={control}
         name={np('checks.active.port')}
         label="Port"
         allowDecimal={false}
+        description="Port to use for probe requests. Defaults to the upstream node port."
       />
       <FormItemTextInput
         control={control}
         name={np('checks.active.http_path')}
         label="HTTP Path"
+        description="The HTTP path for the probe request (e.g., /health). Default: /."
       />
       <FormItemSelect
         control={control}
@@ -92,12 +97,14 @@ const FormSectionChecksActive = () => {
           name={np('checks.active.healthy.interval')}
           label="Interval"
           suffix="s"
+          description="How often to run active health checks (seconds). Must be >= 1."
         />
         <FormItemNumberInput
           control={control}
           name={np('checks.active.healthy.successes')}
           label="Successes"
           allowDecimal={false}
+          description="Number of consecutive successes to consider a target healthy. Range: 1-254. Default: 2."
         />
         <FormItemTagsInput
           control={control}
@@ -113,24 +120,28 @@ const FormSectionChecksActive = () => {
           name={np('checks.active.unhealthy.interval')}
           label="Interval"
           suffix="s"
+          description="How often to run unhealthy checks (seconds). Must be >= 1."
         />
         <FormItemNumberInput
           control={control}
           name={np('checks.active.unhealthy.http_failures')}
           label="HTTP Failures"
           allowDecimal={false}
+          description="Number of HTTP failures to consider a target unhealthy. Range: 1-254. Default: 5."
         />
         <FormItemNumberInput
           control={control}
           name={np('checks.active.unhealthy.tcp_failures')}
           label="TCP Failures"
           allowDecimal={false}
+          description="Number of TCP connection failures to consider a target unhealthy. Range: 1-254. Default: 2."
         />
         <FormItemNumberInput
           control={control}
           name={np('checks.active.unhealthy.timeouts')}
           label="Timeouts"
           allowDecimal={false}
+          description="Number of timeouts to consider a target unhealthy. Range: 1-254. Default: 3."
         />
         <FormItemTagsInput
           control={control}

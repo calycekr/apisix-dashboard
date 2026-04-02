@@ -15,9 +15,9 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
-import { useRouter } from '@tanstack/react-router';
+import { useBlocker, useRouter } from '@tanstack/react-router';
 import { Alert, Button, Modal, Space, Tabs } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 
 import { useThemeMode } from '@/stores/global';
@@ -52,6 +52,28 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const isDirty = form.formState.isDirty && !disabled;
+
+  // Block in-app navigation and browser close when form has unsaved changes
+  const blocker = useBlocker({
+    shouldBlockFn: () => isDirty,
+    enableBeforeUnload: () => isDirty,
+    withResolver: true,
+  });
+
+  useEffect(() => {
+    if (blocker.status === 'blocked') {
+      Modal.confirm({
+        title: 'Unsaved changes',
+        content: 'You have unsaved changes. Are you sure you want to leave?',
+        okText: 'Leave',
+        cancelText: 'Stay',
+        onOk: () => blocker.proceed(),
+        onCancel: () => blocker.reset(),
+      });
+    }
+  }, [blocker]);
 
   const handleTabChange = useCallback(
     (key: string) => {
