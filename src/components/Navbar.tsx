@@ -36,6 +36,7 @@ import IconPerson from '~icons/material-symbols/person';
 import IconPublic from '~icons/material-symbols/public';
 import IconRoute from '~icons/material-symbols/route';
 import IconStream from '~icons/material-symbols/stream';
+import IconTerminal from '~icons/material-symbols/terminal';
 
 const iconMap: Record<string, ReactNode> = {
   dashboard: <IconDashboard />,
@@ -75,7 +76,7 @@ export const Navbar = () => {
   const { token } = theme.useToken();
 
   const selectedKey =
-    ['/dashboard', '/topology', '/export_import']
+    ['/dashboard', '/topology', '/export_import', '/raw_api']
       .find((p) => currentPath.startsWith(p))
     ?? navRoutes.find((r) => currentPath.startsWith(r.to))?.to
     ?? '';
@@ -148,6 +149,12 @@ export const Navbar = () => {
             icon: <IconExportNotes />,
             label: 'Import / Export',
             onClick: () => navigate({ to: '/export_import' as Parameters<typeof navigate>[0]['to'] }),
+          },
+          {
+            key: '/raw_api',
+            icon: <IconTerminal />,
+            label: 'Raw API',
+            onClick: () => navigate({ to: '/raw_api' as Parameters<typeof navigate>[0]['to'] }),
           },
           { type: 'divider' },
           {
