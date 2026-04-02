@@ -18,6 +18,7 @@ import { useRouterState } from '@tanstack/react-router';
 import { Breadcrumb, Button, Layout, theme } from 'antd';
 import type { FC } from 'react';
 
+import { ActivityLogButton } from '@/components/ActivityLogDrawer';
 import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
 import { useThemeMode } from '@/stores/global';
@@ -76,6 +77,7 @@ export const Header: FC = () => {
         <Breadcrumb items={breadcrumbItems} />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ActivityLogButton />
         <Button
           variant="text"
           color="default"
