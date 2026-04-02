@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Card, Space, Typography } from 'antd';
+import { Button, Card, Space, Tag, Typography } from 'antd';
 
 export type PluginCardProps = {
   name: string;
   desc?: string;
+  config?: object;
   mode: 'add' | 'edit' | 'view';
   onAdd?: (name: string) => void;
   onEdit?: (name: string) => void;
@@ -26,8 +27,25 @@ export type PluginCardProps = {
   onView?: (name: string) => void;
 };
 
+function summarizeConfig(config?: object): string[] {
+  if (!config || typeof config !== 'object') return [];
+  const entries = Object.entries(config);
+  if (entries.length === 0) return [];
+  return entries
+    .slice(0, 4)
+    .map(([k, v]) => {
+      if (typeof v === 'boolean') return `${k}: ${v ? 'on' : 'off'}`;
+      if (typeof v === 'number' || typeof v === 'string') return `${k}: ${v}`;
+      if (Array.isArray(v)) return `${k}: [${v.length}]`;
+      if (typeof v === 'object' && v !== null) return `${k}: {...}`;
+      return `${k}: ${String(v)}`;
+    });
+}
+
 export const PluginCard = (props: PluginCardProps) => {
-  const { name, desc, mode, onAdd, onEdit, onView, onDelete } = props;
+  const { name, desc, config, mode, onAdd, onEdit, onView, onDelete } = props;
+  const summary = mode !== 'add' ? summarizeConfig(config) : [];
+
   return (
     <Card
       bordered
@@ -76,9 +94,18 @@ export const PluginCard = (props: PluginCardProps) => {
         </Space>
       }
     >
-      <Typography.Text type="secondary" style={{ fontSize: 12 }}>
-        {desc}
-      </Typography.Text>
+      {desc && (
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
+          {desc}
+        </Typography.Text>
+      )}
+      {summary.length > 0 && (
+        <div style={{ marginTop: desc ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {summary.map((s) => (
+            <Tag key={s} style={{ margin: 0, fontSize: 11 }}>{s}</Tag>
+          ))}
+        </div>
+      )}
     </Card>
   );
 };

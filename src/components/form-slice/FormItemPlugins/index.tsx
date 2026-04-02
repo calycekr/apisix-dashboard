@@ -178,6 +178,7 @@ export const FormItemPlugins = <T extends FieldValues>(
           search={pluginsOb.search}
           plugins={pluginsOb.selected}
           descriptions={pluginDescriptions}
+          configs={pluginsOb.__map}
           onDelete={pluginsOb.delete}
           onView={(name) => pluginsOb.on('view', name)}
           onEdit={(name) => pluginsOb.on('edit', name)}
