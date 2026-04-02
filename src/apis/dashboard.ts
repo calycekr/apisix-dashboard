@@ -45,24 +45,6 @@ const RESOURCES = [
 
 export type ResourceCounts = Record<string, number>;
 
-export const getResourceCounts = async (): Promise<ResourceCounts> => {
-  const results = await Promise.allSettled(
-    RESOURCES.map((r) =>
-      req
-        .get(r.api, { params: { page: 1, page_size: 1 } })
-        .then((v) => ({ key: r.key, total: v.data?.total ?? 0 }))
-    )
-  );
-
-  const counts: ResourceCounts = {};
-  for (const result of results) {
-    if (result.status === 'fulfilled') {
-      counts[result.value.key] = result.value.total;
-    }
-  }
-  return counts;
-};
-
 export type RecentItem = {
   resourceType: string;
   id: string;
@@ -71,7 +53,17 @@ export type RecentItem = {
   detailPath: string;
 };
 
-export const getRecentChanges = async (): Promise<RecentItem[]> => {
+export type DashboardData = {
+  counts: ResourceCounts;
+  recentChanges: RecentItem[];
+};
+
+/**
+ * Single pass: one API call per resource (page_size=5) gives both
+ * the total count (via response.total) and recent items (via response.list).
+ * This halves the number of API calls compared to separate count + recent calls.
+ */
+export const getDashboardData = async (): Promise<DashboardData> => {
   const results = await Promise.allSettled(
     RESOURCES.map((r) =>
       req
@@ -79,16 +71,20 @@ export const getRecentChanges = async (): Promise<RecentItem[]> => {
         .then((v) => ({
           key: r.key,
           detailPrefix: r.detailPrefix,
+          total: v.data?.total ?? 0,
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           list: (v.data?.list ?? []) as Array<{ value: Record<string, any> }>,
         }))
     )
   );
 
+  const counts: ResourceCounts = {};
   const items: RecentItem[] = [];
+
   for (const result of results) {
     if (result.status !== 'fulfilled') continue;
-    const { key, detailPrefix, list } = result.value;
+    const { key, detailPrefix, total, list } = result.value;
+    counts[key] = total;
     for (const item of list) {
       const v = item.value;
       if (!v?.update_time) continue;
@@ -103,9 +99,10 @@ export const getRecentChanges = async (): Promise<RecentItem[]> => {
     }
   }
 
-  return items
-    .sort((a, b) => b.updateTime - a.updateTime)
-    .slice(0, 10);
+  return {
+    counts,
+    recentChanges: items.sort((a, b) => b.updateTime - a.updateTime).slice(0, 10),
+  };
 };
 
 export { RESOURCES };

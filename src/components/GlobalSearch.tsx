@@ -52,6 +52,7 @@ export const GlobalSearch = () => {
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
   const debounceRef = useRef<ReturnType<typeof setTimeout>>(undefined);
+  const abortRef = useRef<AbortController>(undefined);
 
   // Ctrl+K / Cmd+K keyboard shortcut
   useEffect(() => {
@@ -80,12 +81,21 @@ export const GlobalSearch = () => {
       setResults([]);
       return;
     }
+
+    // Cancel previous search
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoading(true);
     const searchResults: SearchResult[] = [];
 
     const promises = RESOURCES.map(async (r) => {
       try {
-        const res = await req.get(r.api, { params: { page: 1, page_size: 10, name: q } });
+        const res = await req.get(r.api, {
+          params: { page: 1, page_size: 10, name: q },
+          signal: controller.signal,
+        });
         const list = res.data?.list;
         if (!Array.isArray(list)) return;
         for (const item of list) {
@@ -99,11 +109,15 @@ export const GlobalSearch = () => {
           });
         }
       } catch {
-        // skip failed resources
+        // skip failed/cancelled resources
       }
     });
 
     await Promise.allSettled(promises);
+
+    // Don't update state if this search was cancelled
+    if (controller.signal.aborted) return;
+
     setResults(searchResults.slice(0, 20));
     setSelectedIndex(0);
     setLoading(false);

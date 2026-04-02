@@ -111,16 +111,11 @@ export const FormSection = (props: FormSectionProps) => {
           {...dataAttrs}
           {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
         >
-          <fieldset
-            disabled={disabled}
-            style={{
-              border: 'none', padding: 0, margin: 0,
-              display: open ? 'flex' : 'none',
-              flexDirection: 'column', gap: 0,
-            }}
-          >
-            {children}
-          </fieldset>
+          {open && (
+            <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {children}
+            </fieldset>
+          )}
         </Card>
       </SectionDepthProvider>
     );

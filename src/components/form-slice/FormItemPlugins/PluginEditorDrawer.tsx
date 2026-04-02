@@ -22,7 +22,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
 import { SchemaForm } from '@/components/schema-form/SchemaForm';
-import { PLUGIN_DESCRIPTIONS } from '@/config/pluginDescriptions';
 
 import type { PluginCardListProps } from './PluginCardList';
 
@@ -160,9 +159,9 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       <Typography.Title level={3} style={{ marginBottom: 4 }}>
         {name}
       </Typography.Title>
-      {PLUGIN_DESCRIPTIONS[name] && (
+      {schema && typeof schema === 'object' && 'description' in schema && (
         <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 13 }}>
-          {PLUGIN_DESCRIPTIONS[name]}
+          {String((schema as { description: string }).description)}
         </Typography.Text>
       )}
       <FormProvider {...methods}>

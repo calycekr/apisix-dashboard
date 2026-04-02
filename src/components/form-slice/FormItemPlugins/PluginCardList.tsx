@@ -18,7 +18,6 @@ import { Empty, Input, theme } from 'antd';
 import { useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
-import { PLUGIN_DESCRIPTIONS } from '@/config/pluginDescriptions';
 import IconClose from '~icons/material-symbols/cancel';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
@@ -130,7 +129,7 @@ export const PluginCardList = (props: PluginCardListProps) => {
                 key={name}
                 mode={optionsOb.mode}
                 name={name}
-                desc={descriptions?.get(name) || PLUGIN_DESCRIPTIONS[name]}
+                desc={descriptions?.get(name)}
                 onAdd={() => onAdd?.(name)}
                 onEdit={() => onEdit?.(name)}
                 onDelete={() => onDelete?.(name)}

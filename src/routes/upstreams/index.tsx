@@ -106,6 +106,7 @@ function RouteComponent() {
         dataIndex: ['value', 'labels'],
         title: 'Labels',
         key: 'labels',
+        hideInTable: true,
         render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {

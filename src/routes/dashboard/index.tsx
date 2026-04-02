@@ -23,8 +23,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import type { ReactNode } from 'react';
 
 import {
-  getRecentChanges,
-  getResourceCounts,
+  getDashboardData,
   type RecentItem,
   type ResourceCounts,
 } from '@/apis/dashboard';
@@ -281,20 +280,11 @@ function OperationalAlertsSection({ alerts, isLoading }: { alerts?: OperationalA
 
 function DashboardPage() {
   const {
-    data: counts,
-    isLoading: countsLoading,
+    data: dashboardData,
+    isLoading: dashboardLoading,
   } = useQuery({
-    queryKey: ['dashboard', 'resourceCounts'],
-    queryFn: getResourceCounts,
-    staleTime: 30_000,
-  });
-
-  const {
-    data: recentChanges,
-    isLoading: recentLoading,
-  } = useQuery({
-    queryKey: ['dashboard', 'recentChanges'],
-    queryFn: getRecentChanges,
+    queryKey: ['dashboard', 'data'],
+    queryFn: getDashboardData,
     staleTime: 30_000,
   });
 
@@ -313,9 +303,9 @@ function DashboardPage() {
         title="Dashboard"
         desc="Overview of your APISIX gateway resources"
       />
-      <ResourceCountCards counts={counts} isLoading={countsLoading} />
+      <ResourceCountCards counts={dashboardData?.counts} isLoading={dashboardLoading} />
       <OperationalAlertsSection alerts={alerts} isLoading={alertsLoading} />
-      <RecentChangesTable items={recentChanges} isLoading={recentLoading} />
+      <RecentChangesTable items={dashboardData?.recentChanges} isLoading={dashboardLoading} />
     </>
   );
 }
