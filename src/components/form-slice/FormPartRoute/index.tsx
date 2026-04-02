@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider } from 'antd';
-import { useFormContext } from 'react-hook-form';
+import { Alert, Divider } from 'antd';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import { FormItemEditor } from '@/components/form/Editor';
 import { InputWrapper } from '@/components/form/InputWrapper';
@@ -51,6 +51,20 @@ const FormPartBasicWithPriority = () => {
 
 const FormSectionMatchRules = () => {
   const { control } = useFormContext<RoutePostType>();
+  const uri = useWatch({ control, name: 'uri' });
+  const uris = useWatch({ control, name: 'uris' });
+  const host = useWatch({ control, name: 'host' });
+  const hosts = useWatch({ control, name: 'hosts' });
+  const remoteAddr = useWatch({ control, name: 'remote_addr' });
+  const remoteAddrs = useWatch({ control, name: 'remote_addrs' });
+
+  const hasUri = !!uri;
+  const hasUris = Array.isArray(uris) && uris.length > 0;
+  const hasHost = !!host;
+  const hasHosts = Array.isArray(hosts) && hosts.length > 0;
+  const hasRemoteAddr = !!remoteAddr;
+  const hasRemoteAddrs = Array.isArray(remoteAddrs) && remoteAddrs.length > 0;
+
   return (
     <FormSection legend="Match Rules" collapsible defaultOpen={true}>
       <FormItemTagsInput
@@ -67,38 +81,44 @@ const FormSectionMatchRules = () => {
         control={control}
         name="uri"
         label="URI"
-        description="Single URI. Mutually exclusive with URIs."
-        required
+        description="Single URI path. Disabled when URIs is set."
+        required={!hasUris}
+        disabled={hasUris}
       />
       <FormItemTagsInput
         control={control}
         name="uris"
         label="URIs"
-        description="Multiple URIs. Mutually exclusive with URI."
+        description="Multiple URI paths. Disabled when URI is set."
+        disabled={hasUri}
       />
       <FormItemTextInput
         control={control}
         name="host"
         label="Host"
-        description="Single host. Mutually exclusive with Hosts."
+        description="Single hostname. Disabled when Hosts is set."
+        disabled={hasHosts}
       />
       <FormItemTagsInput
         control={control}
         name="hosts"
         label="Hosts"
-        description="Multiple hosts. Mutually exclusive with Host."
+        description="Multiple hostnames. Disabled when Host is set."
+        disabled={hasHost}
       />
       <FormItemTextInput
         control={control}
         name="remote_addr"
         label="Remote Address"
-        description="Single IP/CIDR. Mutually exclusive with Remote Addresses."
+        description="Single IP/CIDR. Disabled when Remote Addresses is set."
+        disabled={hasRemoteAddrs}
       />
       <FormItemTagsInput
         control={control}
         name="remote_addrs"
         label="Remote Addresses"
-        description="Multiple IPs/CIDRs. Mutually exclusive with Remote Address."
+        description="Multiple IPs/CIDRs. Disabled when Remote Address is set."
+        disabled={hasRemoteAddr}
       />
       <FormItemVars />
       <FormItemEditor
@@ -113,10 +133,25 @@ const FormSectionMatchRules = () => {
 
 export const FormSectionUpstream = () => {
   const { control } = useFormContext<RoutePostType>();
+  const serviceId = useWatch({ control, name: 'service_id' });
+
   return (
     <FormSection legend="Upstream" collapsible defaultOpen={false}>
+      {serviceId && (
+        <Alert
+          type="info"
+          showIcon
+          message="Service ID is set — the service's upstream will be used. Upstream config here will be ignored unless Service ID is cleared."
+          style={{ marginBottom: 12 }}
+        />
+      )}
       <FormSection legend="Upstream ID">
-        <FormItemTextInput control={control} name="upstream_id" />
+        <FormItemTextInput
+          control={control}
+          name="upstream_id"
+          disabled={!!serviceId}
+          description={serviceId ? 'Disabled because Service ID is set.' : undefined}
+        />
       </FormSection>
       <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <NamePrefixProvider value="upstream">
