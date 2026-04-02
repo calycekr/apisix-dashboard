@@ -19,6 +19,7 @@ import {
   Card,
   Input,
   InputNumber,
+  Modal,
   Select,
   Space,
   Switch,
@@ -26,7 +27,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 
 import IconAdd from '~icons/material-symbols/add';
 import IconDelete from '~icons/material-symbols/delete-forever-outline';
@@ -211,7 +212,7 @@ const OneOfField = ({
   const currentVal = value as Record<string, unknown> | undefined;
 
   // Identify which variant is selected by matching known keys
-  const selectedIndex = (() => {
+  const detectedIndex = useMemo(() => {
     if (!currentVal || Object.keys(currentVal).length === 0) return 0;
     let best = 0;
     let bestScore = -1;
@@ -224,8 +225,9 @@ const OneOfField = ({
       }
     });
     return best;
-  })();
+  }, [currentVal, variants]);
 
+  const [selectedIndex, setSelectedIndex] = useState(detectedIndex);
   const selectedVariant = variants[selectedIndex];
 
   const options = variants.map((v, i) => ({
@@ -234,11 +236,23 @@ const OneOfField = ({
   }));
 
   const handleVariantChange = useCallback((idx: number) => {
-    onChange({});
-    // set index tracking via wrapper key if needed — just clear on switch
-    void idx;
-    onChange({});
-  }, [onChange]);
+    const hasData = currentVal && Object.keys(currentVal).length > 0;
+    if (hasData) {
+      Modal.confirm({
+        title: 'Switch variant?',
+        content: 'Switching will clear the current configuration for this field.',
+        okText: 'Switch',
+        cancelText: 'Cancel',
+        onOk: () => {
+          setSelectedIndex(idx);
+          onChange({});
+        },
+      });
+    } else {
+      setSelectedIndex(idx);
+      onChange({});
+    }
+  }, [onChange, currentVal]);
 
   return (
     <FieldWrapper fieldKey={fieldKey} schema={schema} required={required}>

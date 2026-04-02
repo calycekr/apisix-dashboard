@@ -39,6 +39,9 @@ const PairWrapper = (
   );
 };
 
+const SECRET_REF_HINT =
+  'Supports $secret:// references (e.g. $secret://vault/my-cert)';
+
 const RequiredCertKey = () => {
   const { control } = useFormContext<SSLPostType>();
   return (
@@ -48,12 +51,14 @@ const RequiredCertKey = () => {
         label="Certificate 1"
         name="cert"
         required
+        description={SECRET_REF_HINT}
       />
       <FormItemTextareaWithUpload
         control={control}
         label="Private Key 1"
         name="key"
         required
+        description={SECRET_REF_HINT}
       />
     </PairWrapper>
   );

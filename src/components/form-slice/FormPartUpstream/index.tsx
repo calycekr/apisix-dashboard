@@ -48,11 +48,13 @@ export const FormSectionTLS = () => {
           control={control}
           name={np('tls.client_cert')}
           label="Client Cert"
+          description="Supports $secret:// references (e.g. $secret://vault/my-cert)"
         />
         <FormItemTextareaWithUpload
           control={control}
           name={np('tls.client_key')}
           label="Client Key"
+          description="Supports $secret:// references (e.g. $secret://vault/my-key)"
         />
         <Divider style={{ margin: '8px 0' }}>OR</Divider>
         <FormItemTextInput

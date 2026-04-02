@@ -27,9 +27,18 @@ const SSLForm = z.object({
 export const SSLPostSchema = APISIX.SSL.omit({
   create_time: true,
   update_time: true,
-}).merge(SSLForm);
+})
+  .merge(SSLForm)
+  .refine((data) => data.cert || (data.certs && data.certs.length > 0), {
+    message: 'At least one certificate is required (cert or certs)',
+    path: ['cert'],
+  })
+  .refine((data) => data.key || (data.keys && data.keys.length > 0), {
+    message: 'At least one key is required (key or keys)',
+    path: ['key'],
+  });
 
-export type SSLPostType = z.infer<typeof SSLPostSchema>;
+export type SSLPostType = z.input<typeof SSLPostSchema>;
 
 export const SSLPutSchema = APISIX.SSL.merge(SSLForm);
 

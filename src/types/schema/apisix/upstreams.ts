@@ -119,6 +119,11 @@ const UpstreamHealthCheckActiveType = z.union([
   z.literal('tcp'),
 ]);
 
+const UpstreamHealthCheckActiveMethod = z.union([
+  z.literal('GET'),
+  z.literal('HEAD'),
+]);
+
 const UpstreamHealthCheckActive = z.object({
   type: UpstreamHealthCheckActiveType.optional(),
   timeout: z.number().optional(),
@@ -126,6 +131,7 @@ const UpstreamHealthCheckActive = z.object({
   host: z.string().optional(),
   port: z.number().optional(),
   http_path: z.string().optional(),
+  method: UpstreamHealthCheckActiveMethod.optional(),
   https_verify_certificate: z.boolean().optional(),
   http_request_headers: z.array(z.string()).optional(),
   healthy: UpstreamHealthCheckActiveHealthy.partial(),
@@ -190,6 +196,7 @@ export const APISIXUpstreams = {
   UpstreamHealthCheckPassiveHealthy,
   UpstreamHealthCheckPassiveUnhealthy,
   UpstreamHealthCheckActiveType,
+  UpstreamHealthCheckActiveMethod,
   UpstreamHealthCheckActiveHealthy,
   UpstreamHealthCheckActiveUnhealthy,
   UpstreamHealthCheckActive,
