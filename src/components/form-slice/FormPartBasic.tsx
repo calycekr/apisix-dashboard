@@ -76,7 +76,7 @@ export const FormPartBasic = (props: FormPartBasicProps) => {
   const np = useNamePrefix();
 
   return (
-    <FormSection legend="Basic Infomation" {...restProps}>
+    <FormSection legend="Basic Information" {...restProps}>
       {before}
       {showName && (
         <FormItemTextInput

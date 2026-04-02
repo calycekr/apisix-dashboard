@@ -18,6 +18,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
@@ -65,7 +66,7 @@ function ConsumersList() {
         sorter: true,
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -107,7 +108,7 @@ function ConsumersList() {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search consumers..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Consumer" to="/consumers/add" />,
         ]}
       />

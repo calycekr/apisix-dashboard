@@ -17,10 +17,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space, Typography } from 'antd';
+import { Space, Tag, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
+import { useState } from 'react';
 import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
@@ -33,7 +35,8 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination, setParams } = useSSLList();
+  const { data, isLoading, refetch, pagination } = useSSLList();
+  const [sniFilter, setSniFilter] = useState('');
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -65,10 +68,35 @@ function RouteComponent() {
         dataIndex: ['value', 'validity_end'],
         title: 'Expiry',
         key: 'validity_end',
-        valueType: 'dateTime',
-        renderText: (text) => {
-          if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+        render: (_, record) => {
+          const end = (record.value as Record<string, unknown>)['validity_end'] as number | undefined;
+          if (!end) return '-';
+          const endMs = Number(end) * 1000;
+          const now = Date.now();
+          const daysLeft = Math.ceil((endMs - now) / (1000 * 60 * 60 * 24));
+          const dateStr = dayjs.unix(Number(end)).format('YYYY-MM-DD HH:mm:ss');
+          if (endMs < now) {
+            return (
+              <Space>
+                <Tag color="error">Expired</Tag>
+                <span>{dateStr}</span>
+              </Space>
+            );
+          }
+          if (daysLeft <= 30) {
+            return (
+              <Space>
+                <Tag color="warning">Expires in {daysLeft} day{daysLeft !== 1 ? 's' : ''}</Tag>
+                <span>{dateStr}</span>
+              </Space>
+            );
+          }
+          return (
+            <Space>
+              <Tag color="success">Valid ({daysLeft} days)</Tag>
+              <span>{dateStr}</span>
+            </Space>
+          );
         },
       },
       {
@@ -78,7 +106,7 @@ function RouteComponent() {
         valueType: 'dateTime',
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -112,7 +140,16 @@ function RouteComponent() {
       <AntdConfigProvider>
         <ProTable
           columns={columns}
-          dataSource={data?.list}
+          dataSource={
+            sniFilter
+              ? (data?.list ?? []).filter((item) => {
+                  const q = sniFilter.toLowerCase();
+                  const sni = item.value.sni?.toLowerCase() ?? '';
+                  const snis = item.value.snis?.map((s) => s.toLowerCase()) ?? [];
+                  return sni.includes(q) || snis.some((s) => s.includes(q));
+                })
+              : data?.list
+          }
           rowKey="id"
           loading={isLoading}
           search={false}
@@ -122,7 +159,7 @@ function RouteComponent() {
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
-            <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+            <SearchInput key="search" placeholder="Search by SNI..." onSearch={(q) => setSniFilter(q)} />,
             <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
           ]}
         />

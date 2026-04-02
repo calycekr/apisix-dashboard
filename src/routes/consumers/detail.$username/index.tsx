@@ -122,7 +122,7 @@ const ConsumerDetailTab = () => {
                 name={'Consumer'}
                 target={username}
                 api={`${API_CONSUMERS}/${username}`}
-                onSuccess={() => navigate({ to: '/consumer_groups' })}
+                onSuccess={() => navigate({ to: '/consumers' })}
               />
             </Space>
           ),

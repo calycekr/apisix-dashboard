@@ -17,7 +17,8 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space } from 'antd';
+import { Space, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
@@ -38,6 +39,14 @@ function ConsumerGroupsList() {
     ProColumns<APISIXType['RespConsumerGroupItem']>[]
   >(() => {
     return [
+      {
+        dataIndex: ['value', 'name'],
+        title: 'Name',
+        key: 'name',
+        render: (_, record) => (
+          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+        ),
+      },
       {
         dataIndex: ['value', 'id'],
         title: 'ID',
@@ -69,7 +78,7 @@ function ConsumerGroupsList() {
         sorter: true,
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -111,7 +120,7 @@ function ConsumerGroupsList() {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search consumer groups..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Consumer Group" to="/consumer_groups/add" />,
         ]}
       />

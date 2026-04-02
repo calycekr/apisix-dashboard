@@ -123,12 +123,60 @@ export const Navbar = () => {
         mode="inline"
         selectedKeys={[selectedKey]}
         style={{ borderRight: 'none', marginTop: 8 }}
-        items={navRoutes.map((route) => ({
-          key: route.to,
-          icon: iconMap[route.icon],
-          label: sourceLabels[route.label] ?? route.label,
-          onClick: () => navigate({ to: route.to }),
-        }))}
+        items={[
+          {
+            type: 'group',
+            label: 'Traffic',
+            children: ['/routes', '/stream_routes', '/services', '/upstreams'].map((to) => {
+              const route = navRoutes.find((r) => r.to === to)!;
+              return {
+                key: route.to,
+                icon: iconMap[route.icon],
+                label: sourceLabels[route.label] ?? route.label,
+                onClick: () => navigate({ to: route.to as Parameters<typeof navigate>[0]['to'] }),
+              };
+            }),
+          },
+          {
+            type: 'group',
+            label: 'Authentication',
+            children: ['/consumers', '/consumer_groups'].map((to) => {
+              const route = navRoutes.find((r) => r.to === to)!;
+              return {
+                key: route.to,
+                icon: iconMap[route.icon],
+                label: sourceLabels[route.label] ?? route.label,
+                onClick: () => navigate({ to: route.to as Parameters<typeof navigate>[0]['to'] }),
+              };
+            }),
+          },
+          {
+            type: 'group',
+            label: 'Security',
+            children: ['/ssls', '/secrets'].map((to) => {
+              const route = navRoutes.find((r) => r.to === to)!;
+              return {
+                key: route.to,
+                icon: iconMap[route.icon],
+                label: sourceLabels[route.label] ?? route.label,
+                onClick: () => navigate({ to: route.to as Parameters<typeof navigate>[0]['to'] }),
+              };
+            }),
+          },
+          {
+            type: 'group',
+            label: 'Configuration',
+            children: ['/global_rules', '/plugin_configs', '/plugin_metadata', '/protos'].map((to) => {
+              const route = navRoutes.find((r) => r.to === to)!;
+              return {
+                key: route.to,
+                icon: iconMap[route.icon],
+                label: sourceLabels[route.label] ?? route.label,
+                onClick: () => navigate({ to: route.to as Parameters<typeof navigate>[0]['to'] }),
+              };
+            }),
+          },
+        ]}
       />
     </Layout.Sider>
   );

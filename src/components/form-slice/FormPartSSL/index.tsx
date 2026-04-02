@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography, theme } from 'antd';
+import { Descriptions, Typography, theme } from 'antd';
+import dayjs from 'dayjs';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext, useWatch } from 'react-hook-form';
@@ -70,11 +71,35 @@ const FormSectionClient = () => {
     </FormSection>
   );
 };
+const FormSSLValidity = () => {
+  const { control } = useFormContext<SSLPostType & { validity_start?: number; validity_end?: number }>();
+  const validityStart = useWatch({ control, name: 'validity_start' as never });
+  const validityEnd = useWatch({ control, name: 'validity_end' as never });
+  if (!validityStart && !validityEnd) return null;
+  return (
+    <Descriptions
+      bordered
+      size="small"
+      column={1}
+      style={{ marginBottom: 16 }}
+      items={[
+        ...(validityStart
+          ? [{ key: 'validity_start', label: 'Valid From', children: dayjs.unix(Number(validityStart)).format('YYYY-MM-DD HH:mm:ss') }]
+          : []),
+        ...(validityEnd
+          ? [{ key: 'validity_end', label: 'Valid Until', children: dayjs.unix(Number(validityEnd)).format('YYYY-MM-DD HH:mm:ss') }]
+          : []),
+      ]}
+    />
+  );
+};
+
 export const FormPartSSL = () => {
   const { control } = useFormContext<SSLPostType>();
   return (
     <>
       <FormPartBasic showName={false} showDesc={false} showStatus />
+      <FormSSLValidity />
       <FormItemSelect
         control={control}
         name="type"

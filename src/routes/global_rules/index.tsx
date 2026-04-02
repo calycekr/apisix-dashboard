@@ -18,6 +18,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
@@ -46,7 +47,7 @@ function GlobalRulesList() {
   const { data, isLoading, refetch, pagination, setParams } = useGlobalRuleList();
 
   const columns = useMemo<
-    ProColumns<APISIXType['RespConsumerGroupItem']>[]
+    ProColumns<APISIXType['RespGlobalRuleItem']>[]
   >(() => {
     return [
       {
@@ -73,7 +74,7 @@ function GlobalRulesList() {
         valueType: 'dateTime',
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -115,7 +116,7 @@ function GlobalRulesList() {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search by ID..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,
         ]}
       />

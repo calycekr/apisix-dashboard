@@ -17,7 +17,8 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space, Typography } from 'antd';
+import { Space, Tag, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
@@ -73,13 +74,24 @@ function RouteComponent() {
         render: (_, record) => record.value.scheme || '-',
       },
       {
+        dataIndex: ['value', 'checks'],
+        title: 'Health Check',
+        key: 'health_check',
+        render: (_, record) =>
+          record.value.checks ? (
+            <Tag color="processing">Configured</Tag>
+          ) : (
+            <Tag>None</Tag>
+          ),
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -123,7 +135,7 @@ function RouteComponent() {
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
-            <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+            <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add Upstream" to="/upstreams/add" />,
           ]}
         />

@@ -16,8 +16,9 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
@@ -93,6 +94,38 @@ export const RouteList = (props: RouteListProps) => {
         },
       },
       {
+        dataIndex: ['value', 'service_id'],
+        title: 'Service',
+        key: 'service_id',
+        render: (_, record) => {
+          const id = record.value.service_id;
+          if (!id) return '-';
+          return (
+            <Typography.Link>
+              <Link to="/services/detail/$id" params={{ id }}>
+                {id}
+              </Link>
+            </Typography.Link>
+          );
+        },
+      },
+      {
+        dataIndex: ['value', 'upstream_id'],
+        title: 'Upstream',
+        key: 'upstream_id',
+        render: (_, record) => {
+          const id = record.value.upstream_id;
+          if (!id) return '-';
+          return (
+            <Typography.Link>
+              <Link to="/upstreams/detail/$id" params={{ id }}>
+                {id}
+              </Link>
+            </Typography.Link>
+          );
+        },
+      },
+      {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
@@ -105,7 +138,7 @@ export const RouteList = (props: RouteListProps) => {
         valueType: 'dateTime',
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -143,7 +176,7 @@ export const RouteList = (props: RouteListProps) => {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
       />

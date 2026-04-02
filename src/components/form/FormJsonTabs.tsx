@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
-import { Alert, Button, Space, Tabs } from 'antd';
+import { Alert, Button, Modal, Space, Tabs } from 'antd';
 import { useCallback, useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 import { useRouter } from '@tanstack/react-router';
@@ -75,20 +75,36 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   const handleJsonSubmit = useCallback(async () => {
     setJsonError(null);
-    let parsed: unknown;
+    let parsed: Record<string, unknown>;
     try {
-      parsed = JSON.parse(jsonStr || '{}');
+      parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
     } catch (e) {
       setJsonError('Invalid JSON: ' + String(e));
       return;
     }
+    // Reset form with parsed values then trigger Zod validation via handleSubmit
+    form.reset(parsed);
     setIsSubmitting(true);
     try {
-      await onSubmit(parsed);
+      await form.handleSubmit(onSubmit)();
     } finally {
       setIsSubmitting(false);
     }
-  }, [jsonStr, onSubmit]);
+  }, [jsonStr, form, onSubmit]);
+
+  const handleCancel = useCallback(() => {
+    if (form.formState.isDirty) {
+      Modal.confirm({
+        title: 'Discard changes?',
+        content: 'You have unsaved changes. Are you sure you want to leave?',
+        okText: 'Discard',
+        cancelText: 'Stay',
+        onOk: () => router.history.back(),
+      });
+    } else {
+      router.history.back();
+    }
+  }, [form.formState.isDirty, router]);
 
   const tabItems = [
     {
@@ -100,7 +116,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           {!disabled && (
             <Space style={{ marginTop: 16 }}>
               <FormSubmitBtn>{submitLabel}</FormSubmitBtn>
-              <Button size="middle" onClick={() => router.history.back()}>
+              <Button size="middle" onClick={handleCancel}>
                 Cancel
               </Button>
             </Space>
@@ -151,7 +167,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               >
                 {submitLabel}
               </Button>
-              <Button size="middle" onClick={() => router.history.back()}>
+              <Button size="middle" onClick={handleCancel}>
                 Cancel
               </Button>
             </Space>

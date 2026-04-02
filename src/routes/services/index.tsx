@@ -18,6 +18,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
@@ -45,10 +46,11 @@ const ServiceList = () => {
         ),
       },
       {
-        dataIndex: ['value', 'desc'],
-        title: 'Description',
-        key: 'desc',
+        dataIndex: ['value', 'hosts'],
+        title: 'Hosts',
+        key: 'hosts',
         valueType: 'text',
+        render: (_, record) => record.value.hosts?.join(', ') || '-',
       },
       {
         dataIndex: ['value', 'upstream_id'],
@@ -58,6 +60,15 @@ const ServiceList = () => {
         render: (_, record) => record.value.upstream_id || '-',
       },
       {
+        dataIndex: ['value', 'plugins'],
+        title: 'Plugins',
+        key: 'plugins',
+        render: (_, record) => {
+          const count = Object.keys(record.value.plugins || {}).length;
+          return `${count} plugin${count !== 1 ? 's' : ''}`;
+        },
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
@@ -65,7 +76,7 @@ const ServiceList = () => {
         sorter: true,
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -107,7 +118,7 @@ const ServiceList = () => {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Service" to="/services/add" />,
         ]}
       />
@@ -119,9 +130,7 @@ function RouteComponent() {
   return (
     <>
       <PageHeader title={'Services'} />
-      <AntdConfigProvider>
-        <ServiceList />
-      </AntdConfigProvider>
+      <ServiceList />
     </>
   );
 }

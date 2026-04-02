@@ -18,6 +18,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
@@ -100,7 +101,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         valueType: 'dateTime',
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -138,7 +139,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
-          <SearchInput key="search" onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Stream Route" to={`${routeKey}add`} />,
         ]}
       />
