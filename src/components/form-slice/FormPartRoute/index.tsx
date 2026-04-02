@@ -68,6 +68,7 @@ const FormSectionMatchRules = () => {
         control={control}
         name="uri"
         label="URI"
+        required
       />
       <FormItemTagsInput
         control={control}

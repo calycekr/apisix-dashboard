@@ -120,6 +120,7 @@ export const FormPartSSL = () => {
         label="SNI"
         name="sni"
         placeholder="domain1.com"
+        required
       />
       <FormItemTagsInput
         control={control}

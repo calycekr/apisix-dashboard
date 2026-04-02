@@ -25,7 +25,6 @@ const SSLForm = z.object({
 });
 
 export const SSLPostSchema = APISIX.SSL.omit({
-  id: true,
   create_time: true,
   update_time: true,
 }).merge(SSLForm);

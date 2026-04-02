@@ -35,7 +35,6 @@ const Service = z
 export const APISIXServices = {
   Service,
   ServicePost: Service.omit({
-    id: true,
     create_time: true,
     update_time: true,
   }),

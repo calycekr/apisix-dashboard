@@ -35,7 +35,7 @@ export const FormItemTextInput = <T extends FieldValues>(
   props: FormItemTextInputProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, '');
-  const { label, description, ...inputProps } = restProps;
+  const { label, description, required, ...inputProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
@@ -45,7 +45,7 @@ export const FormItemTextInput = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
-      required={!!controllerProps.rules?.required}
+      required={required || !!controllerProps.rules?.required}
     >
       <Input
         value={value}

@@ -77,6 +77,13 @@ export const FormPartBasic = (props: FormPartBasicProps) => {
 
   return (
     <FormSection legend="Basic Information" {...restProps}>
+      <FormItemTextInput
+        name={np('id')}
+        label="ID"
+        description="Optional. Auto-generated if not specified."
+        control={control}
+        placeholder="Leave empty for auto-generated ID"
+      />
       {before}
       {showName && (
         <FormItemTextInput
