@@ -28,6 +28,7 @@ import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { MethodTags } from '@/components/MethodTags';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -226,6 +227,7 @@ export const RouteList = (props: RouteListProps) => {
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
+          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
       />
