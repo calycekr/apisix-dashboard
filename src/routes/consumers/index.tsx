@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -33,10 +33,11 @@ import { API_CONSUMERS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function ConsumersList() {
   const { data, isLoading, refetch, pagination, setParams } = useConsumerList();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<ProColumns<APISIXType['RespConsumerItem']>[]>(() => {
     return [
@@ -105,12 +106,9 @@ function ConsumersList() {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Consumer"
         apiBase={API_CONSUMERS}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
       />
       <ProTable
         columns={columns}
@@ -118,10 +116,7 @@ function ConsumersList() {
         rowKey={(record) => record.value.username}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
+        rowSelection={rowSelection}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Consumers"

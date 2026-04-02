@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -36,10 +36,11 @@ import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { renderPluginCount } from '@/utils/columns';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams } = useServiceList();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -132,12 +133,9 @@ const ServiceList = () => {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Service"
         apiBase={API_SERVICES}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
       />
       <ProTable
         columns={columns}
@@ -145,10 +143,7 @@ const ServiceList = () => {
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
+        rowSelection={rowSelection}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Services"

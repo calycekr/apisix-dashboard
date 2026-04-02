@@ -320,6 +320,9 @@ function TopologyGraph({ data }: { data: TopologyData }) {
             <Tag color="green">Service ({data.services.length})</Tag>
             <Tag color="purple">Upstream ({data.upstreams.length})</Tag>
           </div>
+          <Typography.Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: 'block' }}>
+            Double-click a node to open its detail page
+          </Typography.Text>
         </Panel>
       </ReactFlow>
     </div>

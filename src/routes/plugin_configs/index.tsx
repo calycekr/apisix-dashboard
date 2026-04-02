@@ -19,7 +19,7 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 
 import { getPluginConfigListQueryOptions, usePluginConfigList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -34,10 +34,11 @@ import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { renderPluginCount } from '@/utils/columns';
+import { useBulkActions } from '@/utils/useBulkActions';
 
 function PluginConfigsList() {
   const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
-  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespPluginConfigItem']>[]
@@ -109,12 +110,9 @@ function PluginConfigsList() {
   return (
     <AntdConfigProvider>
       <BulkDeleteBar
-        selectedCount={selectedRowKeys.length}
+        {...bulkBarProps}
         resourceName="Plugin Config"
         apiBase={API_PLUGIN_CONFIGS}
-        selectedIds={selectedRowKeys.map(String)}
-        onComplete={() => { setSelectedRowKeys([]); refetch(); }}
-        onClear={() => setSelectedRowKeys([])}
       />
       <ProTable
         columns={columns}
@@ -122,10 +120,7 @@ function PluginConfigsList() {
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
-        rowSelection={{
-          selectedRowKeys,
-          onChange: setSelectedRowKeys,
-        }}
+        rowSelection={rowSelection}
         options={{ density: false, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Plugin Configs"
