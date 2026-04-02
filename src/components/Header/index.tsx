@@ -16,12 +16,14 @@
  */
 import { useRouterState } from '@tanstack/react-router';
 import { Breadcrumb, Button, Layout, theme } from 'antd';
+import { useAtomValue } from 'jotai';
 import type { FC } from 'react';
 
 import { ActivityLogButton } from '@/components/ActivityLogDrawer';
+import { SIDEBAR_COLLAPSED_WIDTH } from '@/components/Navbar';
 import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
-import { useThemeMode } from '@/stores/global';
+import { sidebarCollapsedAtom, useThemeMode } from '@/stores/global';
 import IconDarkMode from '~icons/material-symbols/dark-mode';
 import IconLightMode from '~icons/material-symbols/light-mode';
 
@@ -45,6 +47,8 @@ const sourceLabels: Record<string, string> = {
 export const Header: FC = () => {
   const { token } = theme.useToken();
   const { mode, toggle: toggleTheme } = useThemeMode();
+  const collapsed = useAtomValue(sidebarCollapsedAtom);
+  const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : APPSHELL_NAVBAR_WIDTH;
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
 
@@ -67,7 +71,8 @@ export const Header: FC = () => {
         background: token.colorBgContainer,
         position: 'fixed',
         top: 0,
-        left: APPSHELL_NAVBAR_WIDTH,
+        left: sidebarWidth,
+        transition: 'left 0.2s',
         right: 0,
         zIndex: 100,
         lineHeight: `${APPSHELL_HEADER_HEIGHT}px`,

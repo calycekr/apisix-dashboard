@@ -18,20 +18,23 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { createRootRoute, HeadContent, Outlet } from '@tanstack/react-router';
 import { TanStackRouterDevtools } from '@tanstack/react-router-devtools';
 import { theme } from 'antd';
+import { useAtomValue } from 'jotai';
 import { useEffect } from 'react';
 
 import { Header } from '@/components/Header';
-import { Navbar } from '@/components/Navbar';
+import { Navbar, SIDEBAR_COLLAPSED_WIDTH } from '@/components/Navbar';
 import { SettingsModal } from '@/components/page/SettingsModal';
 import {
   APPSHELL_HEADER_HEIGHT,
   APPSHELL_NAVBAR_WIDTH,
 } from '@/config/constant';
-import { useThemeMode } from '@/stores/global';
+import { sidebarCollapsedAtom, useThemeMode } from '@/stores/global';
 
 const Root = () => {
   const { token } = theme.useToken();
   const { mode } = useThemeMode();
+  const collapsed = useAtomValue(sidebarCollapsedAtom);
+  const sidebarWidth = collapsed ? SIDEBAR_COLLAPSED_WIDTH : APPSHELL_NAVBAR_WIDTH;
 
   useEffect(() => {
     document.documentElement.dataset.theme = mode;
@@ -45,10 +48,11 @@ const Root = () => {
       <div
         style={{
           marginTop: APPSHELL_HEADER_HEIGHT,
-          marginLeft: APPSHELL_NAVBAR_WIDTH,
+          marginLeft: sidebarWidth,
           padding: 16,
           minHeight: `calc(100vh - ${APPSHELL_HEADER_HEIGHT}px)`,
           background: token.colorBgContainer,
+          transition: 'margin-left 0.2s',
         }}
       >
         <Outlet />

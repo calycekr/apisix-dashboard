@@ -23,6 +23,7 @@ import {
   Card,
   Col,
   message,
+  Modal,
   Row,
   Select,
   Space,
@@ -165,12 +166,7 @@ function RawApiPage() {
     }
   }, [resource, resourceId]);
 
-  const handleExecute = useCallback(async () => {
-    if (needsId && !resourceId) {
-      message.warning('Please enter a resource ID');
-      return;
-    }
-
+  const doExecute = useCallback(async () => {
     let parsedBody: unknown = undefined;
     if (needsBody) {
       try {
@@ -199,7 +195,35 @@ function RawApiPage() {
     } finally {
       setLoading(false);
     }
-  }, [method, endpoint, body, needsId, needsBody, resourceId]);
+  }, [method, endpoint, body, needsBody]);
+
+  const handleExecute = useCallback(() => {
+    if (needsId && !resourceId) {
+      message.warning('Please enter a resource ID');
+      return;
+    }
+
+    if (method === 'DELETE') {
+      Modal.confirm({
+        centered: true,
+        okButtonProps: { danger: true },
+        title: `DELETE ${endpoint}`,
+        content: 'This will permanently delete the resource. Are you sure?',
+        okText: 'Delete',
+        onOk: doExecute,
+      });
+    } else if (method === 'PUT' && resourceId) {
+      Modal.confirm({
+        centered: true,
+        title: `PUT ${endpoint}`,
+        content: 'PUT replaces the entire resource. Omitted fields will be removed. Continue?',
+        okText: 'Execute',
+        onOk: doExecute,
+      });
+    } else {
+      doExecute();
+    }
+  }, [method, endpoint, needsId, resourceId, doExecute]);
 
   const autocompleteOptions = existingResources.map((r) => ({
     value: r.id,

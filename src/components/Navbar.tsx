@@ -16,11 +16,13 @@
  */
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Layout, Menu, theme } from 'antd';
+import { useAtom } from 'jotai';
 import type { ReactNode } from 'react';
 
 import apisixLogo from '@/assets/apisix-logo.svg';
 import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
+import { sidebarCollapsedAtom } from '@/stores/global';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconCode from '~icons/material-symbols/code';
 import IconDashboard from '~icons/material-symbols/dashboard';
@@ -69,11 +71,14 @@ const sourceLabels: Record<string, string> = {
   protos: 'Protos',
 };
 
+export const SIDEBAR_COLLAPSED_WIDTH = 64;
+
 export const Navbar = () => {
   const navigate = useNavigate();
   const routerState = useRouterState();
   const currentPath = routerState.location.pathname;
   const { token } = theme.useToken();
+  const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
 
   const selectedKey =
     ['/dashboard', '/topology', '/export_import', '/raw_api']
@@ -85,6 +90,8 @@ export const Navbar = () => {
     <Layout.Sider
       trigger={null}
       width={250}
+      collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
+      collapsed={collapsed}
       style={{
         overflow: 'auto',
         height: '100vh',
@@ -101,12 +108,14 @@ export const Navbar = () => {
           height: APPSHELL_HEADER_HEIGHT,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-start',
-          paddingInline: 20,
+          justifyContent: collapsed ? 'center' : 'flex-start',
+          paddingInline: collapsed ? 0 : 20,
           gap: 10,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
           flexShrink: 0,
+          cursor: 'pointer',
         }}
+        onClick={() => setCollapsed(!collapsed)}
       >
         <img
           src={apisixLogo}
@@ -115,6 +124,7 @@ export const Navbar = () => {
           height={28}
           style={{ objectFit: 'contain', flexShrink: 0 }}
         />
+        {!collapsed && (
         <span
           style={{
             fontWeight: 700,
@@ -126,6 +136,7 @@ export const Navbar = () => {
         >
           APISIX
         </span>
+        )}
       </div>
       <Menu
         mode="inline"
