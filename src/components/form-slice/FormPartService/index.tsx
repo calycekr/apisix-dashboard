@@ -60,7 +60,7 @@ const FormSectionSettings = () => {
 export const FormPartService = () => {
   return (
     <>
-      <FormPartBasic />
+      <FormPartBasic showStatus />
       <FormSectionSettings />
       <FormSectionUpstream />
       <FormSectionPlugins />
