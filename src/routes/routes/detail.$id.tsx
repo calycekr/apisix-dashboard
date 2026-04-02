@@ -44,6 +44,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { StatusSwitch } from '@/components/StatusTag';
 import { API_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { type APISIXType } from '@/types/schema/apisix';
@@ -127,6 +128,7 @@ export const RouteDetail = (props: RouteDetailProps) => {
         extra={
           readOnly ? (
             <Space>
+              <StatusSwitch api={`${API_ROUTES}/${id}`} />
               <Link to="/routes/add" search={{ clone_from: id }}>
                 <Button size="small">Clone</Button>
               </Link>

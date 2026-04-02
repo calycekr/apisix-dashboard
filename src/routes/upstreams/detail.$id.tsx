@@ -40,6 +40,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { ReverseReferences } from '@/components/page/ReverseReferences';
 import { API_UPSTREAMS } from '@/config/constant';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
@@ -153,6 +154,7 @@ function RouteComponent() {
         readOnly={readOnly}
         setReadOnly={setReadOnly}
       />
+      <ReverseReferences resourceType="upstream" resourceId={id} />
     </>
   );
 }

@@ -20,9 +20,11 @@ import { useFormContext, useWatch } from 'react-hook-form';
 import { FormItemEditor } from '@/components/form/Editor';
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
+import { ResourceSelect } from '@/components/form/ResourceSelect';
 import { FormItemSwitch } from '@/components/form/Switch';
 import { FormItemTagsInput } from '@/components/form/TagInput';
 import { FormItemTextInput } from '@/components/form/TextInput';
+import { API_PLUGIN_CONFIGS, API_SERVICES, API_UPSTREAMS } from '@/config/constant';
 import { APISIX } from '@/types/schema/apisix';
 import { NamePrefixProvider } from '@/utils/useNamePrefix';
 import { zGetDefault } from '@/utils/zod';
@@ -145,14 +147,14 @@ export const FormSectionUpstream = () => {
           style={{ marginBottom: 12 }}
         />
       )}
-      <FormSection legend="Upstream ID">
-        <FormItemTextInput
-          control={control}
-          name="upstream_id"
-          disabled={!!serviceId}
-          description={serviceId ? 'Disabled because Service ID is set.' : undefined}
-        />
-      </FormSection>
+      <ResourceSelect
+        control={control}
+        name="upstream_id"
+        resourceApi={API_UPSTREAMS}
+        resourceLabel="Upstream"
+        disabled={!!serviceId}
+        description={serviceId ? 'Disabled because Service ID is set.' : undefined}
+      />
       <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <NamePrefixProvider value="upstream">
         <FormPartUpstream />
@@ -165,10 +167,11 @@ export const FormSectionPlugins = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
     <FormSection legend="Plugins" collapsible defaultOpen={false}>
-      <FormItemTextInput
+      <ResourceSelect
         control={control}
         name="plugin_config_id"
-        label="Plugin Config ID"
+        resourceApi={API_PLUGIN_CONFIGS}
+        resourceLabel="Plugin Config"
       />
       <Divider style={{ margin: '8px 0' }}>OR</Divider>
       <FormItemPlugins name="plugins" />
@@ -206,10 +209,11 @@ export const FormSectionService = () => {
       collapsible
       defaultOpen={true}
     >
-      <FormItemTextInput
+      <ResourceSelect
         control={control}
         name="service_id"
-        label="Service ID"
+        resourceApi={API_SERVICES}
+        resourceLabel="Service"
       />
     </FormSection>
   );

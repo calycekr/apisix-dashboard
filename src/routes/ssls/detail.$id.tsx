@@ -39,6 +39,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { StatusSwitch } from '@/components/StatusTag';
 import { API_SSLS } from '@/config/constant';
 import { req } from '@/config/req';
 import { showNotification } from '@/utils/notification';
@@ -117,6 +118,7 @@ function RouteComponent() {
         extra={
           readOnly ? (
             <Space>
+              <StatusSwitch api={`${API_SSLS}/${id}`} />
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"

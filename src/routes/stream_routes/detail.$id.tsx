@@ -35,6 +35,7 @@ import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
+import { StatusSwitch } from '@/components/StatusTag';
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
@@ -116,6 +117,7 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
         extra={
           readOnly ? (
             <Space>
+              <StatusSwitch api={`${API_STREAM_ROUTES}/${id}`} />
               <Button
                 onClick={() => setReadOnly(false)}
                 size="small"
