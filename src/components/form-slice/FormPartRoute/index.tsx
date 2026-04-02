@@ -97,6 +97,7 @@ const FormSectionMatchRules = () => {
         control={control}
         name="vars"
         label="Vars"
+        description='Matching conditions as JSON array, e.g. [["arg_name", "==", "json"]]'
       />
       <FormItemEditor
         control={control}

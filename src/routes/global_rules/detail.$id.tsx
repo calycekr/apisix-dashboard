@@ -38,6 +38,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { API_GLOBAL_RULES } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { pipeProduce } from '@/utils/producer';
 
 type Props = {
   readOnly: boolean;
@@ -79,7 +80,7 @@ const GlobalRuleDetailForm = (props: Props) => {
     <FormProvider {...form}>
       <FormJsonTabs
         form={form}
-        onSubmit={(d) => putGlobalRule.mutateAsync(d)}
+        onSubmit={(d) => putGlobalRule.mutateAsync(pipeProduce()(d))}
         submitLabel="Save"
         disabled={readOnly}
       >

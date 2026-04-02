@@ -30,7 +30,6 @@ import { useBoolean } from 'react-use';
 import { getStreamRouteQueryOptions } from '@/apis/hooks';
 import { putStreamRouteReq } from '@/apis/stream_routes';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
-import { produceRoute } from '@/components/form-slice/FormPartRoute/util';
 import { FormPartStreamRoute } from '@/components/form-slice/FormPartStreamRoute';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
@@ -40,6 +39,7 @@ import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_route
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { pipeProduce } from '@/utils/producer';
 
 type Props = {
   readOnly: boolean;
@@ -69,7 +69,7 @@ const StreamRouteDetailForm = (props: Props) => {
 
   const putStreamRoute = useMutation({
     mutationFn: (d: APISIXType['StreamRoute']) =>
-      putStreamRouteReq(req, produceRoute(d)),
+      putStreamRouteReq(req, pipeProduce()(d)),
     async onSuccess() {
       showNotification({
         message: `Edit ${'Stream Route'} Successfully`,

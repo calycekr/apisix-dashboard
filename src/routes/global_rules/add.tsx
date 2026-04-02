@@ -33,6 +33,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
 import { APISIX } from '@/types/schema/apisix';
+import { pipeProduce } from '@/utils/producer';
 
 const GlobalRuleAddForm = () => {
   const router = useReactRouter();
@@ -65,7 +66,7 @@ const GlobalRuleAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <FormJsonTabs form={form} onSubmit={(d) => putGlobalRule.mutateAsync(d)} submitLabel="Add">
+      <FormJsonTabs form={form} onSubmit={(d) => putGlobalRule.mutateAsync(pipeProduce()(d))} submitLabel="Add">
         <FormSectionGeneral />
         <FormPartGlobalRules />
       </FormJsonTabs>

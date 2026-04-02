@@ -30,6 +30,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
 import { APISIXProtos } from '@/types/schema/apisix/protos';
+import { pipeProduce } from '@/utils/producer';
 
 const defaultValues: APISIXType['ProtoPost'] = {
   content: '',
@@ -59,7 +60,7 @@ const ProtoAddForm = () => {
 
   return (
     <FormProvider {...form}>
-      <FormJsonTabs form={form} onSubmit={(d) => postProto.mutateAsync(d)} submitLabel="Add">
+      <FormJsonTabs form={form} onSubmit={(d) => postProto.mutateAsync(pipeProduce()(d))} submitLabel="Add">
         <FormPartProto />
       </FormJsonTabs>
     </FormProvider>

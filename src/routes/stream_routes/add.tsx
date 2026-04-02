@@ -22,7 +22,6 @@ import { FormProvider, useForm } from 'react-hook-form';
 
 import { postStreamRouteReq } from '@/apis/stream_routes';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
-import { produceRoute } from '@/components/form-slice/FormPartRoute/util';
 import { FormPartStreamRoute } from '@/components/form-slice/FormPartStreamRoute';
 import {
   StreamRoutePostSchema,
@@ -33,6 +32,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
+import { pipeProduce } from '@/utils/producer';
 
 type Props = {
   navigate: (res: APISIXType['RespStreamRouteDetail']) => Promise<void>;
@@ -44,7 +44,7 @@ export const StreamRouteAddForm = (props: Props) => {
 
   const postStreamRoute = useMutation({
     mutationFn: (d: StreamRoutePostType) =>
-      postStreamRouteReq(req, produceRoute(d)),
+      postStreamRouteReq(req, pipeProduce()(d)),
     async onSuccess(res) {
       showNotification({
         message: `Add ${'Stream Route'} Successfully`,

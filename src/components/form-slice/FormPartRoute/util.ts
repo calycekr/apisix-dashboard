@@ -29,7 +29,28 @@ export const produceVarsToForm = produce((draft: RoutePostType) => {
 
 export const produceVarsToAPI = produce((draft: RoutePostType) => {
   if (draft.vars && typeof draft.vars === 'string') {
-    draft.vars = JSON.parse(draft.vars);
+    try {
+      const parsed = JSON.parse(draft.vars);
+      if (Array.isArray(parsed)) {
+        draft.vars = parsed;
+      } else {
+        delete draft.vars;
+      }
+    } catch {
+      delete draft.vars;
+    }
+  }
+  if (draft.vars === '' || draft.vars === undefined) {
+    delete draft.vars;
+  }
+  if (draft.filter_func === '' || draft.filter_func === undefined) {
+    delete draft.filter_func;
+  }
+  if (draft.script === '' || draft.script === undefined) {
+    delete draft.script;
+  }
+  if (draft.script_id === '' || draft.script_id === undefined) {
+    delete draft.script_id;
   }
 });
 
