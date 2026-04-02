@@ -169,23 +169,29 @@ export const RouteList = (props: RouteListProps) => {
         ),
       },
       {
+        dataIndex: ['value', 'host'],
+        title: 'Host',
+        key: 'host',
+        ellipsis: true,
+        render: (_, record) => {
+          const host = record.value.host;
+          const hosts = record.value.hosts;
+          if (host) return <Typography.Text code style={{ fontSize: 12 }}>{host}</Typography.Text>;
+          if (hosts?.length) return <Typography.Text code style={{ fontSize: 12 }}>{hosts[0]}{hosts.length > 1 ? ` +${hosts.length - 1}` : ''}</Typography.Text>;
+          return <Typography.Text type="secondary">*</Typography.Text>;
+        },
+      },
+      {
         dataIndex: ['value', 'uri'],
         title: 'URI',
         key: 'uri',
         ellipsis: true,
         render: (_, record) => {
-          const uri = record.value.uri || record.value.uris?.[0] || '/';
-          const host = record.value.host || record.value.hosts?.[0];
-          return (
-            <div>
-              <Typography.Text code style={{ fontSize: 13 }}>{uri}</Typography.Text>
-              {host && (
-                <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 1 }}>
-                  {host}
-                </Typography.Text>
-              )}
-            </div>
-          );
+          const uri = record.value.uri;
+          const uris = record.value.uris;
+          if (uri) return <Typography.Text code style={{ fontSize: 12 }}>{uri}</Typography.Text>;
+          if (uris?.length) return <Typography.Text code style={{ fontSize: 12 }}>{uris[0]}{uris.length > 1 ? ` +${uris.length - 1}` : ''}</Typography.Text>;
+          return '-';
         },
       },
       {
