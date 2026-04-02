@@ -22,7 +22,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Button, Card, Skeleton, Space, Tag, Typography } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -98,8 +98,46 @@ const RouteDetailForm = (props: Props) => {
     return <Skeleton active />;
   }
 
+  const route = routeData?.value;
+  const pluginNames = route?.plugins ? Object.keys(route.plugins) : [];
+
   return (
     <>
+      {readOnly && route && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space size="large" wrap>
+            <Typography.Text>
+              <Typography.Text type="secondary">URI: </Typography.Text>
+              <Typography.Text strong code>{route.uri || route.uris?.join(', ') || '-'}</Typography.Text>
+            </Typography.Text>
+            {route.service_id && (
+              <Typography.Text>
+                <Typography.Text type="secondary">Service: </Typography.Text>
+                <Link to="/services/detail/$id" params={{ id: route.service_id }}>
+                  <Typography.Text strong>{route.service_id}</Typography.Text>
+                </Link>
+              </Typography.Text>
+            )}
+            {route.upstream_id && (
+              <Typography.Text>
+                <Typography.Text type="secondary">Upstream: </Typography.Text>
+                <Link to="/upstreams/detail/$id" params={{ id: route.upstream_id }}>
+                  <Typography.Text strong>{route.upstream_id}</Typography.Text>
+                </Link>
+              </Typography.Text>
+            )}
+            {pluginNames.length > 0 && (
+              <Typography.Text>
+                <Typography.Text type="secondary">Plugins: </Typography.Text>
+                {pluginNames.slice(0, 3).map((p) => (
+                  <Tag key={p} style={{ fontSize: 11 }}>{p}</Tag>
+                ))}
+                {pluginNames.length > 3 && <Tag style={{ fontSize: 11 }}>+{pluginNames.length - 3}</Tag>}
+              </Typography.Text>
+            )}
+          </Space>
+        </Card>
+      )}
       <FormProvider {...form}>
         <FormJsonTabs
           form={form}
@@ -113,11 +151,11 @@ const RouteDetailForm = (props: Props) => {
           <FormPartRoute />
         </FormJsonTabs>
       </FormProvider>
-      {readOnly && routeData?.value && (
+      {readOnly && route && (
         <ApiTestPanel
-          defaultUri={routeData.value.uri || routeData.value.uris?.[0] || '/'}
-          defaultHost={routeData.value.host || routeData.value.hosts?.[0]}
-          defaultMethod={routeData.value.methods?.[0] || 'GET'}
+          defaultUri={route.uri || route.uris?.[0] || '/'}
+          defaultHost={route.host || route.hosts?.[0]}
+          defaultMethod={route.methods?.[0] || 'GET'}
         />
       )}
     </>

@@ -17,7 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space, Tag, Typography } from 'antd';
+import { Space, Tag, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
@@ -80,9 +80,27 @@ function RouteComponent() {
         render: (_, record) => {
           const nodes = record.value.nodes;
           if (!nodes) return '-';
-          if (Array.isArray(nodes)) return `${nodes.length} node${nodes.length !== 1 ? 's' : ''}`;
-          const count = Object.keys(nodes).length;
-          return `${count} node${count !== 1 ? 's' : ''}`;
+          const hosts: string[] = [];
+          if (Array.isArray(nodes)) {
+            for (const n of nodes) hosts.push(`${n.host}:${n.port}`);
+          } else {
+            hosts.push(...Object.keys(nodes));
+          }
+          if (hosts.length === 0) return '-';
+          const visible = hosts.slice(0, 2);
+          const remaining = hosts.length - 2;
+          return (
+            <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 3 }}>
+              {visible.map((h) => (
+                <Tag key={h} style={{ margin: 0, fontSize: 11, fontFamily: 'monospace' }}>{h}</Tag>
+              ))}
+              {remaining > 0 && (
+                <Tooltip title={hosts.slice(2).join(', ')}>
+                  <Tag style={{ margin: 0, fontSize: 11 }}>+{remaining}</Tag>
+                </Tooltip>
+              )}
+            </span>
+          );
         },
       },
       {
