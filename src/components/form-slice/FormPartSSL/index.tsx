@@ -41,6 +41,8 @@ const FormSectionClient = () => {
     <FormSection
       legend="Client"
       extra={<FormItemSwitch control={control} name="__clientEnabled" />}
+      collapsible
+      defaultOpen={false}
     >
       {clientEnabled ? (
         <>

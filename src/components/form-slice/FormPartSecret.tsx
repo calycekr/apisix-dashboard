@@ -100,14 +100,14 @@ const GCPSecretForm = () => {
       <InputWrapper label="SSL Verify">
         <FormItemSwitch control={control} name="ssl_verify" />
       </InputWrapper>
-      <FormSection legend="Auth">
+      <FormSection legend="Auth" collapsible defaultOpen={false}>
         <FormItemTextInput
           control={control}
           name="auth_file"
           label="Auth File"
         />
         <Divider style={{ margin: '8px 0' }}>OR</Divider>
-        <FormSection legend="Auth Configuration">
+        <FormSection legend="Auth Configuration" collapsible defaultOpen={false}>
           <FormItemTextInput
             control={control}
             name="auth_config.client_email"
@@ -149,7 +149,7 @@ const FormSectionManager = (props: FormSectionManagerProps) => {
   const { readOnlyManager } = props;
   const { control } = useFormContext<APISIXType['Secret']>();
   return (
-    <FormSection legend="Secret Manager" disabled={readOnlyManager}>
+    <FormSection legend="Secret Manager" disabled={readOnlyManager} collapsible defaultOpen={true}>
       <FormItemSelect
         control={control}
         name="manager"
@@ -165,7 +165,7 @@ const FormSectionManagerConfig = () => {
   // useWatch not working here
   const manager = watch('manager');
   return (
-    <FormSection legend="Manager Configuration">
+    <FormSection legend="Manager Configuration" collapsible defaultOpen={true}>
       {manager === 'vault' && <VaultSecretForm />}
       {manager === 'aws' && <AWSSecretForm />}
       {manager === 'gcp' && <GCPSecretForm />}

@@ -30,7 +30,7 @@ import type { ServicePostType } from './schema';
 
 const FormSectionPlugins = () => {
   return (
-    <FormSection legend="Plugins">
+    <FormSection legend="Plugins" collapsible defaultOpen={false}>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
@@ -39,7 +39,7 @@ const FormSectionPlugins = () => {
 const FormSectionSettings = () => {
   const { control } = useFormContext<ServicePostType>();
   return (
-    <FormSection legend="Service Settings">
+    <FormSection legend="Service Settings" collapsible defaultOpen={true}>
       <InputWrapper label="Enable WebSocket">
         <FormItemSwitch control={control} name="enable_websocket" />
       </InputWrapper>

@@ -25,7 +25,7 @@ import { FormSection } from './FormSection';
 
 export const FormSectionPluginsOnly = () => {
   return (
-    <FormSection legend="Plugins">
+    <FormSection legend="Plugins" collapsible defaultOpen={false}>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );

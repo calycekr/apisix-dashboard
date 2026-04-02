@@ -20,7 +20,7 @@ import { FormSection } from './FormSection';
 
 export const FormPartGlobalRules = () => {
   return (
-    <FormSection legend={'Plugins'}>
+    <FormSection legend={'Plugins'} collapsible defaultOpen={true}>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );

@@ -33,7 +33,7 @@ const FormSectionStreamRouteBasic = () => {
   const { control } = useFormContext<StreamRoutePostType>();
 
   return (
-    <FormSection legend="Server">
+    <FormSection legend="Server" collapsible defaultOpen={true}>
       <FormItemTextInput
         control={control}
         name="server_addr"
@@ -63,7 +63,7 @@ const FormSectionStreamRouteProtocol = () => {
   const { control } = useFormContext<StreamRoutePostType>();
 
   return (
-    <FormSection legend="Protocol Information">
+    <FormSection legend="Protocol Information" collapsible defaultOpen={false}>
       <FormItemTextInput
         control={control}
         name="protocol.name"
