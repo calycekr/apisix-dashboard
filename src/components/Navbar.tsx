@@ -27,6 +27,7 @@ import IconDashboard from '~icons/material-symbols/dashboard';
 import IconDataObject from '~icons/material-symbols/data-object';
 import IconDeviceHub from '~icons/material-symbols/device-hub';
 import IconDns from '~icons/material-symbols/dns';
+import IconExportNotes from '~icons/material-symbols/export-notes';
 import IconExtension from '~icons/material-symbols/extension';
 import IconGroup from '~icons/material-symbols/group';
 import IconKey from '~icons/material-symbols/key';
@@ -74,11 +75,10 @@ export const Navbar = () => {
   const { token } = theme.useToken();
 
   const selectedKey =
-    currentPath.startsWith('/dashboard')
-      ? '/dashboard'
-      : currentPath.startsWith('/topology')
-        ? '/topology'
-        : navRoutes.find((r) => currentPath.startsWith(r.to))?.to || '';
+    ['/dashboard', '/topology', '/export_import']
+      .find((p) => currentPath.startsWith(p))
+    ?? navRoutes.find((r) => currentPath.startsWith(r.to))?.to
+    ?? '';
 
   return (
     <Layout.Sider
@@ -142,6 +142,12 @@ export const Navbar = () => {
             icon: <IconDeviceHub />,
             label: 'Topology',
             onClick: () => navigate({ to: '/topology' as Parameters<typeof navigate>[0]['to'] }),
+          },
+          {
+            key: '/export_import',
+            icon: <IconExportNotes />,
+            label: 'Import / Export',
+            onClick: () => navigate({ to: '/export_import' as Parameters<typeof navigate>[0]['to'] }),
           },
           { type: 'divider' },
           {
