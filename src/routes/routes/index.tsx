@@ -169,37 +169,21 @@ export const RouteList = (props: RouteListProps) => {
         ),
       },
       {
-        title: 'Endpoint',
-        key: 'endpoint',
+        dataIndex: ['value', 'uri'],
+        title: 'URI',
+        key: 'uri',
+        ellipsis: true,
         render: (_, record) => {
-          const methods = record.value.methods;
-          const host = record.value.host || record.value.hosts?.[0] || '';
           const uri = record.value.uri || record.value.uris?.[0] || '/';
-          const extraHosts = (record.value.hosts?.length ?? 0) > 1 ? record.value.hosts!.length - 1 : 0;
-          const extraUris = (record.value.uris?.length ?? 0) > 1 ? record.value.uris!.length - 1 : 0;
+          const host = record.value.host || record.value.hosts?.[0];
           return (
-            <div style={{ lineHeight: 1.6 }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 4, flexWrap: 'wrap' }}>
-                {methods?.length ? (
-                  methods.slice(0, 3).map((m) => (
-                    <Tag key={m} color={m === 'GET' ? 'blue' : m === 'POST' ? 'green' : m === 'PUT' ? 'orange' : m === 'DELETE' ? 'red' : 'default'} style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>
-                      {m}
-                    </Tag>
-                  ))
-                ) : (
-                  <Tag style={{ margin: 0, fontSize: 10, lineHeight: '16px', padding: '0 4px' }}>ANY</Tag>
-                )}
-                <Typography.Text code style={{ fontSize: 13 }}>
-                  {host ? `${host}${uri}` : uri}
+            <div>
+              <Typography.Text code style={{ fontSize: 13 }}>{uri}</Typography.Text>
+              {host && (
+                <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 1 }}>
+                  {host}
                 </Typography.Text>
-                {(extraHosts > 0 || extraUris > 0) && (
-                  <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-                    {extraHosts > 0 && `+${extraHosts} hosts`}
-                    {extraHosts > 0 && extraUris > 0 && ', '}
-                    {extraUris > 0 && `+${extraUris} URIs`}
-                  </Typography.Text>
-                )}
-              </div>
+              )}
             </div>
           );
         },
