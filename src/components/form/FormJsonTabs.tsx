@@ -91,8 +91,25 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [apiError, setApiError] = useState<string | null>(null);
 
   const isDirty = form.formState.isDirty && !disabled;
+
+  // Wrap onSubmit to catch API errors from mutateAsync
+  const safeSubmit = useCallback(
+    async (data: unknown) => {
+      setApiError(null);
+      try {
+        await onSubmit(data);
+      } catch (e) {
+        // Error notification already shown by global interceptor,
+        // but we need to prevent infinite loading and show inline feedback
+        const msg = e instanceof Error ? e.message : String(e);
+        setApiError(`Save failed: ${msg}`);
+      }
+    },
+    [onSubmit]
+  );
 
   // Block in-app navigation and browser close when form has unsaved changes
   const blocker = useBlocker({
@@ -150,7 +167,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     setIsSubmitting(true);
     try {
       await form.handleSubmit(
-        onSubmit,
+        safeSubmit,
         (errors) => {
           const flat = flattenErrors(errors);
           if (flat.length > 0) {
@@ -163,7 +180,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [jsonStr, form, onSubmit]);
+  }, [jsonStr, form, safeSubmit]);
 
   const handleCancel = useCallback(() => {
     if (form.formState.isDirty) {
@@ -184,7 +201,10 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       key: 'form',
       label: 'Form',
       children: (
-        <form onSubmit={form.handleSubmit(onSubmit)}>
+        <form onSubmit={form.handleSubmit(safeSubmit)}>
+          {apiError && (
+            <Alert type="error" showIcon closable message={apiError} onClose={() => setApiError(null)} style={{ marginBottom: 16 }} />
+          )}
           <FormErrorSummary errors={form.formState.errors} />
           {children}
           {!disabled && (

@@ -63,11 +63,11 @@ const RESOURCE_OPTIONS = [
 ];
 
 const METHOD_OPTIONS = [
-  { label: 'PUT — Create or replace by ID', value: 'PUT' },
-  { label: 'PATCH — Partial update by ID', value: 'PATCH' },
+  { label: 'PUT — Create or full replace (entire body required)', value: 'PUT' },
+  { label: 'PATCH — Partial update (only changed fields needed)', value: 'PATCH' },
   { label: 'POST — Create with auto-generated ID', value: 'POST' },
-  { label: 'GET — Read by ID', value: 'GET' },
-  { label: 'DELETE — Delete by ID', value: 'DELETE' },
+  { label: 'GET — Read resource by ID', value: 'GET' },
+  { label: 'DELETE — Delete resource by ID', value: 'DELETE' },
 ];
 
 const METHOD_COLORS: Record<string, string> = {
@@ -293,9 +293,19 @@ function RawApiPage() {
             </Col>
           </Row>
 
-          <Typography.Text type="secondary" style={{ fontFamily: 'monospace', fontSize: 12 }}>
-            {method} /apisix/admin{endpoint}
-          </Typography.Text>
+          <div>
+            <Typography.Text type="secondary" style={{ fontFamily: 'monospace', fontSize: 12 }}>
+              {method} /apisix/admin{endpoint}
+            </Typography.Text>
+            <br />
+            <Typography.Text type="secondary" style={{ fontSize: 11 }}>
+              {method === 'PUT' && 'PUT replaces the entire resource. All fields must be provided — omitted fields will be removed.'}
+              {method === 'PATCH' && 'PATCH updates only the specified fields. Omitted fields are left unchanged.'}
+              {method === 'POST' && 'POST creates a new resource with an auto-generated ID. The body defines the configuration.'}
+              {method === 'GET' && 'GET retrieves the resource. No request body needed.'}
+              {method === 'DELETE' && 'DELETE removes the resource permanently. No request body needed.'}
+            </Typography.Text>
+          </div>
         </Space>
       </Card>
 

@@ -47,10 +47,7 @@ export const StatusSwitch = ({ status, api }: StatusSwitchProps) => {
         type: 'success',
       });
     } catch {
-      showNotification({
-        message: 'Failed to update status',
-        type: 'error',
-      });
+      // Error notification already shown by global interceptor with APISIX error details
     } finally {
       setLoading(false);
     }

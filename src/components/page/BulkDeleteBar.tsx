@@ -107,21 +107,31 @@ export const BulkDeleteBar = ({
       onOk: async () => {
         setLoading(true);
         let successCount = 0;
+        const errors: string[] = [];
 
         for (const id of selectedIds) {
           try {
             await req.patch(`${apiBase}/${id}`, { status });
             successCount++;
-          } catch {
-            // continue on error
+          } catch (e) {
+            errors.push(`${id}: ${e instanceof Error ? e.message : 'Unknown error'}`);
           }
         }
 
         setLoading(false);
-        showNotification({
-          message: `${label}d ${successCount}/${selectedIds.length} ${resourceName}(s)`,
-          type: 'success',
-        });
+
+        if (errors.length === 0) {
+          showNotification({
+            message: `${label}d ${successCount} ${resourceName}(s) successfully`,
+            type: 'success',
+          });
+        } else {
+          showNotification({
+            message: `${label}d ${successCount}/${selectedIds.length}. ${errors.length} failed: ${errors.slice(0, 3).join('; ')}`,
+            type: 'error',
+          });
+        }
+
         queryClient.invalidateQueries();
         onComplete();
       },
