@@ -21,6 +21,8 @@ import { API_SSLS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
 
+import { deleteAllResources } from './utils';
+
 export const getSSLListReq = (req: AxiosInstance, params: PageSearchType) =>
   req
     .get<unknown, APISIXType['RespSSLList']>(API_SSLS, {
@@ -44,21 +46,5 @@ export const putSSLReq = (req: AxiosInstance, data: APISIXType['SSL']) => {
 export const postSSLReq = (req: AxiosInstance, data: SSLPostType) =>
   req.post<APISIXType['SSL'], APISIXType['RespSSLDetail']>(API_SSLS, data);
 
-export const deleteAllSSLs = async (req: AxiosInstance) => {
-  const { PAGE_SIZE_MIN, PAGE_SIZE_MAX } = await import('@/config/constant');
-  const totalRes = await getSSLListReq(req, {
-    page: 1,
-    page_size: PAGE_SIZE_MIN,
-  });
-  const total = totalRes.total;
-  if (total === 0) return;
-  for (let times = Math.ceil(total / PAGE_SIZE_MAX); times > 0; times--) {
-    const res = await getSSLListReq(req, {
-      page: 1,
-      page_size: PAGE_SIZE_MAX,
-    });
-    await Promise.all(
-      res.list.map((d) => req.delete(`${API_SSLS}/${d.value.id}`))
-    );
-  }
-};
+export const deleteAllSSLs = (req: AxiosInstance) =>
+  deleteAllResources(req, API_SSLS, getSSLListReq, (d) => d.value.id);

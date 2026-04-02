@@ -24,10 +24,10 @@ import {
   useMemo,
   useState,
 } from 'react';
-import IconExpandLess from '~icons/material-symbols/expand-less';
-import IconExpandMore from '~icons/material-symbols/expand-more';
 
 import { useShallowEffect } from '@/utils/hooks';
+import IconExpandLess from '~icons/material-symbols/expand-less';
+import IconExpandMore from '~icons/material-symbols/expand-more';
 
 import classes from './style.module.css';
 

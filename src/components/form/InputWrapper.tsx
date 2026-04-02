@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography, theme } from 'antd';
+import { theme,Typography } from 'antd';
 import { forwardRef } from 'react';
 
 import type { InputWrapperProps } from '@/types/input-wrapper';

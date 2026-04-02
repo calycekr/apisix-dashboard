@@ -108,7 +108,7 @@ function RouteComponent() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Upstream'}
+              name="Upstream"
               target={record.value.id}
               api={`${API_UPSTREAMS}/${record.value.id}`}
               onSuccess={refetch}
@@ -121,7 +121,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title={'Upstreams'} />
+      <PageHeader title="Upstreams" />
       <AntdConfigProvider>
         <ProTable
           columns={columns}

@@ -31,13 +31,14 @@ import { API_GLOBAL_RULES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { renderPluginCount } from '@/utils/columns';
 
 
 function RouteComponent() {
 
   return (
     <>
-      <PageHeader title={'Global Rules'} />
+      <PageHeader title="Global Rules" />
       <GlobalRulesList />
     </>
   );
@@ -60,12 +61,7 @@ function GlobalRulesList() {
         dataIndex: ['value', 'plugins'],
         title: 'Plugins',
         key: 'plugins',
-        render: (_, record) => {
-          const plugins = record.value.plugins;
-          if (!plugins) return '-';
-          const count = Object.keys(plugins).length;
-          return `${count} plugin${count !== 1 ? 's' : ''}`;
-        },
+        render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -91,7 +87,7 @@ function GlobalRulesList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Global Rule'}
+              name="Global Rule"
               target={record.value.id}
               api={`${API_GLOBAL_RULES}/${record.value.id}`}
               onSuccess={refetch}

@@ -15,11 +15,10 @@
  * limitations under the License.
  */
 import { Divider } from 'antd';
-
-import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
 
 import { FormItemEditor } from '@/components/form/Editor';
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
 import { FormItemSwitch } from '@/components/form/Switch';
 import { FormItemTagsInput } from '@/components/form/TagInput';

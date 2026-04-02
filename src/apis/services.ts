@@ -16,12 +16,13 @@
  */
 import type { AxiosInstance } from 'axios';
 
-import { API_SERVICES, PAGE_SIZE_MAX, PAGE_SIZE_MIN } from '@/config/constant';
+import { API_SERVICES } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
 
 import { deleteAllRoutes } from './routes';
 import { deleteAllStreamRoutes } from './stream_routes';
+import { deleteAllResources } from './utils';
 
 export type ServicePostType = APISIXType['ServicePost'];
 
@@ -58,20 +59,5 @@ export const deleteAllServices = async (req: AxiosInstance) => {
   // Delete all routes and stream routes first to avoid foreign key constraints
   await deleteAllRoutes(req);
   await deleteAllStreamRoutes(req);
-
-  const totalRes = await getServiceListReq(req, {
-    page: 1,
-    page_size: PAGE_SIZE_MIN,
-  });
-  const total = totalRes.total;
-  if (total === 0) return;
-  for (let times = Math.ceil(total / PAGE_SIZE_MAX); times > 0; times--) {
-    const res = await getServiceListReq(req, {
-      page: 1,
-      page_size: PAGE_SIZE_MAX,
-    });
-    await Promise.all(
-      res.list.map((d) => req.delete(`${API_SERVICES}/${d.value.id}`))
-    );
-  }
+  await deleteAllResources(req, API_SERVICES, getServiceListReq, (d) => d.value.id);
 };

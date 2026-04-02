@@ -23,12 +23,12 @@ import { useMemo } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
-import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
+import { StatusTag } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -114,7 +114,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
             <ToDetailBtn key="detail" record={record} />
             <DeleteResourceBtn
               key="delete"
-              name={'Stream Route'}
+              name="Stream Route"
               target={record.value.id}
               api={`${API_STREAM_ROUTES}/${record.value.id}`}
               onSuccess={refetch}
@@ -151,7 +151,7 @@ function StreamRouteComponent() {
 
   return (
     <>
-      <PageHeader title={'Stream Routes'} />
+      <PageHeader title="Stream Routes" />
       <StreamRouteList
         routeKey="/stream_routes/"
         ToDetailBtn={({ record }) => (

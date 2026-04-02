@@ -14,25 +14,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Layout, Menu, theme } from 'antd';
 import { useNavigate, useRouterState } from '@tanstack/react-router';
+import { Layout, Menu, theme } from 'antd';
 import type { ReactNode } from 'react';
 
 import apisixLogo from '@/assets/apisix-logo.svg';
-import { navRoutes } from '@/config/navRoutes';
 import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
-import IconRoute from '~icons/material-symbols/route';
-import IconDns from '~icons/material-symbols/dns';
+import { navRoutes } from '@/config/navRoutes';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
-import IconPerson from '~icons/material-symbols/person';
-import IconGroup from '~icons/material-symbols/group';
-import IconLock from '~icons/material-symbols/lock';
-import IconStream from '~icons/material-symbols/stream';
-import IconPublic from '~icons/material-symbols/public';
-import IconExtension from '~icons/material-symbols/extension';
-import IconDataObject from '~icons/material-symbols/data-object';
-import IconKey from '~icons/material-symbols/key';
 import IconCode from '~icons/material-symbols/code';
+import IconDataObject from '~icons/material-symbols/data-object';
+import IconDns from '~icons/material-symbols/dns';
+import IconExtension from '~icons/material-symbols/extension';
+import IconGroup from '~icons/material-symbols/group';
+import IconKey from '~icons/material-symbols/key';
+import IconLock from '~icons/material-symbols/lock';
+import IconPerson from '~icons/material-symbols/person';
+import IconPublic from '~icons/material-symbols/public';
+import IconRoute from '~icons/material-symbols/route';
+import IconStream from '~icons/material-symbols/stream';
 
 const iconMap: Record<string, ReactNode> = {
   route: <IconRoute />,

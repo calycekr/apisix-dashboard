@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography, theme } from 'antd';
+import { theme,Typography } from 'antd';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { FormItemLabels } from '@/components/form/Labels';

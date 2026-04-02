@@ -31,6 +31,7 @@ import { API_PLUGIN_CONFIGS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { renderPluginCount } from '@/utils/columns';
 
 function PluginConfigsList() {
   const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
@@ -57,12 +58,7 @@ function PluginConfigsList() {
         dataIndex: ['value', 'plugins'],
         title: 'Plugins',
         key: 'plugins',
-        render: (_, record) => {
-          const plugins = record.value.plugins;
-          if (!plugins) return '-';
-          const count = Object.keys(plugins).length;
-          return `${count} plugin${count !== 1 ? 's' : ''}`;
-        },
+        render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -89,7 +85,7 @@ function PluginConfigsList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Plugin Config'}
+              name="Plugin Config"
               target={record.value.id}
               api={`${API_PLUGIN_CONFIGS}/${record.value.id}`}
               onSuccess={refetch}
@@ -125,7 +121,7 @@ function PluginConfigsList() {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Plugin Configs'} />
+      <PageHeader title="Plugin Configs" />
       <PluginConfigsList />
     </>
   );

@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Skeleton, Space } from 'antd';
-import { showNotification } from '@/utils/notification';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
+import { Button, Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -39,6 +38,7 @@ import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_route
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
 type Props = {
@@ -120,11 +120,11 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
                 size="small"
                 type="primary"
               >
-                {'Edit'}
+                Edit
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={'Stream Route'}
+                name="Stream Route"
                 target={id}
                 api={`${API_STREAM_ROUTES}/${id}`}
                 onSuccess={onDeleteSuccess}

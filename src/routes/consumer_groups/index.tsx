@@ -31,6 +31,7 @@ import { API_CONSUMER_GROUPS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { renderPluginCount } from '@/utils/columns';
 
 function ConsumerGroupsList() {
   const { data, isLoading, refetch, pagination, setParams } = useConsumerGroupList();
@@ -57,12 +58,7 @@ function ConsumerGroupsList() {
         dataIndex: ['value', 'plugins'],
         title: 'Plugins',
         key: 'plugins',
-        render: (_, record) => {
-          const plugins = record.value.plugins;
-          if (!plugins) return '-';
-          const count = Object.keys(plugins).length;
-          return `${count} plugin${count !== 1 ? 's' : ''}`;
-        },
+        render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -89,7 +85,7 @@ function ConsumerGroupsList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Consumer Group'}
+              name="Consumer Group"
               target={record.value.id}
               api={`${API_CONSUMER_GROUPS}/${record.value.id}`}
               onSuccess={refetch}
@@ -125,7 +121,7 @@ function ConsumerGroupsList() {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Consumer Groups'} />
+      <PageHeader title="Consumer Groups" />
       <ConsumerGroupsList />
     </>
   );

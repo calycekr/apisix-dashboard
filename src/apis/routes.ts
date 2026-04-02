@@ -17,9 +17,11 @@
 import type { AxiosInstance } from 'axios';
 
 import type { RoutePostType } from '@/components/form-slice/FormPartRoute/schema';
-import { API_ROUTES, PAGE_SIZE_MAX, PAGE_SIZE_MIN } from '@/config/constant';
+import { API_ROUTES } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+
+import { deleteAllResources } from './utils';
 
 export type WithServiceIdFilter = PageSearchType & {
   filter?: {
@@ -48,20 +50,5 @@ export const putRouteReq = (req: AxiosInstance, data: APISIXType['Route']) => {
 export const postRouteReq = (req: AxiosInstance, data: RoutePostType) =>
   req.post<unknown, APISIXType['RespRouteDetail']>(API_ROUTES, data);
 
-export const deleteAllRoutes = async (req: AxiosInstance) => {
-  const totalRes = await getRouteListReq(req, {
-    page: 1,
-    page_size: PAGE_SIZE_MIN,
-  });
-  const total = totalRes.total;
-  if (total === 0) return;
-  for (let times = Math.ceil(total / PAGE_SIZE_MAX); times > 0; times--) {
-    const res = await getRouteListReq(req, {
-      page: 1,
-      page_size: PAGE_SIZE_MAX,
-    });
-    await Promise.all(
-      res.list.map((d) => req.delete(`${API_ROUTES}/${d.value.id}`))
-    );
-  }
-};
+export const deleteAllRoutes = (req: AxiosInstance) =>
+  deleteAllResources(req, API_ROUTES, getRouteListReq, (d) => d.value.id);

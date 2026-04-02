@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useNavigate } from '@tanstack/react-router';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -32,6 +31,7 @@ import { FormTOCBox } from '@/components/form-slice/FormSection';
 import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
+import { showNotification } from '@/utils/notification';
 
 type Props = {
   navigate: (res: APISIXType['RespRouteDetail']) => Promise<void>;

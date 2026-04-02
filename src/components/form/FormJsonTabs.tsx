@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
+import { useRouter } from '@tanstack/react-router';
 import { Alert, Button, Modal, Space, Tabs } from 'antd';
 import { useCallback, useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
-import { useRouter } from '@tanstack/react-router';
 
 import { useThemeMode } from '@/stores/global';
 
@@ -26,7 +26,9 @@ import { FormSubmitBtn } from './Btn';
 
 type FormJsonTabsProps = {
   children: React.ReactNode;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   form: UseFormReturn<any>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   onSubmit: (data: any) => unknown;
   submitLabel?: string;
   disabled?: boolean;

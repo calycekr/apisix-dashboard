@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
@@ -32,6 +31,7 @@ import {
   PluginEditorDrawer,
 } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
 import { SelectPluginsDrawer } from '@/components/form-slice/FormItemPlugins/SelectPluginsDrawer';
+import { showNotification } from '@/utils/notification';
 
 import { type PluginInfo, usePluginMetadataList } from './hooks';
 

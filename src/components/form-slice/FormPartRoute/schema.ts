@@ -22,6 +22,7 @@ export const RoutePostSchema = APISIX.Route.omit({
   create_time: true,
   update_time: true,
 }).extend({
+  id: z.string().optional(),
   // the FormItemEditor (monaco) is for editing text,
   // and passing the original schema of `vars` for validation
   // is not in line with this usage.

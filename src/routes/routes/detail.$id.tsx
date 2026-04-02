@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Skeleton, Space } from 'antd';
-import { showNotification } from '@/utils/notification';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
+import { Button, Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -47,6 +46,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { API_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { type APISIXType } from '@/types/schema/apisix';
+import { showNotification } from '@/utils/notification';
 
 type Props = {
   readOnly: boolean;
@@ -74,7 +74,7 @@ const RouteDetailForm = (props: Props) => {
         routeData.value.upstream || {},
         routeData.value
       );
-      form.reset(produceVarsToForm(upstreamProduced));
+      form.reset(produceVarsToForm(upstreamProduced) as RoutePutType);
     }
   }, [routeData, form, isLoading]);
 
@@ -130,11 +130,11 @@ export const RouteDetail = (props: RouteDetailProps) => {
                 size="small"
                 type="primary"
               >
-                {'Edit'}
+                Edit
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={'Route'}
+                name="Route"
                 target={id}
                 api={`${API_ROUTES}/${id}`}
                 onSuccess={onDeleteSuccess}

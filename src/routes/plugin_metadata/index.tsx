@@ -23,7 +23,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title={'Plugin Metadata'} />
+      <PageHeader title="Plugin Metadata" />
       <PluginMetadata />
     </>
   );

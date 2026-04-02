@@ -15,14 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Button, Skeleton, Space } from 'antd';
-import { showNotification } from '@/utils/notification';
 import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
+import { Button, Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -38,6 +37,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { API_CONSUMERS } from '@/config/constant';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
 type Props = {
@@ -115,11 +115,11 @@ const ConsumerDetailTab = () => {
                 size="small"
                 type="primary"
               >
-                {'Edit'}
+                Edit
               </Button>
               <DeleteResourceBtn
                 mode="detail"
-                name={'Consumer'}
+                name="Consumer"
                 target={username}
                 api={`${API_CONSUMERS}/${username}`}
                 onSuccess={() => navigate({ to: '/consumers' })}

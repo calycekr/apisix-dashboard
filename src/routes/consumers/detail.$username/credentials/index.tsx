@@ -18,6 +18,7 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, useParams } from '@tanstack/react-router';
 import { Space } from 'antd';
+import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import {
@@ -73,7 +74,7 @@ function CredentialsList() {
         sorter: true,
         renderText: (text) => {
           if (!text) return '-';
-          return new Date(Number(text) * 1000).toISOString();
+          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
         },
       },
       {
@@ -93,7 +94,7 @@ function CredentialsList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Credential'}
+              name="Credential"
               target={record.value.id}
               api={`${API_CREDENTIALS(username)}/${record.value.id}`}
               onSuccess={refetch}
@@ -128,7 +129,7 @@ function CredentialsList() {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Credentials'} />
+      <PageHeader title="Credentials" />
       <CredentialsList />
     </>
   );

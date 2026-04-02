@@ -19,15 +19,14 @@ import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
-import { useState } from 'react';
-import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { StatusTag } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SSLS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -123,7 +122,7 @@ function RouteComponent() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'SSL'}
+              name="SSL"
               target={record.value.id}
               api={`${API_SSLS}/${record.value.id}`}
               onSuccess={refetch}
@@ -136,7 +135,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title={'SSLs'} />
+      <PageHeader title="SSLs" />
       <AntdConfigProvider>
         <ProTable
           columns={columns}

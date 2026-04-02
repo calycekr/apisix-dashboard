@@ -24,11 +24,11 @@ import { useMemo } from 'react';
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
 import { MethodTags } from '@/components/MethodTags';
-import { StatusTag } from '@/components/StatusTag';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { StatusTag } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -151,7 +151,7 @@ export const RouteList = (props: RouteListProps) => {
             <ToDetailBtn key="detail" record={record} />
             <DeleteResourceBtn
               key="delete"
-              name={'Route'}
+              name="Route"
               target={record.value.id}
               api={`${API_ROUTES}/${record.value.id}`}
               onSuccess={refetch}
@@ -187,7 +187,7 @@ export const RouteList = (props: RouteListProps) => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Routes'} />
+      <PageHeader title="Routes" />
       <RouteList
         routeKey="/routes/"
         ToDetailBtn={({ record }) => (

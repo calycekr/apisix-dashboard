@@ -14,9 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { InputWrapper } from '@/components/form/InputWrapper';
 import { useFormContext } from 'react-hook-form';
 
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { FormItemSwitch } from '@/components/form/Switch';
 import { FormItemTagsInput } from '@/components/form/TagInput';
 import { FormItemTextInput } from '@/components/form/TextInput';
