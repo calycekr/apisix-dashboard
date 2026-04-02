@@ -52,6 +52,17 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
   if (draft.script_id === '' || draft.script_id === undefined) {
     delete draft.script_id;
   }
+  // Enforce mutual exclusivity: prefer singular over plural if both exist
+  const d = draft as Record<string, unknown>;
+  if (d.uri && d.uris) {
+    delete d.uris;
+  }
+  if (d.host && d.hosts) {
+    delete d.hosts;
+  }
+  if (d.remote_addr && d.remote_addrs) {
+    delete d.remote_addrs;
+  }
 });
 
 export const produceRoute = pipeProduce(

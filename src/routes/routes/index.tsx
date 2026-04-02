@@ -128,6 +128,13 @@ export const RouteList = (props: RouteListProps) => {
         },
       },
       {
+        dataIndex: ['value', 'priority'],
+        title: 'Priority',
+        key: 'priority',
+        width: 80,
+        renderText: (text) => text ?? 0,
+      },
+      {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',

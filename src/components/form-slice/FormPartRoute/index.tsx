@@ -67,32 +67,38 @@ const FormSectionMatchRules = () => {
         control={control}
         name="uri"
         label="URI"
+        description="Single URI. Mutually exclusive with URIs."
         required
       />
       <FormItemTagsInput
         control={control}
         name="uris"
         label="URIs"
+        description="Multiple URIs. Mutually exclusive with URI."
       />
       <FormItemTextInput
         control={control}
         name="host"
         label="Host"
+        description="Single host. Mutually exclusive with Hosts."
       />
       <FormItemTagsInput
         control={control}
         name="hosts"
         label="Hosts"
+        description="Multiple hosts. Mutually exclusive with Host."
       />
       <FormItemTextInput
         control={control}
         name="remote_addr"
         label="Remote Address"
+        description="Single IP/CIDR. Mutually exclusive with Remote Addresses."
       />
       <FormItemTagsInput
         control={control}
         name="remote_addrs"
         label="Remote Addresses"
+        description="Multiple IPs/CIDRs. Mutually exclusive with Remote Address."
       />
       <FormItemVars />
       <FormItemEditor

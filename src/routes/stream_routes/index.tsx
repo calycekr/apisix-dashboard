@@ -59,6 +59,16 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
   >(() => {
     return [
       {
+        dataIndex: ['value', 'server_addr'],
+        title: 'Server Addr',
+        key: 'server_addr',
+        valueType: 'text',
+        render: (_, record) => {
+          const v = record.value as APISIXType['StreamRoute'];
+          return v.server_addr || '-';
+        },
+      },
+      {
         dataIndex: ['value', 'server_port'],
         title: 'Server Port',
         key: 'server_port',
@@ -83,9 +93,19 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         title: 'SNI',
         key: 'sni',
         valueType: 'text',
+        ellipsis: true,
         render: (_, record) => {
           const v = record.value as APISIXType['StreamRoute'];
           return v.sni || '-';
+        },
+      },
+      {
+        dataIndex: ['value', 'upstream_id'],
+        title: 'Upstream',
+        key: 'upstream_id',
+        render: (_, record) => {
+          const v = record.value as APISIXType['StreamRoute'];
+          return v.upstream_id || (v.upstream ? 'Inline' : '-');
         },
       },
       {

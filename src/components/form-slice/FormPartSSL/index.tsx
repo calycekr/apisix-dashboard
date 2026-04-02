@@ -18,7 +18,6 @@ import { Descriptions, theme,Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useFormContext, useWatch } from 'react-hook-form';
 
-import { InputWrapper } from '@/components/form/InputWrapper';
 import { FormItemNumberInput } from '@/components/form/NumberInput';
 import { FormItemSelect } from '@/components/form/Select';
 import { FormItemSwitch } from '@/components/form/Switch';
@@ -57,12 +56,12 @@ const FormSectionClient = () => {
             defaultValue={1}
             min={0}
           />
-          <InputWrapper label="Skip mTLS URI Regex">
-            <FormItemSwitch
-              control={control}
-              name="client.skip_mtls_uri_regex"
-            />
-          </InputWrapper>
+          <FormItemTagsInput
+            control={control}
+            name="client.skip_mtls_uri_regex"
+            label="Skip mTLS URI Regex"
+            placeholder="/health, /status"
+          />
         </>
       ) : (
         <Typography.Text style={{ color: token.colorTextSecondary, fontSize: 14 }}>
