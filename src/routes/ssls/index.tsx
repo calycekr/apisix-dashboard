@@ -171,7 +171,7 @@ function RouteComponent() {
           loading={isLoading}
           search={false}
           rowSelection={rowSelection}
-          options={{ density: false, fullScreen: false, reload: true, setting: true }}
+          options={{ density: true, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="SSLs"
           pagination={pagination}

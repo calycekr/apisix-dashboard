@@ -92,6 +92,7 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'methods'],
         title: 'Methods',
         key: 'methods',
+        hideInTable: true,
         render: (_, record) => <MethodTags methods={record.value.methods} />,
       },
       {
@@ -100,6 +101,7 @@ export const RouteList = (props: RouteListProps) => {
         key: 'host',
         valueType: 'text',
         ellipsis: true,
+        hideInTable: true,
         render: (_, record) => {
           const host = record.value.host;
           const hosts = record.value.hosts;
@@ -145,6 +147,7 @@ export const RouteList = (props: RouteListProps) => {
         title: 'Priority',
         key: 'priority',
         width: 80,
+        hideInTable: true,
         renderText: (text) => text ?? 0,
       },
       {
@@ -216,11 +219,12 @@ export const RouteList = (props: RouteListProps) => {
         loading={isLoading}
         search={false}
         rowSelection={rowSelection}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,

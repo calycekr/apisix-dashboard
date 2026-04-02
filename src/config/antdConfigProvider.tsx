@@ -32,7 +32,12 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
     <ConfigProvider
       virtual
       locale={enUS}
-      renderEmpty={() => <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data found" />}
+      renderEmpty={() => (
+        <Empty
+          image={Empty.PRESENTED_IMAGE_SIMPLE}
+          description="No items yet. Use the Add button above to create one."
+        />
+      )}
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {

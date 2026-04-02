@@ -17,7 +17,7 @@
 import { useNavigate, useRouterState } from '@tanstack/react-router';
 import { Layout, Menu, theme } from 'antd';
 import { useAtom } from 'jotai';
-import type { ReactNode } from 'react';
+import { type ReactNode, useEffect } from 'react';
 
 import apisixLogo from '@/assets/apisix-logo.svg';
 import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
@@ -79,6 +79,15 @@ export const Navbar = () => {
   const currentPath = routerState.location.pathname;
   const { token } = theme.useToken();
   const [collapsed, setCollapsed] = useAtom(sidebarCollapsedAtom);
+
+  // Auto-collapse on small screens
+  useEffect(() => {
+    const mq = window.matchMedia('(max-width: 992px)');
+    const handler = (e: MediaQueryListEvent) => setCollapsed(e.matches);
+    if (mq.matches) setCollapsed(true);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, [setCollapsed]);
 
   const selectedKey =
     ['/dashboard', '/topology', '/export_import', '/raw_api']
@@ -144,30 +153,23 @@ export const Navbar = () => {
         style={{ borderRight: 'none', marginTop: 8 }}
         items={[
           {
-            key: '/dashboard',
-            icon: iconMap['dashboard'],
-            label: 'Dashboard',
-            onClick: () => navigate({ to: '/dashboard' as Parameters<typeof navigate>[0]['to'] }),
+            type: 'group',
+            label: 'Overview',
+            children: [
+              {
+                key: '/dashboard',
+                icon: iconMap['dashboard'],
+                label: 'Dashboard',
+                onClick: () => navigate({ to: '/dashboard' as Parameters<typeof navigate>[0]['to'] }),
+              },
+              {
+                key: '/topology',
+                icon: <IconDeviceHub />,
+                label: 'Topology',
+                onClick: () => navigate({ to: '/topology' as Parameters<typeof navigate>[0]['to'] }),
+              },
+            ],
           },
-          {
-            key: '/topology',
-            icon: <IconDeviceHub />,
-            label: 'Topology',
-            onClick: () => navigate({ to: '/topology' as Parameters<typeof navigate>[0]['to'] }),
-          },
-          {
-            key: '/export_import',
-            icon: <IconExportNotes />,
-            label: 'Import / Export',
-            onClick: () => navigate({ to: '/export_import' as Parameters<typeof navigate>[0]['to'] }),
-          },
-          {
-            key: '/raw_api',
-            icon: <IconTerminal />,
-            label: 'Raw API',
-            onClick: () => navigate({ to: '/raw_api' as Parameters<typeof navigate>[0]['to'] }),
-          },
-          { type: 'divider' },
           {
             type: 'group',
             label: 'Traffic',
@@ -219,6 +221,24 @@ export const Navbar = () => {
                 onClick: () => navigate({ to: route.to as Parameters<typeof navigate>[0]['to'] }),
               };
             }),
+          },
+          {
+            type: 'group',
+            label: 'Tools',
+            children: [
+              {
+                key: '/export_import',
+                icon: <IconExportNotes />,
+                label: 'Import / Export',
+                onClick: () => navigate({ to: '/export_import' as Parameters<typeof navigate>[0]['to'] }),
+              },
+              {
+                key: '/raw_api',
+                icon: <IconTerminal />,
+                label: 'Raw API',
+                onClick: () => navigate({ to: '/raw_api' as Parameters<typeof navigate>[0]['to'] }),
+              },
+            ],
           },
         ]}
       />

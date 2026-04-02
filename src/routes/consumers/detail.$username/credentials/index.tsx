@@ -113,7 +113,7 @@ function CredentialsList() {
         rowKey="id"
         loading={isLoading}
         search={false}
-        options={{ density: false, fullScreen: false, reload: true, setting: true }}
+        options={{ density: true, fullScreen: false, reload: true, setting: true }}
         dateFormatter="string"
         headerTitle="Credentials"
         pagination={false}
