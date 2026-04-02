@@ -22,12 +22,13 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
-import { StatusTag } from '@/components/StatusTag';
+import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SSLS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -41,6 +42,13 @@ function RouteComponent() {
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'sni'],
         title: 'SNI',
@@ -64,7 +72,12 @@ function RouteComponent() {
         dataIndex: ['value', 'status'],
         title: 'Status',
         key: 'status',
-        render: (_, record) => <StatusTag status={record.value.status} />,
+        render: (_, record) => (
+          <StatusSwitch
+            status={record.value.status}
+            api={`${API_SSLS}/${record.value.id}`}
+          />
+        ),
       },
       {
         dataIndex: ['value', 'validity_end'],

@@ -17,11 +17,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space, Typography } from 'antd';
+import { Space } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
@@ -43,9 +44,7 @@ function ConsumersList() {
         dataIndex: ['value', 'username'],
         title: 'Username',
         key: 'username',
-        render: (_, record) => (
-          <Typography.Text strong>{record.value.username}</Typography.Text>
-        ),
+        render: (_, record) => <CopyableID id={record.value.username} />,
       },
       {
         dataIndex: ['value', 'desc'],

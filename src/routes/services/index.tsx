@@ -22,6 +22,7 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
@@ -40,6 +41,13 @@ const ServiceList = () => {
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
       {
         dataIndex: ['value', 'name'],
         title: 'Name',
