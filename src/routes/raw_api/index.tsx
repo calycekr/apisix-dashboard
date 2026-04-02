@@ -16,8 +16,20 @@
  */
 import { Editor } from '@monaco-editor/react';
 import { createFileRoute } from '@tanstack/react-router';
-import { Alert, Button, Card, Col, Input, message, Row, Select, Space, Typography } from 'antd';
-import { useCallback, useState } from 'react';
+import {
+  Alert,
+  AutoComplete,
+  Button,
+  Card,
+  Col,
+  message,
+  Row,
+  Select,
+  Space,
+  Spin,
+  Typography,
+} from 'antd';
+import { useCallback, useEffect, useState } from 'react';
 
 import PageHeader from '@/components/page/PageHeader';
 import {
@@ -71,6 +83,45 @@ const DEFAULT_BODY = `{
   "desc": ""
 }`;
 
+type ExistingResource = { id: string; name?: string };
+
+function useExistingResources(resource: string) {
+  const [items, setItems] = useState<ExistingResource[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    req
+      .get(resource, { params: { page: 1, page_size: 100 } })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data?.list;
+        if (!Array.isArray(list)) {
+          setItems([]);
+          return;
+        }
+        setItems(
+          list.map((item: { value: Record<string, unknown> }) => ({
+            id: String(item.value.id || item.value.username || ''),
+            name: String(item.value.name || item.value.desc || ''),
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setItems([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [resource]);
+
+  return { items, loading };
+}
+
 function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
   const [resource, setResource] = useState(API_ROUTES);
@@ -78,14 +129,41 @@ function RawApiPage() {
   const [resourceId, setResourceId] = useState('');
   const [body, setBody] = useState(DEFAULT_BODY);
   const [loading, setLoading] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
   const [response, setResponse] = useState<string | null>(null);
   const [responseError, setResponseError] = useState<string | null>(null);
 
+  const { items: existingResources, loading: resourcesLoading } =
+    useExistingResources(resource);
+
   const needsId = method !== 'POST';
   const needsBody = method !== 'GET' && method !== 'DELETE';
-  const endpoint = needsId && resourceId
-    ? `${resource}/${resourceId}`
-    : resource;
+  const endpoint = needsId && resourceId ? `${resource}/${resourceId}` : resource;
+
+  const handleLoadExisting = useCallback(async () => {
+    if (!resourceId) {
+      message.warning('Enter an ID to load');
+      return;
+    }
+    setLoadingExisting(true);
+    try {
+      const res = await req.get(`${resource}/${resourceId}`);
+      const value = res.data?.value;
+      if (value) {
+        const copy = { ...(value as Record<string, unknown>) };
+        delete copy.create_time;
+        delete copy.update_time;
+        setBody(JSON.stringify(copy, null, 2));
+        message.success(`Loaded ${resourceId}`);
+      } else {
+        setBody(JSON.stringify(res.data, null, 2));
+      }
+    } catch {
+      message.error(`Failed to load ${resourceId}`);
+    } finally {
+      setLoadingExisting(false);
+    }
+  }, [resource, resourceId]);
 
   const handleExecute = useCallback(async () => {
     if (needsId && !resourceId) {
@@ -123,11 +201,27 @@ function RawApiPage() {
     }
   }, [method, endpoint, body, needsId, needsBody, resourceId]);
 
+  const autocompleteOptions = existingResources.map((r) => ({
+    value: r.id,
+    label: (
+      <span>
+        <Typography.Text code style={{ fontSize: 12 }}>
+          {r.id}
+        </Typography.Text>
+        {r.name && (
+          <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+            {r.name}
+          </Typography.Text>
+        )}
+      </span>
+    ),
+  }));
+
   return (
     <>
       <PageHeader
         title="Raw API"
-        desc="Execute APISIX Admin API requests directly — like curl, but in the browser"
+        desc="Execute APISIX Admin API requests directly — select an existing resource or create new ones"
       />
 
       <Card style={{ marginBottom: 16 }}>
@@ -149,7 +243,12 @@ function RawApiPage() {
             <Col flex="200px">
               <Select
                 value={resource}
-                onChange={setResource}
+                onChange={(v) => {
+                  setResource(v);
+                  setResourceId('');
+                  setResponse(null);
+                  setResponseError(null);
+                }}
                 options={RESOURCE_OPTIONS}
                 style={{ width: '100%' }}
                 showSearch
@@ -160,13 +259,27 @@ function RawApiPage() {
               <Typography.Text type="secondary">/</Typography.Text>
             </Col>
             <Col flex="auto">
-              <Input
+              <AutoComplete
                 value={resourceId}
-                onChange={(e) => setResourceId(e.target.value)}
-                placeholder={needsId ? 'Resource ID (required)' : 'ID (auto-generated for POST)'}
+                onChange={setResourceId}
+                options={autocompleteOptions}
+                placeholder={needsId ? 'Resource ID (type or select from list)' : 'ID (auto-generated for POST)'}
                 disabled={!needsId}
-                style={{ fontFamily: 'monospace' }}
+                style={{ width: '100%', fontFamily: 'monospace' }}
+                filterOption={(input, option) =>
+                  !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())
+                }
+                notFoundContent={resourcesLoading ? <Spin size="small" /> : null}
               />
+            </Col>
+            <Col>
+              <Button
+                loading={loadingExisting}
+                disabled={!resourceId}
+                onClick={handleLoadExisting}
+              >
+                Load
+              </Button>
             </Col>
             <Col>
               <Button
@@ -188,7 +301,13 @@ function RawApiPage() {
 
       {needsBody && (
         <Card title="Request Body" style={{ marginBottom: 16 }}>
-          <div style={{ border: '1px solid var(--ant-color-border)', borderRadius: 6, overflow: 'hidden' }}>
+          <div
+            style={{
+              border: '1px solid var(--ant-color-border)',
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}
+          >
             <Editor
               height="300px"
               language="json"
@@ -221,7 +340,13 @@ function RawApiPage() {
 
       {response && (
         <Card title="Response">
-          <div style={{ border: '1px solid var(--ant-color-border)', borderRadius: 6, overflow: 'hidden' }}>
+          <div
+            style={{
+              border: '1px solid var(--ant-color-border)',
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}
+          >
             <Editor
               height="400px"
               language="json"
