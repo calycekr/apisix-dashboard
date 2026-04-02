@@ -130,7 +130,7 @@ export const FormItemEditor = <T extends FieldValues>(
       error={fieldState.error?.message}
       required={required}
     >
-      <div id={id ?? '#editor-wrapper'}>
+      <div id={id ?? '#editor-wrapper'} style={{ height: 200 }}>
         <input name={restField.name} type="hidden" />
         {(isLoading || internalLoading) && (
           <div

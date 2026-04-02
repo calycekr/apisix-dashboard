@@ -52,7 +52,7 @@ const FormPartBasicWithPriority = () => {
 const FormSectionMatchRules = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend="Match Rules">
+    <FormSection legend="Match Rules" collapsible defaultOpen={true}>
       <FormItemTagsInput
         control={control}
         name="methods"
@@ -111,7 +111,7 @@ const FormSectionMatchRules = () => {
 export const FormSectionUpstream = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend="Upstream">
+    <FormSection legend="Upstream" collapsible defaultOpen={false}>
       <FormSection legend="Upstream ID">
         <FormItemTextInput control={control} name="upstream_id" />
       </FormSection>
@@ -126,7 +126,7 @@ export const FormSectionUpstream = () => {
 export const FormSectionPlugins = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend="Plugins">
+    <FormSection legend="Plugins" collapsible defaultOpen={false}>
       <FormItemTextInput
         control={control}
         name="plugin_config_id"
@@ -141,7 +141,7 @@ export const FormSectionPlugins = () => {
 export const FormSectionScript = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend="Script">
+    <FormSection legend="Script" collapsible defaultOpen={false}>
       <FormItemTextInput
         control={control}
         name="script_id"
@@ -165,6 +165,8 @@ export const FormSectionService = () => {
     <FormSection
       legend="Service"
       disabled={readOnlyFields.includes('service_id')}
+      collapsible
+      defaultOpen={true}
     >
       <FormItemTextInput
         control={control}

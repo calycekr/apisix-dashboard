@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Card, theme } from 'antd';
+import { Button, Card, theme } from 'antd';
 import { clsx } from 'clsx';
 import {
   createContext,
@@ -22,7 +22,10 @@ import {
   type ReactNode,
   useContext,
   useMemo,
+  useState,
 } from 'react';
+import IconExpandLess from '~icons/material-symbols/expand-less';
+import IconExpandMore from '~icons/material-symbols/expand-more';
 
 import { useShallowEffect } from '@/utils/hooks';
 
@@ -47,6 +50,8 @@ export type FormSectionProps = PropsWithChildren & {
   extra?: ReactNode;
   disabled?: boolean;
   className?: string;
+  collapsible?: boolean;
+  defaultOpen?: boolean;
 };
 
 const LegendGroup = ({
@@ -68,7 +73,7 @@ const LegendGroup = ({
 };
 
 export const FormSection = (props: FormSectionProps) => {
-  const { className, legend, extra, children, disabled, ...restProps } = props;
+  const { className, legend, extra, children, disabled, collapsible, defaultOpen, ...restProps } = props;
   const parentDepth = useContext(SectionDepthCtx);
   const { refreshTOC } = useContext(FormTOCCtx);
   const depth = useMemo(() => parentDepth + 1, [parentDepth]);
@@ -80,6 +85,7 @@ export const FormSection = (props: FormSectionProps) => {
     }),
     [legend, depth]
   );
+  const [open, setOpen] = useState(defaultOpen ?? true);
 
   // refresh TOC when children changes
   useShallowEffect(refreshTOC, [children]);
@@ -90,14 +96,26 @@ export const FormSection = (props: FormSectionProps) => {
         <Card
           size="small"
           title={<LegendGroup legend={legend} extra={extra} />}
+          extra={
+            collapsible ? (
+              <Button
+                type="text"
+                size="small"
+                icon={open ? <IconExpandLess /> : <IconExpandMore />}
+                onClick={() => setOpen(!open)}
+              />
+            ) : undefined
+          }
           className={clsx(tocSelector, classes.root, className)}
           style={{ marginBottom: 16 }}
           {...dataAttrs}
           {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
         >
-          <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-            {children}
-          </fieldset>
+          {open && (
+            <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+              {children}
+            </fieldset>
+          )}
         </Card>
       </SectionDepthProvider>
     );

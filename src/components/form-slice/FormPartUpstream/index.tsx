@@ -166,7 +166,7 @@ export const FormSectionTimeout = () => {
   const { control } = useFormContext<FormPartUpstreamType>();
   const np = useNamePrefix();
   return (
-    <FormSection legend="Timeout">
+    <FormSection legend="Timeout" collapsible defaultOpen={false}>
       <FormItemNumberInput
         control={control}
         name={np('timeout.connect')}
@@ -220,14 +220,14 @@ export const FormPartUpstream = () => {
   return (
     <>
       <FormPartBasic />
-      <FormSection legend="Find Upstream From">
+      <FormSection legend="Find Upstream From" collapsible defaultOpen={true}>
         <FormSection legend="Nodes">
           <FormItemNodes name={np('nodes')} required />
         </FormSection>
         <Divider style={{ margin: '8px 0' }}>OR</Divider>
         <FormSectionDiscovery />
       </FormSection>
-      <FormSection legend="Connection Configuration">
+      <FormSection legend="Connection Configuration" collapsible defaultOpen={false}>
         <FormItemScheme />
         <FormSectionLoadbalancing />
         <FormSectionPassHost />

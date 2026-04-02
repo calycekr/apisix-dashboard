@@ -276,6 +276,8 @@ export const FormSectionChecks = () => {
     <FormSection
       legend="Health Checks"
       extra={<FormItemChecksEnabled />}
+      collapsible
+      defaultOpen={false}
     >
       <FormSectionChecksCore />
     </FormSection>
