@@ -103,6 +103,7 @@ const RouteDetailForm = (props: Props) => {
         onSubmit={(d) => putRoute.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={routeData?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartRoute />

@@ -96,6 +96,7 @@ const SecretDetailForm = (props: Props) => {
         onSubmit={(d) => putSecret.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={secretData?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartSecret readOnlyManager />

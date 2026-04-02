@@ -104,6 +104,7 @@ const UpstreamDetailForm = (
           onSubmit={(d) => { putUpstream.mutateAsync(pipeProduce()(d)); }}
           submitLabel="Save"
           disabled={readOnly}
+          rawData={upstreamData}
         >
           <FormSectionGeneral readOnly />
           <FormPartUpstream />

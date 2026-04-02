@@ -94,6 +94,7 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
           submitLabel="Save"
           disabled={readOnly}
+          rawData={sslData}
         >
           <FormSectionGeneral readOnly />
           <FormPartSSL />

@@ -89,6 +89,7 @@ const ConsumerDetailForm = (props: Props) => {
         onSubmit={(d) => { putConsumer.mutateAsync(pipeProduce()(d)); }}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={consumerData?.value}
       >
         <FormSectionGeneral showID={false} readOnly />
         <FormPartConsumer />

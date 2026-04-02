@@ -88,6 +88,7 @@ const PluginConfigDetailForm = (props: Props) => {
         onSubmit={(d) => putPluginConfig.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={data?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig />

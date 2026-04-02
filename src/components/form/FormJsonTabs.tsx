@@ -71,6 +71,8 @@ type FormJsonTabsProps = {
   onSubmit: (data: any) => unknown;
   submitLabel?: string;
   disabled?: boolean;
+  /** Raw API response data — shown as read-only "Raw" tab so users can see actual APISIX state */
+  rawData?: unknown;
 };
 
 const monacoOptions: import('@monaco-editor/react').EditorProps['options'] = {
@@ -84,7 +86,7 @@ const monacoOptions: import('@monaco-editor/react').EditorProps['options'] = {
 };
 
 export const FormJsonTabs = (props: FormJsonTabsProps) => {
-  const { children, form, onSubmit, submitLabel = 'Submit', disabled = false } = props;
+  const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData } = props;
   const { mode } = useThemeMode();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('form');
@@ -271,6 +273,38 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       ),
     },
   ];
+
+  if (rawData !== undefined) {
+    tabItems.push({
+      key: 'raw',
+      label: 'Raw (API)',
+      children: (
+        <div>
+          <Alert
+            type="info"
+            showIcon
+            message="This is the actual JSON stored in APISIX — unmodified by the dashboard form."
+            style={{ marginBottom: 12 }}
+          />
+          <div
+            style={{
+              border: '1px solid var(--ant-color-border)',
+              borderRadius: 6,
+              overflow: 'hidden',
+            }}
+          >
+            <Editor
+              height="500px"
+              language="json"
+              theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
+              value={JSON.stringify(rawData, null, 2)}
+              options={{ ...monacoOptions, readOnly: true }}
+            />
+          </div>
+        </div>
+      ),
+    });
+  }
 
   return (
     <Tabs

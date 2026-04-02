@@ -95,6 +95,7 @@ const ServiceDetailForm = (props: Props) => {
         onSubmit={(d) => putService.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={serviceData?.value}
       >
         <FormSectionGeneral />
         <FormPartService />

@@ -91,6 +91,7 @@ const StreamRouteDetailForm = (props: Props) => {
         onSubmit={(d) => putStreamRoute.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={streamRouteData?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartStreamRoute />

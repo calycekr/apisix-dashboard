@@ -83,6 +83,7 @@ const GlobalRuleDetailForm = (props: Props) => {
         onSubmit={(d) => putGlobalRule.mutateAsync(pipeProduce()(d))}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={detailReq.data?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartGlobalRules />

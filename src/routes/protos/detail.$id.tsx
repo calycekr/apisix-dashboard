@@ -90,6 +90,7 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
         onSubmit={(d) => putProto.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={protoData?.value}
       >
         <FormSectionGeneral readOnly />
         <FormPartProto allowUpload={!readOnly} />
