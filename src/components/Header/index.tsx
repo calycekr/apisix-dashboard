@@ -14,15 +14,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useRouterState } from '@tanstack/react-router';
 import { Breadcrumb, Button, Layout, theme } from 'antd';
 import type { FC } from 'react';
-import { useRouterState } from '@tanstack/react-router';
 
 import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
 import { useThemeMode } from '@/stores/global';
-import IconLightMode from '~icons/material-symbols/light-mode';
 import IconDarkMode from '~icons/material-symbols/dark-mode';
+import IconLightMode from '~icons/material-symbols/light-mode';
 
 import { SettingModalBtn } from './SettingModalBtn';
 

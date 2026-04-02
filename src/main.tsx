@@ -16,9 +16,9 @@
  */
 import './styles/global.css';
 
-import { App } from 'antd';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { RouterProvider } from '@tanstack/react-router';
+import { App } from 'antd';
 import { StrictMode, useEffect } from 'react';
 import ReactDOM from 'react-dom/client';
 
@@ -26,6 +26,7 @@ import { AntdConfigProvider } from './config/antdConfigProvider';
 import { queryClient, router } from './config/global';
 import { setupNotification } from './utils/notification';
 
+// eslint-disable-next-line react-refresh/only-export-components
 const NotificationBridge = () => {
   const { message } = App.useApp();
   useEffect(() => {

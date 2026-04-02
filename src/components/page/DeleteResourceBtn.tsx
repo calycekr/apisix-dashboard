@@ -60,7 +60,7 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
               {target}
             </Typography.Text>
           )}
-          {'?'}
+          ?
         </Typography.Text>
       ),
       okText: 'Delete',

@@ -14,7 +14,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useListState, useMap } from '@/utils/hooks';
 import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
 import { useDeepCompareEffect } from 'react-use';
 
@@ -24,6 +23,7 @@ import {
 } from '@/apis/plugins';
 import type { PluginConfig } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
 import { SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
+import { useListState, useMap } from '@/utils/hooks';
 
 export type PluginInfo = PluginConfig & { schema: object };
 

@@ -32,7 +32,7 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
     try {
       const parsed = JSON.parse(draft.vars);
       if (Array.isArray(parsed)) {
-        draft.vars = parsed;
+        (draft as Record<string, unknown>).vars = parsed;
       } else {
         delete draft.vars;
       }

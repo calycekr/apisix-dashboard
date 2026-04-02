@@ -31,6 +31,7 @@ import { API_SERVICES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { renderPluginCount } from '@/utils/columns';
 
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams } = useServiceList();
@@ -63,10 +64,7 @@ const ServiceList = () => {
         dataIndex: ['value', 'plugins'],
         title: 'Plugins',
         key: 'plugins',
-        render: (_, record) => {
-          const count = Object.keys(record.value.plugins || {}).length;
-          return `${count} plugin${count !== 1 ? 's' : ''}`;
-        },
+        render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -93,7 +91,7 @@ const ServiceList = () => {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Service'}
+              name="Service"
               target={record.value.id}
               api={`${API_SERVICES}/${record.value.id}`}
               onSuccess={refetch}
@@ -129,7 +127,7 @@ const ServiceList = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Services'} />
+      <PageHeader title="Services" />
       <ServiceList />
     </>
   );

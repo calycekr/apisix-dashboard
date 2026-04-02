@@ -21,6 +21,7 @@ import {
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
+
 import type { APISIXType } from '@/types/schema/apisix';
 
 import { FormError } from './FormError';
@@ -37,6 +38,7 @@ export type FormItemLabels<T extends FieldValues> = UseControllerProps<T> &
 export const FormItemLabels = <T extends FieldValues>(
   props: FormItemLabels<T>
 ) => {
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { controllerProps, restProps: { onChange: propsOnChange, label: _label, description: _description, ...restProps } } = genControllerProps(props);
   const {
     field: { value, onChange: fOnChange, name: fName, onBlur: fOnBlur, ...restField },

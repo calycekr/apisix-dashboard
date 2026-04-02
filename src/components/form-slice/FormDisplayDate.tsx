@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography, theme } from 'antd';
+import { theme,Typography } from 'antd';
 import dayjs from 'dayjs';
 
 import { InputWrapper } from '@/components/form/InputWrapper';

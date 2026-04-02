@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import { createFileRoute, useRouter } from '@tanstack/react-router';
 import { nanoid } from 'nanoid';
@@ -30,6 +29,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
 const SecretAddForm = () => {

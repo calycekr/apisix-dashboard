@@ -22,11 +22,12 @@ import {
   Select,
   Space,
   Switch,
+  theme,
   Tooltip,
   Typography,
-  theme,
 } from 'antd';
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
+
 import IconAdd from '~icons/material-symbols/add';
 import IconDelete from '~icons/material-symbols/delete-forever-outline';
 import IconInfo from '~icons/material-symbols/info-outline';
@@ -122,7 +123,10 @@ const ArrayOfObjectsField = ({
   required,
 }: FieldRendererProps) => {
   const { token } = theme.useToken();
-  const items = Array.isArray(value) ? (value as Record<string, unknown>[]) : [];
+  const items = useMemo(
+    () => Array.isArray(value) ? (value as Record<string, unknown>[]) : [],
+    [value]
+  );
 
   const handleAdd = useCallback(() => {
     onChange([...items, {}]);
@@ -212,8 +216,8 @@ const OneOfField = ({
     let best = 0;
     let bestScore = -1;
     variants.forEach((v, i) => {
-      const props = v.properties ? Object.keys(v.properties) : [];
-      const score = props.filter((k) => k in (currentVal as object)).length;
+      const keys = v.properties ? Object.keys(v.properties) : [];
+      const score = keys.filter((k) => k in (currentVal as object)).length;
       if (score > bestScore) {
         bestScore = score;
         best = i;

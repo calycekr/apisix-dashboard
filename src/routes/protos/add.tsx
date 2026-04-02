@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { showNotification } from '@/utils/notification';
 import { useMutation } from '@tanstack/react-query';
 import {
   createFileRoute,
@@ -30,6 +29,7 @@ import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
 import { APISIXProtos } from '@/types/schema/apisix/protos';
+import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
 const defaultValues: APISIXType['ProtoPost'] = {

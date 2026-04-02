@@ -28,7 +28,7 @@ function StreamRouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/stream_routes/' });
   return (
     <>
-      <PageHeader title={'Stream Routes'} />
+      <PageHeader title="Stream Routes" />
       <StreamRouteList
         routeKey="/services/detail/$id/stream_routes/"
         ToDetailBtn={({ record }) => (

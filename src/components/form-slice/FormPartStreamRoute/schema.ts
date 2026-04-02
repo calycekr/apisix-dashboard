@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import type { TypeOf } from 'zod';
+import { type TypeOf, z } from 'zod';
 
 import { APISIXCommon } from '@/types/schema/apisix/common';
 import { APISIXStreamRoutes } from '@/types/schema/apisix/stream_routes';
@@ -22,6 +22,8 @@ import { APISIXStreamRoutes } from '@/types/schema/apisix/stream_routes';
 export const StreamRoutePostSchema = APISIXStreamRoutes.StreamRoute.omit({
   create_time: true,
   update_time: true,
-}).merge(APISIXCommon.Basic);
+}).merge(APISIXCommon.Basic).extend({
+  id: z.string().optional(),
+});
 
 export type StreamRoutePostType = TypeOf<typeof StreamRoutePostSchema>;

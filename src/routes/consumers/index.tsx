@@ -83,7 +83,7 @@ function ConsumersList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Consumer'}
+              name="Consumer"
               target={record.value.username}
               api={`${API_CONSUMERS}/${record.value.username}`}
               onSuccess={refetch}
@@ -119,7 +119,7 @@ function ConsumersList() {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={'Consumers'} />
+      <PageHeader title="Consumers" />
       <ConsumersList />
     </>
   );

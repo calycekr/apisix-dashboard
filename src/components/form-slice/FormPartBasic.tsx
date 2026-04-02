@@ -72,7 +72,7 @@ export const FormPartBasic = (props: FormPartBasicProps) => {
     showLabels = true,
     ...restProps
   } = props;
-  const { control } = useFormContext<APISIXType['Basic']>();
+  const { control } = useFormContext<APISIXType['Basic'] & { id?: string }>();
   const np = useNamePrefix();
 
   return (

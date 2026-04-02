@@ -14,24 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useRouter } from '@tanstack/react-router';
-import { Button, type ButtonProps,Space } from 'antd';
-import { useFormContext, useFormState } from 'react-hook-form';
 
-export const FormSubmitBtn = (props: ButtonProps) => {
-  const form = useFormContext();
-  const { isSubmitting } = useFormState(form);
-  return <Button type="primary" size="middle" htmlType="submit" loading={isSubmitting} {...props} />;
-};
-
-export const FormSubmitBtnWithCancel = (props: ButtonProps) => {
-  const router = useRouter();
-  return (
-    <Space>
-      <FormSubmitBtn {...props} />
-      <Button size="middle" onClick={() => router.history.back()}>
-        Cancel
-      </Button>
-    </Space>
-  );
+export const renderPluginCount = (
+  plugins: Record<string, unknown> | undefined
+) => {
+  if (!plugins) return '-';
+  const count = Object.keys(plugins).length;
+  return `${count} plugin${count !== 1 ? 's' : ''}`;
 };

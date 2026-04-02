@@ -16,10 +16,6 @@
  */
 import { EditableProTable, type ProColumns } from '@ant-design/pro-components';
 import { Button } from 'antd';
-
-import { InputWrapper } from '@/components/form/InputWrapper';
-import type { InputWrapperProps } from '@/types/input-wrapper';
-import { useClickOutside } from '@/utils/hooks';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { nanoid } from 'nanoid';
@@ -32,8 +28,11 @@ import {
 } from 'react-hook-form';
 import type { ZodObject, ZodRawShape } from 'zod';
 
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
+import type { InputWrapperProps } from '@/types/input-wrapper';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
+import { useClickOutside } from '@/utils/hooks';
 import { zGetDefault } from '@/utils/zod';
 
 import { genControllerProps } from '../../form/util';

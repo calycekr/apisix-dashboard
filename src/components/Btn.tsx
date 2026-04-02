@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, type ButtonProps } from 'antd';
 import { createLink } from '@tanstack/react-router';
+import { Button, type ButtonProps } from 'antd';
 import { forwardRef } from 'react';
 
 const AntdBtnLinkComponent = forwardRef<HTMLButtonElement, ButtonProps>(

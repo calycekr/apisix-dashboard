@@ -79,7 +79,7 @@ function SecretList() {
             />
             <DeleteResourceBtn
               key="delete"
-              name={'Secret'}
+              name="Secret"
               target={record.value.id}
               api={`${API_SECRETS}/${record.value.manager}/${record.value.id}`}
               onSuccess={refetch}
@@ -116,7 +116,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader title={'Secrets'} />
+      <PageHeader title="Secrets" />
       <SecretList />
     </>
   );

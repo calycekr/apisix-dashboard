@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 
-import { showNotification } from '@/utils/notification';
 import axios, { AxiosError, type AxiosResponse, HttpStatusCode } from 'axios';
 import { getDefaultStore } from 'jotai';
 import { stringify } from 'qs';
@@ -26,6 +25,7 @@ import {
   SKIP_INTERCEPTOR_HEADER,
 } from '@/config/constant';
 import { adminKeyAtom, isSettingsOpenAtom } from '@/stores/global';
+import { showNotification } from '@/utils/notification';
 
 export const req = axios.create();
 

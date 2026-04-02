@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Skeleton } from 'antd';
 import { Editor } from '@monaco-editor/react';
+import { Skeleton } from 'antd';
 import { clsx } from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import {
@@ -24,8 +24,9 @@ import {
   type UseControllerProps,
   useFormContext,
 } from 'react-hook-form';
-import { monaco, setupMonacoEditor } from '@/utils/monaco';
+
 import { useThemeMode } from '@/stores/global';
+import { monaco, setupMonacoEditor } from '@/utils/monaco';
 
 import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';

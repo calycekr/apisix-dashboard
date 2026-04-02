@@ -16,8 +16,6 @@
  */
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { toJS } from 'mobx';
-import type { InputWrapperProps } from '@/types/input-wrapper';
-import { InputWrapper } from '@/components/form/InputWrapper';
 import { useLocalObservable } from 'mobx-react-lite';
 import { difference } from 'rambdax';
 import { useEffect, useMemo } from 'react';
@@ -32,7 +30,9 @@ import {
   getPluginsListWithSchemaQueryOptions,
   type NeedPluginSchema,
 } from '@/apis/plugins';
+import { InputWrapper } from '@/components/form/InputWrapper';
 import { genControllerProps } from '@/components/form/util';
+import type { InputWrapperProps } from '@/types/input-wrapper';
 import type { APISIXType } from '@/types/schema/apisix';
 
 import type { PluginCardProps } from './PluginCard';

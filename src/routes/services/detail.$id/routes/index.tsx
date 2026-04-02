@@ -27,7 +27,7 @@ function RouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/routes/' });
   return (
     <>
-      <PageHeader title={'Routes'} />
+      <PageHeader title="Routes" />
       <RouteList
         routeKey="/services/detail/$id/routes/"
         defaultParams={{

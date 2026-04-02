@@ -15,9 +15,10 @@
  * limitations under the License.
  */
 import { Empty, Input, theme } from 'antd';
-import IconClose from '~icons/material-symbols/cancel';
 import { useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
+
+import IconClose from '~icons/material-symbols/cancel';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
 
