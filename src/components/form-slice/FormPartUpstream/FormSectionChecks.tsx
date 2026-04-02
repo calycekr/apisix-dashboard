@@ -74,6 +74,13 @@ const FormSectionChecksActive = () => {
         name={np('checks.active.http_path')}
         label="HTTP Path"
       />
+      <FormItemSelect
+        control={control}
+        name={np('checks.active.method')}
+        label="HTTP Method"
+        defaultValue="GET"
+        data={APISIX.UpstreamHealthCheckActiveMethod.options.map((v) => v.value)}
+      />
       <FormItemLabels
         control={control}
         name={np('checks.active.http_request_headers')}
