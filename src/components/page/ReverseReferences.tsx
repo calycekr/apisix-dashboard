@@ -77,7 +77,7 @@ export const ReverseReferences = ({ resourceType, resourceId }: ReverseReference
 
       return refs;
     },
-    staleTime: 30_000,
+    staleTime: 120_000,
   });
 
   return (

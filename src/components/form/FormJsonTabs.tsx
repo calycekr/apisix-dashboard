@@ -421,7 +421,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         open={diffModalOpen}
         title="Review Changes Before Saving"
         width={900}
-        onCancel={() => setDiffModalOpen(false)}
+        onCancel={() => { setDiffModalOpen(false); pendingSubmitRef.current = null; }}
         onOk={confirmDiffAndSave}
         okText="Confirm & Save"
         cancelText="Cancel"

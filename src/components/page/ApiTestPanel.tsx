@@ -34,7 +34,6 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
   const [method, setMethod] = useState(defaultMethod);
   const [uri, setUri] = useState(defaultUri);
   const [host, setHost] = useState(defaultHost || window.location.hostname);
-  const [port, setPort] = useState('9080');
   const [headers, setHeaders] = useState('');
   const [body, setBody] = useState('');
   const [loading, setLoading] = useState(false);
@@ -72,7 +71,8 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
       }
     }
 
-    const url = `http://${window.location.hostname}:${port}${uri}`;
+    // Route through Vite proxy to avoid CORS issues
+    const url = `/__gateway_proxy${uri}`;
     const start = performance.now();
 
     try {
@@ -97,7 +97,7 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
     } finally {
       setLoading(false);
     }
-  }, [method, uri, host, port, headers, body]);
+  }, [method, uri, host, headers, body]);
 
   const statusColor = response
     ? response.status < 300 ? 'success' : response.status < 400 ? 'warning' : 'error'
@@ -112,14 +112,11 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
           </Col>
           <Col flex="auto">
             <Input
-              addonBefore={`http://${window.location.hostname}:${port}`}
+              addonBefore="Gateway"
               value={uri}
               onChange={(e) => setUri(e.target.value)}
               placeholder="/api/endpoint"
             />
-          </Col>
-          <Col>
-            <Input value={port} onChange={(e) => setPort(e.target.value)} style={{ width: 70 }} placeholder="Port" />
           </Col>
           <Col>
             <Button type="primary" loading={loading} onClick={handleSend}>

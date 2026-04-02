@@ -41,6 +41,11 @@ export default defineConfig({
         target: 'http://localhost:9180',
         changeOrigin: true,
       },
+      '/__gateway_proxy': {
+        target: 'http://localhost:9080',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/__gateway_proxy/, ''),
+      },
     },
     ...(inDevContainer && {
       host: '0.0.0.0',

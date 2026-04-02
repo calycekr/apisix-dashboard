@@ -86,10 +86,10 @@ export const ResourceSelect = <T extends FieldValues>(
       error={fieldState.error?.message}
     >
       <Select
-        {...restProps}
         {...restField}
+        {...restProps}
         value={value || undefined}
-        onChange={(v) => fOnChange(v ?? '')}
+        onChange={(v) => fOnChange(v || undefined)}
         options={selectOptions}
         showSearch
         allowClear
