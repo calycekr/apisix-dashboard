@@ -22,6 +22,7 @@ import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
@@ -36,6 +37,7 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 function RouteComponent() {
   const { data, isLoading, refetch, pagination } = useSSLList();
   const [sniFilter, setSniFilter] = useState('');
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -138,6 +140,14 @@ function RouteComponent() {
     <>
       <PageHeader title="SSLs" />
       <AntdConfigProvider>
+        <BulkDeleteBar
+          selectedCount={selectedRowKeys.length}
+          resourceName="SSL"
+          apiBase={API_SSLS}
+          selectedIds={selectedRowKeys.map(String)}
+          onComplete={() => { setSelectedRowKeys([]); refetch(); }}
+          onClear={() => setSelectedRowKeys([])}
+        />
         <ProTable
           columns={columns}
           dataSource={
@@ -150,9 +160,13 @@ function RouteComponent() {
                 })
               : data?.list
           }
-          rowKey="id"
+          rowKey={(record) => record.value.id}
           loading={isLoading}
           search={false}
+          rowSelection={{
+            selectedRowKeys,
+            onChange: setSelectedRowKeys,
+          }}
           options={{ density: false, fullScreen: false, reload: true, setting: true }}
           dateFormatter="string"
           headerTitle="SSLs"
