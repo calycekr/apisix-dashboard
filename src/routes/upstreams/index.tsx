@@ -23,6 +23,7 @@ import { useMemo, useState } from 'react';
 
 import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
@@ -100,6 +101,12 @@ function RouteComponent() {
           ) : (
             <Tag>None</Tag>
           ),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
         dataIndex: ['value', 'update_time'],

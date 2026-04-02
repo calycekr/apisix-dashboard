@@ -24,6 +24,7 @@ import { useMemo, useState } from 'react';
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
 import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { MethodTags } from '@/components/MethodTags';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
@@ -159,6 +160,12 @@ export const RouteList = (props: RouteListProps) => {
             api={`${API_ROUTES}/${record.value.id}`}
           />
         ),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
         dataIndex: ['value', 'update_time'],
