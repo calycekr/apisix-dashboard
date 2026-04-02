@@ -25,6 +25,7 @@ import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { SSLExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -176,6 +177,10 @@ function RouteComponent() {
           headerTitle="SSLs"
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
+          expandable={{
+            expandedRowRender: (record) => <SSLExpandedRow ssl={record.value as Record<string, unknown>} />,
+            rowExpandable: () => true,
+          }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,

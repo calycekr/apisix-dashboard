@@ -26,6 +26,7 @@ import type { WithServiceIdFilter } from '@/apis/routes';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
+import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
@@ -186,6 +187,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         headerTitle="Stream Routes"
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        expandable={{
+          expandedRowRender: (record) => <StreamRouteExpandedRow route={record.value as APISIXType['StreamRoute']} />,
+          rowExpandable: () => true,
+        }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Stream Route" to={`${routeKey}add`} />,

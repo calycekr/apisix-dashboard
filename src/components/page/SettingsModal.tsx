@@ -14,31 +14,89 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider, Input, Modal, Typography } from 'antd';
-import { useAtom } from 'jotai';
+import { Alert, Button, Divider, Input, Modal, Space, Typography } from 'antd';
+import { useAtom, useAtomValue } from 'jotai';
+import { useCallback, useState } from 'react';
 
 import { queryClient } from '@/config/global';
+import { req } from '@/config/req';
 import { adminKeyAtom, isSettingsOpenAtom } from '@/stores/global';
 import { sha } from '~build/git';
 
+type ConnectionStatus = 'idle' | 'testing' | 'success' | 'error';
+
 const AdminKey = () => {
   const [adminKey, setAdminKey] = useAtom(adminKeyAtom);
+  const [status, setStatus] = useState<ConnectionStatus>('idle');
+  const [errorMsg, setErrorMsg] = useState('');
+
+  const testConnection = useCallback(async () => {
+    if (!adminKey) {
+      setStatus('error');
+      setErrorMsg('Please enter an Admin Key first');
+      return;
+    }
+    setStatus('testing');
+    setErrorMsg('');
+    try {
+      await req.get('/routes', { params: { page: 1, page_size: 1 } });
+      setStatus('success');
+      // Refresh all data with the new key
+      queryClient.invalidateQueries();
+      queryClient.refetchQueries();
+    } catch {
+      setStatus('error');
+      setErrorMsg('Connection failed — the Admin Key may be incorrect, or APISIX is unreachable');
+    }
+  }, [adminKey]);
+
+  const handleKeyChange = (value: string) => {
+    setAdminKey(value);
+    setStatus('idle');
+    setErrorMsg('');
+  };
 
   return (
     <div>
-      <Typography.Text style={{ display: 'block', marginBottom: 4 }}>
+      <Typography.Text strong style={{ display: 'block', marginBottom: 8 }}>
         Admin Key <Typography.Text type="danger">*</Typography.Text>
       </Typography.Text>
-      <Input.Password
-        value={adminKey}
-        onChange={(e) => {
-          setAdminKey(e.currentTarget.value);
-          setTimeout(() => {
-            queryClient.invalidateQueries();
-            queryClient.refetchQueries();
-          });
-        }}
-      />
+      <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 8, fontSize: 13 }}>
+        The X-API-KEY used to authenticate with the APISIX Admin API.
+        You can find this in your APISIX configuration file (config.yaml).
+      </Typography.Text>
+      <Space.Compact style={{ width: '100%' }}>
+        <Input.Password
+          value={adminKey}
+          onChange={(e) => handleKeyChange(e.currentTarget.value)}
+          placeholder="Enter your APISIX Admin Key"
+          onPressEnter={testConnection}
+          status={status === 'error' ? 'error' : undefined}
+        />
+        <Button
+          type="primary"
+          loading={status === 'testing'}
+          onClick={testConnection}
+        >
+          Test
+        </Button>
+      </Space.Compact>
+      {status === 'success' && (
+        <Alert
+          type="success"
+          showIcon
+          message="Connected successfully"
+          style={{ marginTop: 8 }}
+        />
+      )}
+      {status === 'error' && errorMsg && (
+        <Alert
+          type="error"
+          showIcon
+          message={errorMsg}
+          style={{ marginTop: 8 }}
+        />
+      )}
     </div>
   );
 };
@@ -56,15 +114,28 @@ const UICommitSha = () => {
 
 export const SettingsModal = () => {
   const [isSettingsOpen, setIsSettingsOpen] = useAtom(isSettingsOpenAtom);
+  const adminKey = useAtomValue(adminKeyAtom);
+  const isFirstSetup = !adminKey;
 
   return (
     <Modal
       open={isSettingsOpen}
-      onCancel={() => setIsSettingsOpen(false)}
+      onCancel={isFirstSetup ? undefined : () => setIsSettingsOpen(false)}
+      closable={!isFirstSetup}
+      maskClosable={!isFirstSetup}
+      keyboard={!isFirstSetup}
       centered
-      title="Settings"
+      title={isFirstSetup ? 'Welcome to APISIX Dashboard' : 'Settings'}
       footer={null}
     >
+      {isFirstSetup && (
+        <Alert
+          type="info"
+          showIcon
+          message="To get started, enter your APISIX Admin API key below and click Test to verify the connection."
+          style={{ marginBottom: 16 }}
+        />
+      )}
       <AdminKey />
       <Divider style={{ marginBlock: 16 }} />
       <UICommitSha />

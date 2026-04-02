@@ -19,10 +19,13 @@ import { getSSLListReq } from '@/apis/ssls';
 import { getUpstreamListReq } from '@/apis/upstreams';
 import { req } from '@/config/req';
 
+export type PluginUsage = { name: string; count: number };
+
 export type OperationalAlerts = {
   expiringSSLs: Array<{ id: string; sni: string; daysLeft: number; expiryDate: string }>;
   disabledRoutes: Array<{ id: string; name?: string; uri?: string }>;
   upstreamsWithHealthCheck: Array<{ id: string; name?: string; hasChecks: boolean }>;
+  pluginUsage: PluginUsage[];
 };
 
 export async function getOperationalAlerts(): Promise<OperationalAlerts> {
@@ -36,6 +39,7 @@ export async function getOperationalAlerts(): Promise<OperationalAlerts> {
     expiringSSLs: [],
     disabledRoutes: [],
     upstreamsWithHealthCheck: [],
+    pluginUsage: [],
   };
 
   // Check SSLs expiring within 30 days
@@ -59,8 +63,9 @@ export async function getOperationalAlerts(): Promise<OperationalAlerts> {
     alerts.expiringSSLs.sort((a, b) => a.daysLeft - b.daysLeft);
   }
 
-  // Check disabled routes
+  // Check disabled routes + count plugin usage
   if (routeRes.status === 'fulfilled') {
+    const pluginCounts = new Map<string, number>();
     for (const item of routeRes.value.list) {
       if (item.value.status === 0) {
         alerts.disabledRoutes.push({
@@ -69,7 +74,16 @@ export async function getOperationalAlerts(): Promise<OperationalAlerts> {
           uri: item.value.uri || item.value.uris?.join(', '),
         });
       }
+      if (item.value.plugins) {
+        for (const name of Object.keys(item.value.plugins)) {
+          pluginCounts.set(name, (pluginCounts.get(name) ?? 0) + 1);
+        }
+      }
     }
+    alerts.pluginUsage = Array.from(pluginCounts.entries())
+      .map(([name, count]) => ({ name, count }))
+      .sort((a, b) => b.count - a.count)
+      .slice(0, 10);
   }
 
   // Check upstreams with health checks configured

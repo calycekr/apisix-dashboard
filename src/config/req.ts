@@ -31,8 +31,6 @@ export const req = axios.create();
 
 req.interceptors.request.use((conf) => {
   conf.paramsSerializer = (p) => {
-    // from { filter: { service_id: 1 } }
-    // to `filter=service_id%3D1`
     if (p.filter) {
       p.filter = stringify(p.filter);
     }
@@ -42,6 +40,11 @@ req.interceptors.request.use((conf) => {
   };
   conf.baseURL = API_PREFIX;
   const adminKey = getDefaultStore().get(adminKeyAtom);
+  if (!adminKey) {
+    // Block request if no admin key configured
+    getDefaultStore().set(isSettingsOpenAtom, true);
+    return Promise.reject(new axios.Cancel('Admin Key not configured'));
+  }
   conf.headers.set(API_HEADER_KEY, adminKey);
   return conf;
 });
@@ -79,14 +82,20 @@ req.interceptors.response.use(
       if (matchSkipInterceptor(err)) return Promise.reject(err);
       const res = err.response as AxiosResponse<APISIXRespErr>;
       const d = res.data;
-      showNotification({
-        id: d?.error_msg || d?.message,
-        message: d?.error_msg || d?.message || '',
-        type: 'error',
-      });
-      // Requires to enter admin key at 401
       if (res.status === HttpStatusCode.Unauthorized) {
+        // Show single auth error, don't spam for every failed request
+        showNotification({
+          id: 'auth-error',
+          message: 'Authentication failed — check your Admin Key in Settings',
+          type: 'error',
+        });
         getDefaultStore().set(isSettingsOpenAtom, true);
+      } else {
+        showNotification({
+          id: d?.error_msg || d?.message,
+          message: d?.error_msg || d?.message || '',
+          type: 'error',
+        });
       }
     }
     return Promise.reject(err);

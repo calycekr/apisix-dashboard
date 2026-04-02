@@ -14,8 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
-import { Breadcrumb, Button, Layout, theme } from 'antd';
+import { Badge, Breadcrumb, Button, Layout, theme, Tooltip } from 'antd';
 import { useAtomValue } from 'jotai';
 import type { FC } from 'react';
 
@@ -24,6 +25,7 @@ import { GlobalSearch } from '@/components/GlobalSearch';
 import { SIDEBAR_COLLAPSED_WIDTH } from '@/components/Navbar';
 import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
+import { req } from '@/config/req';
 import { sidebarCollapsedAtom, useThemeMode } from '@/stores/global';
 import IconDarkMode from '~icons/material-symbols/dark-mode';
 import IconLightMode from '~icons/material-symbols/light-mode';
@@ -43,6 +45,31 @@ const sourceLabels: Record<string, string> = {
   pluginConfigs: 'Plugin Configs',
   secrets: 'Secrets',
   protos: 'Protos',
+};
+
+const ApiStatusIndicator = () => {
+  const { data: isConnected } = useQuery({
+    queryKey: ['api-health'],
+    queryFn: async () => {
+      try {
+        await req.get('/routes', { params: { page: 1, page_size: 1 } });
+        return true;
+      } catch {
+        return false;
+      }
+    },
+    refetchInterval: 30_000,
+    staleTime: 15_000,
+  });
+
+  return (
+    <Tooltip title={isConnected === false ? 'APISIX Admin API unreachable' : 'APISIX Admin API connected'}>
+      <Badge
+        status={isConnected === false ? 'error' : isConnected === true ? 'success' : 'processing'}
+        text={<span style={{ fontSize: 12 }}>{isConnected === false ? 'Disconnected' : 'Connected'}</span>}
+      />
+    </Tooltip>
+  );
 };
 
 export const Header: FC = () => {
@@ -84,6 +111,7 @@ export const Header: FC = () => {
         <GlobalSearch />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <ApiStatusIndicator />
         <ActivityLogButton />
         <Button
           variant="text"

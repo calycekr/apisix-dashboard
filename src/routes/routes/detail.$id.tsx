@@ -22,7 +22,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Button, Card, Skeleton, Space, Tag, Tooltip, Typography } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -50,6 +50,35 @@ import { API_ROUTES } from '@/config/constant';
 import { req } from '@/config/req';
 import { type APISIXType } from '@/types/schema/apisix';
 import { showNotification } from '@/utils/notification';
+
+/** Extract key config value for common plugins to show in summary */
+function summarizePlugin(name: string, cfg: Record<string, unknown>): string {
+  if (!cfg || Object.keys(cfg).length === 0) return '';
+  switch (name) {
+    case 'limit-count': return `${cfg.count ?? '?'}/${cfg.time_window ?? '?'}s`;
+    case 'limit-req': return `rate:${cfg.rate ?? '?'} burst:${cfg.burst ?? '?'}`;
+    case 'limit-conn': return `conn:${cfg.conn ?? '?'}`;
+    case 'key-auth': return 'key';
+    case 'basic-auth': return 'basic';
+    case 'jwt-auth': return 'jwt';
+    case 'hmac-auth': return 'hmac';
+    case 'cors': return cfg.allow_origins ? `origins:${cfg.allow_origins}` : 'enabled';
+    case 'ip-restriction': {
+      const wl = cfg.whitelist as string[] | undefined;
+      const bl = cfg.blacklist as string[] | undefined;
+      if (wl?.length) return `allow:${wl.length}`;
+      if (bl?.length) return `deny:${bl.length}`;
+      return 'enabled';
+    }
+    case 'proxy-rewrite': return cfg.uri ? `→${cfg.uri}` : 'rewrite';
+    case 'redirect': return cfg.uri ? `→${cfg.uri}` : cfg.http_to_https ? 'https' : 'redirect';
+    default: {
+      const keys = Object.keys(cfg);
+      if (keys.length <= 2) return keys.map((k) => `${k}:${cfg[k]}`).join(' ');
+      return `${keys.length} opts`;
+    }
+  }
+}
 
 type Props = {
   readOnly: boolean;
@@ -98,8 +127,55 @@ const RouteDetailForm = (props: Props) => {
     return <Skeleton active />;
   }
 
+  const route = routeData?.value;
+  const pluginNames = route?.plugins ? Object.keys(route.plugins) : [];
+
   return (
     <>
+      {readOnly && route && (
+        <Card size="small" style={{ marginBottom: 16 }}>
+          <Space size="large" wrap>
+            <Typography.Text>
+              <Typography.Text type="secondary">URI: </Typography.Text>
+              <Typography.Text strong code>{route.uri || route.uris?.join(', ') || '-'}</Typography.Text>
+            </Typography.Text>
+            {route.service_id && (
+              <Typography.Text>
+                <Typography.Text type="secondary">Service: </Typography.Text>
+                <Link to="/services/detail/$id" params={{ id: route.service_id }}>
+                  <Typography.Text strong>{route.service_id}</Typography.Text>
+                </Link>
+              </Typography.Text>
+            )}
+            {route.upstream_id && (
+              <Typography.Text>
+                <Typography.Text type="secondary">Upstream: </Typography.Text>
+                <Link to="/upstreams/detail/$id" params={{ id: route.upstream_id }}>
+                  <Typography.Text strong>{route.upstream_id}</Typography.Text>
+                </Link>
+              </Typography.Text>
+            )}
+            {pluginNames.length > 0 && (
+              <div>
+                <Typography.Text type="secondary">Plugins: </Typography.Text>
+                <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
+                  {pluginNames.map((p) => {
+                    const cfg = route.plugins?.[p] as Record<string, unknown> | undefined;
+                    const hint = cfg ? summarizePlugin(p, cfg) : '';
+                    return (
+                      <Tooltip key={p} title={hint || undefined}>
+                        <Tag style={{ fontSize: 11, cursor: hint ? 'help' : 'default' }}>
+                          {p}{hint ? ` (${hint})` : ''}
+                        </Tag>
+                      </Tooltip>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </Space>
+        </Card>
+      )}
       <FormProvider {...form}>
         <FormJsonTabs
           form={form}
@@ -113,11 +189,11 @@ const RouteDetailForm = (props: Props) => {
           <FormPartRoute />
         </FormJsonTabs>
       </FormProvider>
-      {readOnly && routeData?.value && (
+      {readOnly && route && (
         <ApiTestPanel
-          defaultUri={routeData.value.uri || routeData.value.uris?.[0] || '/'}
-          defaultHost={routeData.value.host || routeData.value.hosts?.[0]}
-          defaultMethod={routeData.value.methods?.[0] || 'GET'}
+          defaultUri={route.uri || route.uris?.[0] || '/'}
+          defaultHost={route.host || route.hosts?.[0]}
+          defaultMethod={route.methods?.[0] || 'GET'}
         />
       )}
     </>

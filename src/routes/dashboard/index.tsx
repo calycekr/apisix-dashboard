@@ -27,7 +27,7 @@ import {
   type RecentItem,
   type ResourceCounts,
 } from '@/apis/dashboard';
-import { getOperationalAlerts, type OperationalAlerts } from '@/apis/operational';
+import { getOperationalAlerts, type OperationalAlerts, type PluginUsage } from '@/apis/operational';
 import PageHeader from '@/components/page/PageHeader';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconDns from '~icons/material-symbols/dns';
@@ -85,8 +85,28 @@ const RESOURCE_TYPE_LABELS: Record<string, string> = {
   protos: 'Proto',
 };
 
-function ResourceCountCards({ counts, isLoading }: { counts?: ResourceCounts; isLoading: boolean }) {
+function ResourceCountCards({
+  counts,
+  alerts,
+  isLoading,
+}: {
+  counts?: ResourceCounts;
+  alerts?: OperationalAlerts;
+  isLoading: boolean;
+}) {
   const { token } = theme.useToken();
+
+  const subMetrics: Record<string, string> = {};
+  if (alerts) {
+    if (alerts.disabledRoutes.length > 0) {
+      subMetrics.routes = `${alerts.disabledRoutes.length} disabled`;
+    }
+    if (alerts.expiringSSLs.length > 0) {
+      const expired = alerts.expiringSSLs.filter((s) => s.daysLeft <= 0).length;
+      if (expired > 0) subMetrics.ssls = `${expired} expired`;
+      else subMetrics.ssls = `${alerts.expiringSSLs.length} expiring`;
+    }
+  }
 
   return (
     <Row gutter={[16, 16]}>
@@ -96,24 +116,34 @@ function ResourceCountCards({ counts, isLoading }: { counts?: ResourceCounts; is
             <Card
               hoverable
               style={{ borderLeft: `3px solid ${card.color}` }}
-              styles={{ body: { padding: '20px 24px' } }}
+              styles={{ body: { padding: '16px 24px' } }}
             >
               {isLoading ? (
                 <Skeleton active paragraph={false} />
               ) : (
-                <Statistic
-                  title={
-                    <span style={{ color: token.colorTextSecondary, fontSize: 14 }}>
-                      {card.label}
-                    </span>
-                  }
-                  value={counts?.[card.key] ?? 0}
-                  prefix={
-                    <span style={{ color: card.color, fontSize: 22, marginRight: 4 }}>
-                      {card.icon}
-                    </span>
-                  }
-                />
+                <>
+                  <Statistic
+                    title={
+                      <span style={{ color: token.colorTextSecondary, fontSize: 14 }}>
+                        {card.label}
+                      </span>
+                    }
+                    value={counts?.[card.key] ?? 0}
+                    prefix={
+                      <span style={{ color: card.color, fontSize: 22, marginRight: 4 }}>
+                        {card.icon}
+                      </span>
+                    }
+                  />
+                  {subMetrics[card.key] && (
+                    <Typography.Text
+                      type="warning"
+                      style={{ fontSize: 12, marginTop: 4, display: 'block' }}
+                    >
+                      {subMetrics[card.key]}
+                    </Typography.Text>
+                  )}
+                </>
               )}
             </Card>
           </Link>
@@ -278,6 +308,24 @@ function OperationalAlertsSection({ alerts, isLoading }: { alerts?: OperationalA
   );
 }
 
+function PluginUsageSection({ plugins }: { plugins?: PluginUsage[] }) {
+  if (!plugins?.length) return null;
+  return (
+    <Card title="Most Used Plugins" size="small" style={{ marginTop: 24 }}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
+        {plugins.map((p) => (
+          <Tag key={p.name} style={{ fontSize: 13, padding: '4px 10px' }}>
+            {p.name}
+            <Typography.Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>
+              ×{p.count}
+            </Typography.Text>
+          </Tag>
+        ))}
+      </div>
+    </Card>
+  );
+}
+
 function DashboardPage() {
   const {
     data: dashboardData,
@@ -303,8 +351,9 @@ function DashboardPage() {
         title="Dashboard"
         desc="Overview of your APISIX gateway resources"
       />
-      <ResourceCountCards counts={dashboardData?.counts} isLoading={dashboardLoading} />
+      <ResourceCountCards counts={dashboardData?.counts} alerts={alerts} isLoading={dashboardLoading} />
       <OperationalAlertsSection alerts={alerts} isLoading={alertsLoading} />
+      <PluginUsageSection plugins={alerts?.pluginUsage} />
       <RecentChangesTable items={dashboardData?.recentChanges} isLoading={dashboardLoading} />
     </>
   );
