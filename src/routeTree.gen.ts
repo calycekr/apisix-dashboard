@@ -20,6 +20,7 @@ import { Route as ProtosIndexRouteImport } from './routes/protos/index'
 import { Route as Plugin_metadataIndexRouteImport } from './routes/plugin_metadata/index'
 import { Route as Plugin_configsIndexRouteImport } from './routes/plugin_configs/index'
 import { Route as Global_rulesIndexRouteImport } from './routes/global_rules/index'
+import { Route as DashboardIndexRouteImport } from './routes/dashboard/index'
 import { Route as ConsumersIndexRouteImport } from './routes/consumers/index'
 import { Route as Consumer_groupsIndexRouteImport } from './routes/consumer_groups/index'
 import { Route as UpstreamsAddRouteImport } from './routes/upstreams/add'
@@ -109,6 +110,11 @@ const Plugin_configsIndexRoute = Plugin_configsIndexRouteImport.update({
 const Global_rulesIndexRoute = Global_rulesIndexRouteImport.update({
   id: '/global_rules/',
   path: '/global_rules/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardIndexRoute = DashboardIndexRouteImport.update({
+  id: '/dashboard/',
+  path: '/dashboard/',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ConsumersIndexRoute = ConsumersIndexRouteImport.update({
@@ -312,6 +318,7 @@ export interface FileRoutesByFullPath {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups': typeof Consumer_groupsIndexRoute
   '/consumers': typeof ConsumersIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/global_rules': typeof Global_rulesIndexRoute
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
@@ -360,6 +367,7 @@ export interface FileRoutesByTo {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups': typeof Consumer_groupsIndexRoute
   '/consumers': typeof ConsumersIndexRoute
+  '/dashboard': typeof DashboardIndexRoute
   '/global_rules': typeof Global_rulesIndexRoute
   '/plugin_configs': typeof Plugin_configsIndexRoute
   '/plugin_metadata': typeof Plugin_metadataIndexRoute
@@ -407,6 +415,7 @@ export interface FileRoutesById {
   '/upstreams/add': typeof UpstreamsAddRoute
   '/consumer_groups/': typeof Consumer_groupsIndexRoute
   '/consumers/': typeof ConsumersIndexRoute
+  '/dashboard/': typeof DashboardIndexRoute
   '/global_rules/': typeof Global_rulesIndexRoute
   '/plugin_configs/': typeof Plugin_configsIndexRoute
   '/plugin_metadata/': typeof Plugin_metadataIndexRoute
@@ -457,6 +466,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups'
     | '/consumers'
+    | '/dashboard'
     | '/global_rules'
     | '/plugin_configs'
     | '/plugin_metadata'
@@ -505,6 +515,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups'
     | '/consumers'
+    | '/dashboard'
     | '/global_rules'
     | '/plugin_configs'
     | '/plugin_metadata'
@@ -551,6 +562,7 @@ export interface FileRouteTypes {
     | '/upstreams/add'
     | '/consumer_groups/'
     | '/consumers/'
+    | '/dashboard/'
     | '/global_rules/'
     | '/plugin_configs/'
     | '/plugin_metadata/'
@@ -600,6 +612,7 @@ export interface RootRouteChildren {
   UpstreamsAddRoute: typeof UpstreamsAddRoute
   Consumer_groupsIndexRoute: typeof Consumer_groupsIndexRoute
   ConsumersIndexRoute: typeof ConsumersIndexRoute
+  DashboardIndexRoute: typeof DashboardIndexRoute
   Global_rulesIndexRoute: typeof Global_rulesIndexRoute
   Plugin_configsIndexRoute: typeof Plugin_configsIndexRoute
   Plugin_metadataIndexRoute: typeof Plugin_metadataIndexRoute
@@ -700,6 +713,13 @@ declare module '@tanstack/react-router' {
       path: '/global_rules'
       fullPath: '/global_rules'
       preLoaderRoute: typeof Global_rulesIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/': {
+      id: '/dashboard/'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/consumers/': {
@@ -1014,6 +1034,7 @@ const rootRouteChildren: RootRouteChildren = {
   UpstreamsAddRoute: UpstreamsAddRoute,
   Consumer_groupsIndexRoute: Consumer_groupsIndexRoute,
   ConsumersIndexRoute: ConsumersIndexRoute,
+  DashboardIndexRoute: DashboardIndexRoute,
   Global_rulesIndexRoute: Global_rulesIndexRoute,
   Plugin_configsIndexRoute: Plugin_configsIndexRoute,
   Plugin_metadataIndexRoute: Plugin_metadataIndexRoute,
