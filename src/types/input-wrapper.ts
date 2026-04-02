@@ -21,6 +21,7 @@ import type { ReactNode } from 'react';
  */
 export type InputWrapperProps = {
   label?: ReactNode;
+  description?: ReactNode;
   error?: ReactNode;
   required?: boolean;
   withAsterisk?: boolean;

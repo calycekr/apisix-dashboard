@@ -14,21 +14,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Anchor, Card, theme } from 'antd';
+import { Card, theme } from 'antd';
 import { clsx } from 'clsx';
-import { debounce } from 'rambdax';
 import {
   createContext,
   type PropsWithChildren,
   type ReactNode,
-  useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
 } from 'react';
 
-import { APPSHELL_HEADER_HEIGHT } from '@/config/constant';
 import { useShallowEffect } from '@/utils/hooks';
 
 import classes from './style.module.css';
@@ -37,7 +32,6 @@ const SectionDepthCtx = createContext<number>(0);
 
 const SectionDepthProvider = SectionDepthCtx.Provider;
 
-// `form-section` class is for TOC scroll-spy
 const tocSelector = 'form-section';
 const tocValue = 'data-label';
 const tocDepth = 'data-depth';
@@ -101,7 +95,7 @@ export const FormSection = (props: FormSectionProps) => {
           {...dataAttrs}
           {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
         >
-          <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0 }}>
+          <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
             {children}
           </fieldset>
         </Card>
@@ -113,7 +107,7 @@ export const FormSection = (props: FormSectionProps) => {
     <SectionDepthProvider value={depth}>
       <div
         className={clsx(tocSelector, classes.root, className)}
-        style={{ paddingInlineStart: 16, marginBottom: 12 }}
+        style={{ paddingInlineStart: 16, marginBottom: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, paddingTop: 12 }}
         {...dataAttrs}
         {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
       >
@@ -122,7 +116,7 @@ export const FormSection = (props: FormSectionProps) => {
             <LegendGroup legend={legend} extra={extra} />
           </div>
         )}
-        <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0 }}>
+        <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
           {children}
         </fieldset>
       </div>
@@ -130,79 +124,14 @@ export const FormSection = (props: FormSectionProps) => {
   );
 };
 
-type TOCItem = {
-  key: string;
-  href: string;
-  title: string;
-  depth: number;
-};
-
-const buildTOCItems = (): TOCItem[] => {
-  const elements = document.querySelectorAll<HTMLElement>(`.${tocSelector}`);
-  const items: TOCItem[] = [];
-  elements.forEach((el) => {
-    const label = el.getAttribute(tocValue);
-    const depth = Number(el.getAttribute(tocDepth)) || 1;
-    if (!label) return;
-    // generate an id for scrolling if not present
-    if (!el.id) {
-      el.id = `toc-${label.replace(/\s+/g, '-').toLowerCase()}-${depth}`;
-    }
-    items.push({
-      key: el.id,
-      href: `#${el.id}`,
-      title: label,
-      depth,
-    });
-  });
-  return items;
-};
-
 export type FormTOCBoxProps = PropsWithChildren;
 
 export const FormTOCBox = (props: FormTOCBoxProps) => {
   const { children } = props;
-  const [tocItems, setTocItems] = useState<TOCItem[]>([]);
-
-  const refreshTOC = useCallback(
-    () => debounce(() => setTocItems(buildTOCItems()), 200),
-    []
-  );
-
-  // build TOC after initial render
-  useEffect(() => {
-    setTocItems(buildTOCItems());
-  }, []);
-
   return (
-    <FormTOCCtx.Provider value={{ refreshTOC }}>
-      <div
-        style={{
-          display: 'flex',
-          gap: 30,
-          paddingInlineEnd: '10%',
-          position: 'relative',
-          flexWrap: 'nowrap',
-          alignItems: 'flex-start',
-        }}
-      >
-        <Anchor
-          items={tocItems.map((item) => ({
-            key: item.key,
-            href: item.href,
-            title: item.title,
-          }))}
-          style={{
-            flexShrink: 0,
-            position: 'sticky',
-            top: APPSHELL_HEADER_HEIGHT + 20,
-            width: 200,
-            marginTop: 10,
-          }}
-        />
-        <div style={{ width: '80%' }}>
-          {children}
-        </div>
+    <FormTOCCtx.Provider value={{ refreshTOC: () => {} }}>
+      <div style={{ maxWidth: 900, margin: '0 auto' }}>
+        {children}
       </div>
     </FormTOCCtx.Provider>
   );

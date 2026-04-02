@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Switch, type SwitchProps } from 'antd';
+import { Switch, type SwitchProps, theme, Typography } from 'antd';
 import type { ReactNode } from 'react';
 import {
   type FieldValues,
@@ -36,18 +36,30 @@ export const FormItemSwitch = <T extends FieldValues>(
   props: FormItemSwitchProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, false);
+  const { label, description, ...switchProps } = restProps;
+  const { token } = theme.useToken();
   const {
     field: { value, onChange: fOnChange, ...restField },
   } = useController<T>(controllerProps);
   return (
-    <Switch
-      checked={value}
-      onChange={(checked, e) => {
-        fOnChange(checked);
-        restProps.onChange?.(checked, e);
-      }}
-      {...restField}
-      {...restProps}
-    />
+    <div style={{ marginBottom: 16 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <Switch
+          checked={value}
+          onChange={(checked, e) => {
+            fOnChange(checked);
+            switchProps.onChange?.(checked, e);
+          }}
+          {...restField}
+          {...switchProps}
+        />
+        {label && <Typography.Text>{label}</Typography.Text>}
+      </div>
+      {description && (
+        <div style={{ marginTop: 4, fontSize: 12, color: token.colorTextSecondary }}>
+          {description}
+        </div>
+      )}
+    </div>
   );
 };

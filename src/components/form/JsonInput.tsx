@@ -24,7 +24,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemJsonInputProps<T extends FieldValues> = UseControllerProps<T> &
@@ -41,7 +41,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
   const { objValue = {} } = props;
   const {
     controllerProps,
-    restProps: { toObject, ...restProps },
+    restProps: { toObject, label, description, ...restProps },
   } = genControllerProps(props, props.toObject ? objValue : '');
   const {
     field: { value: rawVal, onChange: fOnChange, onBlur: fOnBlur, ...restField },
@@ -56,7 +56,12 @@ export const FormItemJsonInput = <T extends FieldValues>(
   }, [rawVal, toObject, objValue]);
 
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Input.TextArea
         value={value}
         status={fieldState.error ? 'error' : undefined}
@@ -101,7 +106,6 @@ export const FormItemJsonInput = <T extends FieldValues>(
         {...restField}
         {...(omit(['objValue'], restProps) as TextAreaProps)}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

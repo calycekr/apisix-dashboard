@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Skeleton, theme } from 'antd';
+import { Skeleton } from 'antd';
 import { Editor } from '@monaco-editor/react';
 import { clsx } from 'clsx';
 import { useEffect, useMemo, useRef, useState } from 'react';
@@ -27,7 +27,7 @@ import {
 import { monaco, setupMonacoEditor } from '@/utils/monaco';
 import { useThemeMode } from '@/stores/global';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 setupMonacoEditor();
@@ -64,7 +64,6 @@ export const FormItemEditor = <T extends FieldValues>(
   props: FormItemEditorProps<T>
 ) => {
   const { mode } = useThemeMode();
-  const { token } = theme.useToken();
   const { controllerProps, restProps } = genControllerProps(props, '');
   const { customSchema, language, isLoading, label, description, required, id } = restProps;
   const { trigger } = useFormContext();
@@ -125,63 +124,62 @@ export const FormItemEditor = <T extends FieldValues>(
   }, [customSchema, isJson]);
 
   return (
-    <div id={id ?? '#editor-wrapper'}>
-      {label && (
-        <div>
-          {required && <span style={{ color: token.colorError, marginRight: 4 }}>*</span>}
-          {label}
-        </div>
-      )}
-      {description && <div>{description}</div>}
-      <input name={restField.name} type="hidden" />
-      {(isLoading || internalLoading) && (
-        <div
-          style={{
-            position: 'absolute',
-            zIndex: 1,
-            top: 0,
-            left: 0,
-            height: '100%',
-            width: '100%',
-          }}
-          data-testid="editor-loading"
-        >
-          <Skeleton active />
-        </div>
-      )}
-      <Editor
-        wrapperProps={{
-          className: clsx(
-            'editor-wrapper',
-            restField.disabled && 'editor-wrapper--disabled'
-          ),
-        }}
-        defaultValue={controllerProps.defaultValue}
-        value={value}
-        onChange={fOnChange}
-        onValidate={(markers) => {
-          monacoErrorRef.current = markers?.[0]?.message || null;
-          trigger(props.name);
-        }}
-        onMount={(editor) => {
-          if (process.env.NODE_ENV === 'test') {
-            window.__monacoEditor__ = editor;
-          }
-        }}
-        loading={
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={required}
+    >
+      <div id={id ?? '#editor-wrapper'}>
+        <input name={restField.name} type="hidden" />
+        {(isLoading || internalLoading) && (
           <div
+            style={{
+              position: 'absolute',
+              zIndex: 1,
+              top: 0,
+              left: 0,
+              height: '100%',
+              width: '100%',
+            }}
             data-testid="editor-loading"
-            style={{ height: '100%', width: '100%' }}
           >
             <Skeleton active />
           </div>
-        }
-        options={{ ...options, readOnly: restField.disabled }}
-        theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
-        defaultLanguage="json"
-        {...(language && { language })}
-      />
-      <FormError message={fieldState.error?.message} />
-    </div>
+        )}
+        <Editor
+          wrapperProps={{
+            className: clsx(
+              'editor-wrapper',
+              restField.disabled && 'editor-wrapper--disabled'
+            ),
+          }}
+          defaultValue={controllerProps.defaultValue}
+          value={value}
+          onChange={fOnChange}
+          onValidate={(markers) => {
+            monacoErrorRef.current = markers?.[0]?.message || null;
+            trigger(props.name);
+          }}
+          onMount={(editor) => {
+            if (process.env.NODE_ENV === 'test') {
+              window.__monacoEditor__ = editor;
+            }
+          }}
+          loading={
+            <div
+              data-testid="editor-loading"
+              style={{ height: '100%', width: '100%' }}
+            >
+              <Skeleton active />
+            </div>
+          }
+          options={{ ...options, readOnly: restField.disabled }}
+          theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
+          defaultLanguage="json"
+          {...(language && { language })}
+        />
+      </div>
+    </InputWrapper>
   );
 };

@@ -23,7 +23,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemPasswordInputProps<T extends FieldValues> =
@@ -40,23 +40,28 @@ export const FormItemPasswordInput = <T extends FieldValues>(
   props: FormItemPasswordInputProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, '');
+  const { label, description, ...inputProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Input.Password
         value={value}
         status={fieldState.error ? 'error' : undefined}
         onChange={(e) => {
           fOnChange(e);
-          restProps.onChange?.(e);
+          inputProps.onChange?.(e);
         }}
         {...restField}
-        {...restProps}
+        {...inputProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

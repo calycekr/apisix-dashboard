@@ -23,7 +23,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemTextareaProps<T extends FieldValues> =
@@ -36,24 +36,29 @@ export const FormItemTextarea = <T extends FieldValues>(
   props: FormItemTextareaProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, '');
+  const { label, description, ...textareaProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Input.TextArea
         value={value}
         status={fieldState.error ? 'error' : undefined}
         onChange={(e) => {
           fOnChange(e);
-          restProps.onChange?.(e);
+          textareaProps.onChange?.(e);
         }}
         autoSize
         {...restField}
-        {...restProps}
+        {...textareaProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

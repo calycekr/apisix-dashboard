@@ -131,7 +131,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         <div>
           <div
             style={{
-              border: jsonError ? '1px solid #ff4d4f' : '1px solid #d9d9d9',
+              border: jsonError ? '1px solid var(--ant-color-error)' : '1px solid var(--ant-color-border)',
               borderRadius: 6,
               overflow: 'hidden',
               minHeight: 500,

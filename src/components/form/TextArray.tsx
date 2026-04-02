@@ -15,41 +15,50 @@
  * limitations under the License.
  */
 import { Select, type SelectProps } from 'antd';
+import type { ReactNode } from 'react';
 import {
   type FieldValues,
   useController,
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemTextArrayProps<T extends FieldValues> =
-  UseControllerProps<T> & Omit<SelectProps, 'mode'>;
+  UseControllerProps<T> & Omit<SelectProps, 'mode'> & {
+    label?: ReactNode;
+    description?: ReactNode;
+  };
 
 export const FormItemTextArray = <T extends FieldValues>(
   props: FormItemTextArrayProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, []);
+  const { label, description, ...selectProps } = restProps;
 
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Select
         mode="tags"
         value={value}
         status={fieldState.error ? 'error' : undefined}
         onChange={(value) => {
           fOnChange(value);
-          restProps?.onChange?.(value, []);
+          selectProps?.onChange?.(value, []);
         }}
         {...restField}
-        {...restProps}
+        {...selectProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

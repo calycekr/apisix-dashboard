@@ -24,7 +24,7 @@ import {
 } from 'react-hook-form';
 import IconUpload from '~icons/material-symbols/upload';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemTextareaWithUploadProps<T extends FieldValues> =
@@ -53,6 +53,8 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
+    label,
+    description,
     acceptFileTypes = '',
     uploadButtonText = '',
     maxFileSize = 10 * 1024 * 1024,
@@ -89,7 +91,12 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
   };
 
   return (
-    <div>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message || fileError || undefined}
+      required={!!controllerProps.rules?.required}
+    >
       <Input.TextArea
         value={value}
         status={fieldState.error ? 'error' : undefined}
@@ -121,7 +128,6 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
           />
         </div>
       )}
-      <FormError message={fieldState.error?.message || fileError || undefined} />
-    </div>
+    </InputWrapper>
   );
 };

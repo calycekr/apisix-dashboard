@@ -22,7 +22,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemSelectProps<T extends FieldValues, R> = UseControllerProps<T> &
@@ -41,7 +41,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
 ) => {
   const {
     controllerProps,
-    restProps: { from, to, ...restProps },
+    restProps: { from, to, label, description, ...restProps },
   } = genControllerProps(props, []);
 
   const {
@@ -49,7 +49,12 @@ export const FormItemSelect = <T extends FieldValues, R>(
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Select
         value={from ? from(value) : value}
         status={fieldState.error ? 'error' : undefined}
@@ -62,7 +67,6 @@ export const FormItemSelect = <T extends FieldValues, R>(
         {...restField}
         {...restProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

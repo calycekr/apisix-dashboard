@@ -23,7 +23,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemTagsInputProps<
@@ -44,7 +44,7 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
 ) => {
   const {
     controllerProps,
-    restProps: { from, to, splitChars, data, ...restProps },
+    restProps: { from, to, splitChars, data, label, description, ...restProps },
   } = genControllerProps(props, []);
 
   const {
@@ -61,7 +61,12 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
     : restProps.options;
 
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <Select
         mode="tags"
         value={from ? (value as unknown[]).map(from as (v: unknown) => string) : value}
@@ -88,7 +93,6 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
         {...restField}
         {...restProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };

@@ -22,7 +22,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
 export type FormItemNumberInputProps<T extends FieldValues> =
@@ -36,25 +36,30 @@ export const FormItemNumberInput = <T extends FieldValues>(
   props: FormItemNumberInputProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props);
+  const { label, description, ...inputProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      error={fieldState.error?.message}
+      required={!!controllerProps.rules?.required}
+    >
       <InputNumber
         value={value}
         status={fieldState.error ? 'error' : undefined}
         onChange={(e) => {
-          restProps.onChange?.(e);
+          inputProps.onChange?.(e);
           // Ant Design's InputNumber returns null when the value is empty
           const val = e === null ? undefined : e;
           fOnChange(val);
         }}
         {...restField}
-        {...restProps}
+        {...inputProps}
       />
-      <FormError message={fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };
