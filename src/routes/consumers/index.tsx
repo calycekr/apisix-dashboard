@@ -16,8 +16,8 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
-import { Space } from 'antd';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
@@ -54,10 +54,17 @@ function ConsumersList() {
       },
       {
         dataIndex: ['value', 'group_id'],
-        title: 'Group ID',
+        title: 'Group',
         key: 'group_id',
-        valueType: 'text',
-        render: (_, record) => record.value.group_id || '-',
+        render: (_, record) => {
+          const id = record.value.group_id;
+          if (!id) return '-';
+          return (
+            <Typography.Link>
+              <Link to="/consumer_groups/detail/$id" params={{ id }}>{id}</Link>
+            </Typography.Link>
+          );
+        },
       },
       {
         dataIndex: ['value', 'update_time'],

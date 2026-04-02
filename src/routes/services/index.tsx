@@ -16,7 +16,7 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -67,10 +67,17 @@ const ServiceList = () => {
       },
       {
         dataIndex: ['value', 'upstream_id'],
-        title: 'Upstream ID',
+        title: 'Upstream',
         key: 'upstream_id',
-        valueType: 'text',
-        render: (_, record) => record.value.upstream_id || '-',
+        render: (_, record) => {
+          const id = record.value.upstream_id;
+          if (!id) return record.value.upstream?.nodes ? 'Inline' : '-';
+          return (
+            <Typography.Link>
+              <Link to="/upstreams/detail/$id" params={{ id }}>{id}</Link>
+            </Typography.Link>
+          );
+        },
       },
       {
         dataIndex: ['value', 'plugins'],

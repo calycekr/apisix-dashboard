@@ -24,6 +24,45 @@ import { useThemeMode } from '@/stores/global';
 
 import { FormSubmitBtn } from './Btn';
 
+function flattenErrors(
+  errors: Record<string, unknown>,
+  prefix = ''
+): Array<{ path: string; message: string }> {
+  const result: Array<{ path: string; message: string }> = [];
+  for (const [key, value] of Object.entries(errors)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value && typeof value === 'object' && 'message' in value) {
+      result.push({ path, message: String((value as { message: string }).message) });
+    } else if (value && typeof value === 'object') {
+      result.push(...flattenErrors(value as Record<string, unknown>, path));
+    }
+  }
+  return result;
+}
+
+const FormErrorSummary = ({ errors }: { errors: Record<string, unknown> }) => {
+  const flat = flattenErrors(errors);
+  if (flat.length === 0) return null;
+  return (
+    <Alert
+      type="error"
+      showIcon
+      style={{ marginBottom: 16 }}
+      message={`${flat.length} validation error(s)`}
+      description={
+        <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
+          {flat.slice(0, 10).map((e) => (
+            <li key={e.path}>
+              <strong>{e.path}</strong>: {e.message}
+            </li>
+          ))}
+          {flat.length > 10 && <li>...and {flat.length - 10} more</li>}
+        </ul>
+      }
+    />
+  );
+};
+
 type FormJsonTabsProps = {
   children: React.ReactNode;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -110,7 +149,17 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     form.reset(parsed);
     setIsSubmitting(true);
     try {
-      await form.handleSubmit(onSubmit)();
+      await form.handleSubmit(
+        onSubmit,
+        (errors) => {
+          const flat = flattenErrors(errors);
+          if (flat.length > 0) {
+            setJsonError(
+              `Validation failed:\n${flat.map((e) => `  ${e.path}: ${e.message}`).join('\n')}`
+            );
+          }
+        }
+      )();
     } finally {
       setIsSubmitting(false);
     }
@@ -136,6 +185,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       label: 'Form',
       children: (
         <form onSubmit={form.handleSubmit(onSubmit)}>
+          <FormErrorSummary errors={form.formState.errors} />
           {children}
           {!disabled && (
             <Space style={{ marginTop: 16 }}>
