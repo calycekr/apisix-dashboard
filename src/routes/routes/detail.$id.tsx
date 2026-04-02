@@ -42,6 +42,7 @@ import {
 import { produceToUpstreamForm } from '@/components/form-slice/FormPartUpstream/util';
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import { FormSectionGeneral } from '@/components/form-slice/FormSectionGeneral';
+import { ApiTestPanel } from '@/components/page/ApiTestPanel';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { StatusSwitch } from '@/components/StatusTag';
@@ -98,18 +99,28 @@ const RouteDetailForm = (props: Props) => {
   }
 
   return (
-    <FormProvider {...form}>
-      <FormJsonTabs
-        form={form}
-        onSubmit={(d) => putRoute.mutateAsync(d)}
-        submitLabel="Save"
-        disabled={readOnly}
-        rawData={routeData?.value}
-      >
-        <FormSectionGeneral readOnly />
-        <FormPartRoute />
-      </FormJsonTabs>
-    </FormProvider>
+    <>
+      <FormProvider {...form}>
+        <FormJsonTabs
+          form={form}
+          onSubmit={(d) => putRoute.mutateAsync(d)}
+          submitLabel="Save"
+          disabled={readOnly}
+          rawData={routeData?.value}
+          patchApi={`${API_ROUTES}/${id}`}
+        >
+          <FormSectionGeneral readOnly />
+          <FormPartRoute />
+        </FormJsonTabs>
+      </FormProvider>
+      {readOnly && routeData?.value && (
+        <ApiTestPanel
+          defaultUri={routeData.value.uri || routeData.value.uris?.[0] || '/'}
+          defaultHost={routeData.value.host || routeData.value.hosts?.[0]}
+          defaultMethod={routeData.value.methods?.[0] || 'GET'}
+        />
+      )}
+    </>
   );
 };
 

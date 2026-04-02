@@ -93,6 +93,7 @@ const StreamRouteDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={streamRouteData?.value}
+        patchApi={`${API_STREAM_ROUTES}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartStreamRoute />

@@ -97,6 +97,7 @@ const ServiceDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={serviceData?.value}
+        patchApi={`${API_SERVICES}/${id}`}
       >
         <FormSectionGeneral />
         <FormPartService />

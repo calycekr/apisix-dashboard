@@ -96,6 +96,7 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           submitLabel="Save"
           disabled={readOnly}
           rawData={sslData}
+          patchApi={`${API_SSLS}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartSSL />
