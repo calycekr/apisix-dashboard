@@ -14,27 +14,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { useRouter } from '@tanstack/react-router';
+import { Button, Typography } from 'antd';
 import { type FC } from 'react';
+
+import IconArrowBack from '~icons/material-symbols/arrow-back';
 
 type PageHeaderProps = {
   title: string;
   desc?: string;
   extra?: React.ReactNode;
+  showBackBtn?: boolean;
 };
 
 const PageHeader: FC<PageHeaderProps> = (props) => {
-  const { title, desc, extra } = props;
+  const { title, desc, extra, showBackBtn = false } = props;
+  const router = useRouter();
   return (
     <div style={{ paddingBlock: 16, marginBottom: 24 }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
-          {desc && (
-            <Typography.Text type="secondary" style={{ fontSize: 14 }}>
-              {desc}
-            </Typography.Text>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {showBackBtn && (
+            <Button
+              type="text"
+              size="small"
+              icon={<IconArrowBack />}
+              onClick={() => router.history.back()}
+            />
           )}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            <Typography.Title level={2} style={{ margin: 0 }}>{title}</Typography.Title>
+            {desc && (
+              <Typography.Text type="secondary" style={{ fontSize: 14 }}>
+                {desc}
+              </Typography.Text>
+            )}
+          </div>
         </div>
         {extra}
       </div>

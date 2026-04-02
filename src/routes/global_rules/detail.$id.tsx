@@ -98,7 +98,7 @@ function RouteComponent() {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Global Rule'}`}
         {...(readOnly && {
           title: `${'Global Rule'} Detail`,

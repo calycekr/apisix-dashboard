@@ -51,6 +51,7 @@ const ServiceList = () => {
         title: 'Hosts',
         key: 'hosts',
         valueType: 'text',
+        ellipsis: true,
         render: (_, record) => record.value.hosts?.join(', ') || '-',
       },
       {
@@ -106,7 +107,7 @@ const ServiceList = () => {
     <AntdConfigProvider>
       <ProTable
         columns={columns}
-        dataSource={data.list}
+        dataSource={data?.list}
         rowKey="id"
         loading={isLoading}
         search={false}

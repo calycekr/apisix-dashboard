@@ -70,7 +70,7 @@ const ServiceAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Service'}`}
       />
       <FormTOCBox>

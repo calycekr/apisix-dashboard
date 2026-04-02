@@ -68,7 +68,7 @@ const SSLAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={`Add ${'SSL'}`} />
+      <PageHeader showBackBtn title={`Add ${'SSL'}`} />
       <FormTOCBox>
         <SSLAddForm />
       </FormTOCBox>

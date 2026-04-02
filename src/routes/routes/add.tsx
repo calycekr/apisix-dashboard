@@ -73,7 +73,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   return (
     <>
-      <PageHeader title={`Add ${'Route'}`} />
+      <PageHeader showBackBtn title={`Add ${'Route'}`} />
       <FormTOCBox>
         <RouteAddForm
           navigate={(res) =>

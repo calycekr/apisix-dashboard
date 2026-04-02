@@ -75,7 +75,7 @@ const CredentialAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Credential'}`}
       />
       <FormTOCBox>

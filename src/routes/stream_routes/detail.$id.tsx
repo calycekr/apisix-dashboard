@@ -109,7 +109,7 @@ export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Stream Route'}`}
         {...(readOnly && {
           title: `${'Stream Route'} Detail`,

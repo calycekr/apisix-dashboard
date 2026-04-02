@@ -16,7 +16,7 @@
  */
 import '@ant-design/v5-patch-for-react-19';
 
-import { ConfigProvider, theme } from 'antd';
+import { ConfigProvider, Empty, theme } from 'antd';
 import enUS from 'antd/locale/en_US';
 import type { PropsWithChildren } from 'react';
 
@@ -32,7 +32,7 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
     <ConfigProvider
       virtual
       locale={enUS}
-      renderEmpty={() => <div>No Data</div>}
+      renderEmpty={() => <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} description="No data found" />}
       theme={{
         algorithm: isDark ? theme.darkAlgorithm : theme.defaultAlgorithm,
         token: {

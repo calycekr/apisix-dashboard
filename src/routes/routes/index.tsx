@@ -66,6 +66,7 @@ export const RouteList = (props: RouteListProps) => {
         title: 'URI',
         key: 'uri',
         valueType: 'text',
+        ellipsis: true,
         render: (_, record) => {
           const uri = record.value.uri;
           const uris = record.value.uris;
@@ -85,6 +86,7 @@ export const RouteList = (props: RouteListProps) => {
         title: 'Host',
         key: 'host',
         valueType: 'text',
+        ellipsis: true,
         render: (_, record) => {
           const host = record.value.host;
           const hosts = record.value.hosts;
@@ -166,7 +168,7 @@ export const RouteList = (props: RouteListProps) => {
     <AntdConfigProvider>
       <ProTable
         columns={columns}
-        dataSource={data.list}
+        dataSource={data?.list}
         rowKey="id"
         loading={isLoading}
         search={false}

@@ -72,7 +72,7 @@ const ConsumerGroupAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Consumer Group'}`}
       />
       <FormTOCBox>

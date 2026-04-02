@@ -102,7 +102,7 @@ function GlobalRulesList() {
     <AntdConfigProvider>
       <ProTable
         columns={columns}
-        dataSource={data.list}
+        dataSource={data?.list}
         rowKey="id"
         loading={isLoading}
         search={false}

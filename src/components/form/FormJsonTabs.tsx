@@ -165,6 +165,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
                 type="primary"
                 size="middle"
                 loading={isSubmitting}
+                disabled={isSubmitting}
                 onClick={handleJsonSubmit}
               >
                 {submitLabel}

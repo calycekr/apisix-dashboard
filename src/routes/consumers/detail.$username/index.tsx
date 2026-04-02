@@ -104,7 +104,7 @@ const ConsumerDetailTab = () => {
 
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Edit ${'Consumer'}`}
         {...(readOnly && {
           title: `${'Consumer'} Detail`,

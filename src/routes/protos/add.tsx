@@ -70,7 +70,7 @@ const ProtoAddForm = () => {
 function RouteComponent() {
   return (
     <>
-      <PageHeader title={`Add ${'Proto'}`} />
+      <PageHeader showBackBtn title={`Add ${'Proto'}`} />
       <ProtoAddForm />
     </>
   );

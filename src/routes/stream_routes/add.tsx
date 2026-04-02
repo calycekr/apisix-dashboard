@@ -75,7 +75,7 @@ function RouteComponent() {
   const navigate = useNavigate();
   return (
     <>
-      <PageHeader
+      <PageHeader showBackBtn
         title={`Add ${'Stream Route'}`}
       />
       <FormTOCBox>
