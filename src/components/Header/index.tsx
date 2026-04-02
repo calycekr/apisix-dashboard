@@ -20,6 +20,7 @@ import { useAtomValue } from 'jotai';
 import type { FC } from 'react';
 
 import { ActivityLogButton } from '@/components/ActivityLogDrawer';
+import { GlobalSearch } from '@/components/GlobalSearch';
 import { SIDEBAR_COLLAPSED_WIDTH } from '@/components/Navbar';
 import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
@@ -80,6 +81,7 @@ export const Header: FC = () => {
     >
       <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
         <Breadcrumb items={breadcrumbItems} />
+        <GlobalSearch />
       </div>
       <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
         <ActivityLogButton />
