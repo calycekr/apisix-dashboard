@@ -134,7 +134,7 @@ function ConsumersList() {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Consumers"
+        headerTitle={<Space><span>Consumers</span><ToAddPageBtn label="Add Consumer" to="/consumers/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -143,7 +143,6 @@ function ConsumersList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumers..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Consumer" to="/consumers/add" />,
         ]}
       />
       <RawDrawer

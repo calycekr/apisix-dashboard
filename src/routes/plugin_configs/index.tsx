@@ -128,7 +128,7 @@ function PluginConfigsList() {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Plugin Configs"
+        headerTitle={<Space><span>Plugin Configs</span><ToAddPageBtn label="Add Plugin Config" to="/plugin_configs/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -137,7 +137,6 @@ function PluginConfigsList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search plugin configs..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Plugin Config" to="/plugin_configs/add" />,
         ]}
       />
     </AntdConfigProvider>

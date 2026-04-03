@@ -328,7 +328,12 @@ export const RouteList = (props: RouteListProps) => {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Routes"
+        headerTitle={
+          <Space>
+            <span>Routes</span>
+            <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />
+          </Space>
+        }
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         scroll={{ x: 'max-content' }}
@@ -339,7 +344,6 @@ export const RouteList = (props: RouteListProps) => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
       />
       <RawDrawer

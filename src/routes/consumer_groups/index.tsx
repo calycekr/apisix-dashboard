@@ -130,7 +130,7 @@ function ConsumerGroupsList() {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Consumer Groups"
+        headerTitle={<Space><span>Consumer Groups</span><ToAddPageBtn label="Add Consumer Group" to="/consumer_groups/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -139,7 +139,6 @@ function ConsumerGroupsList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumer groups..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Consumer Group" to="/consumer_groups/add" />,
         ]}
       />
       <RawDrawer

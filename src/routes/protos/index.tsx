@@ -122,12 +122,11 @@ function RouteComponent() {
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
-          headerTitle="Protos"
+          headerTitle={<Space><span>Protos</span><ToAddPageBtn label="Add Proto" to="/protos/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
-            <ToAddPageBtn key="add" label="Add Proto" to="/protos/add" />,
           ]}
         />
       </AntdConfigProvider>

@@ -188,7 +188,7 @@ function RouteComponent() {
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
-          headerTitle="SSLs"
+          headerTitle={<Space><span>SSLs</span><ToAddPageBtn label="Add SSL" to="/ssls/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           expandable={{
@@ -197,7 +197,6 @@ function RouteComponent() {
           }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
-            <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
           ]}
         />
         <RawDrawer

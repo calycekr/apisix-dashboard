@@ -196,7 +196,7 @@ function RouteComponent() {
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
-          headerTitle="Upstreams"
+          headerTitle={<Space><span>Upstreams</span><ToAddPageBtn label="Add Upstream" to="/upstreams/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           expandable={{
@@ -205,7 +205,6 @@ function RouteComponent() {
           }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
-            <ToAddPageBtn key="add" label="Add Upstream" to="/upstreams/add" />,
           ]}
         />
         <RawDrawer

@@ -198,7 +198,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Stream Routes"
+        headerTitle={<Space><span>Stream Routes</span><ToAddPageBtn label="Add Stream Route" to={`${routeKey}add`} /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -207,7 +207,6 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Stream Route" to={`${routeKey}add`} />,
         ]}
       />
       <RawDrawer

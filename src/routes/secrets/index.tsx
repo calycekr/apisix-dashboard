@@ -115,12 +115,11 @@ function SecretList() {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Secrets"
+        headerTitle={<Space><span>Secrets</span><ToAddPageBtn label="Add Secret" to="/secrets/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Secret" to="/secrets/add" />,
         ]}
       />
     </AntdConfigProvider>

@@ -161,7 +161,7 @@ const ServiceList = () => {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Services"
+        headerTitle={<Space><span>Services</span><ToAddPageBtn label="Add Service" to="/services/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -171,7 +171,6 @@ const ServiceList = () => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Service" to="/services/add" />,
         ]}
       />
       <RawDrawer

@@ -123,7 +123,7 @@ function GlobalRulesList() {
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
-        headerTitle="Global Rules"
+        headerTitle={<Space><span>Global Rules</span><ToAddPageBtn label="Add Global Rule" to="/global_rules/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -132,7 +132,6 @@ function GlobalRulesList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,
         ]}
       />
       <RawDrawer
