@@ -125,6 +125,10 @@ function ConsumerGroupsList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:consumer-groups',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Consumer Groups"
         pagination={pagination}

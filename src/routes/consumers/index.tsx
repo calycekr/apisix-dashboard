@@ -129,6 +129,10 @@ function ConsumersList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:consumers',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Consumers"
         pagination={pagination}

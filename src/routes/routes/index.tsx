@@ -323,6 +323,10 @@ export const RouteList = (props: RouteListProps) => {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:routes',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Routes"
         pagination={pagination}

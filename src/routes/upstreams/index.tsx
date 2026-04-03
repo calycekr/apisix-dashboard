@@ -191,6 +191,10 @@ function RouteComponent() {
           search={false}
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
+          columnsState={{
+            persistenceKey: 'table:upstreams',
+            persistenceType: 'localStorage',
+          }}
           dateFormatter="string"
           headerTitle="Upstreams"
           pagination={pagination}

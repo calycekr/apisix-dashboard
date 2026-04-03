@@ -118,6 +118,10 @@ function GlobalRulesList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:global-rules',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Global Rules"
         pagination={pagination}

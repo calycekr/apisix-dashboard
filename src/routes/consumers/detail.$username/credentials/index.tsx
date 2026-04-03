@@ -114,6 +114,10 @@ function CredentialsList() {
         loading={isLoading}
         search={false}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:credentials',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Credentials"
         pagination={false}

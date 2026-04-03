@@ -110,6 +110,10 @@ function SecretList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:secrets',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Secrets"
         pagination={pagination}

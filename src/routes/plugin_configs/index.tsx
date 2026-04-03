@@ -123,6 +123,10 @@ function PluginConfigsList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:plugin-configs',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Plugin Configs"
         pagination={pagination}

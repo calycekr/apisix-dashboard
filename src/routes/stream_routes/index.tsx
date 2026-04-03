@@ -193,6 +193,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:stream-routes',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Stream Routes"
         pagination={pagination}

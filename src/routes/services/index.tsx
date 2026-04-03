@@ -156,6 +156,10 @@ const ServiceList = () => {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:services',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
         headerTitle="Services"
         pagination={pagination}

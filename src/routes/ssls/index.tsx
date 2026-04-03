@@ -183,6 +183,10 @@ function RouteComponent() {
           search={false}
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
+          columnsState={{
+            persistenceKey: 'table:ssls',
+            persistenceType: 'localStorage',
+          }}
           dateFormatter="string"
           headerTitle="SSLs"
           pagination={pagination}
