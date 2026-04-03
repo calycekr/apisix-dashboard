@@ -1,4 +1,4 @@
-/* Thin scrollbar for modern look */
+/* Scrollbar: invisible by default, appears on hover */
 ::-webkit-scrollbar {
   width: 6px;
   height: 6px;
@@ -9,18 +9,28 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: var(--ant-color-border);
+  background: transparent;
   border-radius: 3px;
+  transition: background 0.2s;
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: var(--ant-color-text-quaternary);
+*:hover > ::-webkit-scrollbar-thumb,
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(128, 128, 128, 0.3);
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: rgba(128, 128, 128, 0.5);
 }
 
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--ant-color-border) transparent;
+  scrollbar-color: transparent transparent;
+}
+
+*:hover {
+  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
 }
 
 .monaco-editor,
