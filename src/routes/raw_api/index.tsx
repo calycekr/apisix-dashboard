@@ -340,12 +340,18 @@ function RawApiPage() {
                 message.warning('Admin Key required for curl command');
                 return;
               }
-              let cmd = `curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}' \\\n  -H 'X-API-KEY: ${adminKey}'`;
+              // Use current browser origin for the API URL
+              const baseUrl = `${window.location.origin}/apisix/admin`;
+              const lines = [
+                `curl -i -X ${method} '${baseUrl}${endpoint}'`,
+                `  -H 'X-API-KEY: ${adminKey}'`,
+              ];
               if (needsBody && body.trim()) {
-                cmd += ` \\\n  --data-binary @- <<'EOF'\n${body}\nEOF`;
+                lines.push('  -H \'Content-Type: application/json\'');
+                lines.push(`  -d '${body.replace(/'/g, "'\\''").replace(/\n\s*/g, ' ').trim()}'`);
               }
               try {
-                await navigator.clipboard.writeText(cmd);
+                await navigator.clipboard.writeText(lines.join(' \\\n'));
                 message.success('Copied as curl');
               } catch {
                 message.error('Failed to copy');
@@ -372,6 +378,13 @@ function RawApiPage() {
               theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
               value={body}
               onChange={(val) => setBody(val ?? '')}
+              beforeMount={(monaco) => {
+                monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+                  validate: true,
+                  schemaValidation: 'ignore',
+                  enableSchemaRequest: false,
+                });
+              }}
               options={{
                 minimap: { enabled: false },
                 automaticLayout: true,
