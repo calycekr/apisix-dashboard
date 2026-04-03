@@ -17,9 +17,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space } from 'antd';
+import { Button, Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { GlobalRuleExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -40,6 +41,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function GlobalRulesList() {
   const { data, isLoading, refetch, pagination, setParams } = useGlobalRuleList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespGlobalRuleItem']>[]
@@ -72,9 +74,17 @@ function GlobalRulesList() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 200,
         render: (_, record) => [
           <Space key="actions">
+            <Button
+              key="raw"
+              size="small"
+              type="text"
+              onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}` })}
+            >
+              Raw
+            </Button>
             <ToDetailPageBtn
               key="detail"
               to="/global_rules/detail/$id"
@@ -120,6 +130,12 @@ function GlobalRulesList() {
           <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Global Rule" to="/global_rules/add" />,
         ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
       />
     </AntdConfigProvider>
   );

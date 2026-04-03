@@ -17,9 +17,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Space, Typography } from 'antd';
+import { Button, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -29,6 +29,7 @@ import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { ServiceExpandedRow } from '@/components/page/ExpandedRowComponents';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -42,6 +43,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams } = useServiceList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -110,9 +112,17 @@ const ServiceList = () => {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 200,
         render: (_, record) => [
           <Space key="actions">
+            <Button
+              key="raw"
+              size="small"
+              type="text"
+              onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}` })}
+            >
+              Raw
+            </Button>
             <ToDetailPageBtn
               key="detail"
               to="/services/detail/$id"
@@ -159,6 +169,12 @@ const ServiceList = () => {
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Service" to="/services/add" />,
         ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
       />
     </AntdConfigProvider>
   );

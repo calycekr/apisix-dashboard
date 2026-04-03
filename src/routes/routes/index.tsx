@@ -17,9 +17,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Space, Tag, Typography } from 'antd';
+import { Button, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -29,6 +29,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
@@ -137,6 +138,7 @@ export const RouteList = (props: RouteListProps) => {
     defaultParams
   );
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
   // Collect all unique plugin names from current page for filter dropdown
   const pluginFilterOptions = useMemo(() => {
@@ -280,9 +282,17 @@ export const RouteList = (props: RouteListProps) => {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 200,
         render: (_, record) => [
           <Space key="actions">
+            <Button
+              key="raw"
+              size="small"
+              type="text"
+              onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}` })}
+            >
+              Raw
+            </Button>
             <ToDetailBtn key="detail" record={record} />
             <DeleteResourceBtn
               key="delete"
@@ -327,6 +337,12 @@ export const RouteList = (props: RouteListProps) => {
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
       />
     </AntdConfigProvider>
   );
