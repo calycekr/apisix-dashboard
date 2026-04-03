@@ -52,7 +52,7 @@ const ApiStatusIndicator = () => {
     queryKey: ['api-health'],
     queryFn: async () => {
       try {
-        await req.get('/routes', { params: { page: 1, page_size: 1 } });
+        await req.get('/routes', { params: { page: 1, page_size: 10 } });
         return true;
       } catch {
         return false;

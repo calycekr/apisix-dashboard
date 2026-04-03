@@ -42,7 +42,7 @@ const AdminKey = () => {
     try {
       // Use raw axios to bypass global interceptors — test the key directly
       await axios.get(`${API_PREFIX}/routes`, {
-        params: { page: 1, page_size: 1 },
+        params: { page: 1, page_size: 10 },
         headers: { [API_HEADER_KEY]: adminKey },
       });
       setStatus('success');
