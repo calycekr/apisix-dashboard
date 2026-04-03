@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useNavigate, useRouterState } from '@tanstack/react-router';
-import { Layout, Menu, theme } from 'antd';
+import { Button, Layout, Menu, theme } from 'antd';
 import { useAtom } from 'jotai';
 import { type ReactNode, useEffect } from 'react';
 
@@ -34,6 +34,8 @@ import IconExtension from '~icons/material-symbols/extension';
 import IconGroup from '~icons/material-symbols/group';
 import IconKey from '~icons/material-symbols/key';
 import IconLock from '~icons/material-symbols/lock';
+import IconMenu from '~icons/material-symbols/menu';
+import IconMenuOpen from '~icons/material-symbols/menu-open';
 import IconPerson from '~icons/material-symbols/person';
 import IconPublic from '~icons/material-symbols/public';
 import IconRoute from '~icons/material-symbols/route';
@@ -102,7 +104,6 @@ export const Navbar = () => {
       collapsedWidth={SIDEBAR_COLLAPSED_WIDTH}
       collapsed={collapsed}
       style={{
-        overflow: 'auto',
         height: '100vh',
         position: 'fixed',
         left: 0,
@@ -110,43 +111,64 @@ export const Navbar = () => {
         bottom: 0,
         zIndex: 99,
         background: token.colorBgContainer,
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
+      {/* Logo — fixed at top, never scrolls */}
       <div
         style={{
           height: APPSHELL_HEADER_HEIGHT,
           display: 'flex',
           alignItems: 'center',
-          justifyContent: collapsed ? 'center' : 'flex-start',
+          justifyContent: collapsed ? 'center' : 'space-between',
           paddingInline: collapsed ? 0 : 20,
-          gap: 10,
           borderBottom: `1px solid ${token.colorBorderSecondary}`,
           flexShrink: 0,
-          cursor: 'pointer',
         }}
-        onClick={() => setCollapsed(!collapsed)}
       >
-        <img
-          src={apisixLogo}
-          alt="APISIX"
-          width={28}
-          height={28}
-          style={{ objectFit: 'contain', flexShrink: 0 }}
-        />
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <img
+            src={apisixLogo}
+            alt="APISIX"
+            width={28}
+            height={28}
+            style={{ objectFit: 'contain', flexShrink: 0 }}
+          />
+          {!collapsed && (
+            <span
+              style={{
+                fontWeight: 700,
+                fontSize: 16,
+                letterSpacing: 0.3,
+                whiteSpace: 'nowrap',
+              }}
+            >
+              APISIX
+            </span>
+          )}
+        </div>
         {!collapsed && (
-        <span
-          style={{
-            fontWeight: 700,
-            fontSize: 16,
-            letterSpacing: 0.3,
-            whiteSpace: 'nowrap',
-            overflow: 'hidden',
-          }}
-        >
-          APISIX
-        </span>
+          <Button
+            type="text"
+            size="small"
+            icon={<IconMenuOpen />}
+            onClick={() => setCollapsed(true)}
+            style={{ flexShrink: 0 }}
+          />
+        )}
+        {collapsed && (
+          <Button
+            type="text"
+            size="small"
+            icon={<IconMenu />}
+            onClick={() => setCollapsed(false)}
+            style={{ flexShrink: 0 }}
+          />
         )}
       </div>
+      {/* Menu — scrollable */}
+      <div style={{ flex: 1, overflow: 'auto' }}>
       <Menu
         mode="inline"
         selectedKeys={[selectedKey]}
@@ -242,6 +264,7 @@ export const Navbar = () => {
           },
         ]}
       />
+      </div>
     </Layout.Sider>
   );
 };
