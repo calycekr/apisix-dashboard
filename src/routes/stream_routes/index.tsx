@@ -17,9 +17,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space } from 'antd';
+import { Button, Space } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
@@ -28,6 +28,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
@@ -58,6 +59,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
     defaultParams
   );
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
@@ -150,9 +152,17 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 200,
         render: (_, record) => [
           <Space key="actions">
+            <Button
+              key="raw"
+              size="small"
+              type="text"
+              onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}` })}
+            >
+              Raw
+            </Button>
             <ToDetailBtn key="detail" record={record} />
             <DeleteResourceBtn
               key="delete"
@@ -195,6 +205,12 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ToAddPageBtn key="add" label="Add Stream Route" to={`${routeKey}add`} />,
         ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
       />
     </AntdConfigProvider>
   );

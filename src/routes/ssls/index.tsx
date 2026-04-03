@@ -17,9 +17,9 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
-import { Space, Tag, Typography } from 'antd';
+import { Button, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { SSLExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
@@ -40,6 +41,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function RouteComponent() {
   const { data, isLoading, refetch, pagination, setParams } = useSSLList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -134,9 +136,17 @@ function RouteComponent() {
         title: 'Actions',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 200,
         render: (_, record) => [
           <Space key="actions">
+            <Button
+              key="raw"
+              size="small"
+              type="text"
+              onClick={() => setRawTarget({ api: `${API_SSLS}/${record.value.id}`, title: `SSL: ${record.value.id}` })}
+            >
+              Raw
+            </Button>
             <ToDetailPageBtn
               key="detail"
               to="/ssls/detail/$id"
@@ -185,6 +195,12 @@ function RouteComponent() {
             <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ToAddPageBtn key="add" label="Add SSL" to="/ssls/add" />,
           ]}
+        />
+        <RawDrawer
+          open={!!rawTarget}
+          onClose={() => setRawTarget(null)}
+          api={rawTarget?.api ?? ''}
+          title={rawTarget?.title ?? ''}
         />
       </AntdConfigProvider>
     </>
