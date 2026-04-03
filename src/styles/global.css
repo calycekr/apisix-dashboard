@@ -1,3 +1,28 @@
+/* Thin scrollbar for modern look */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--ant-color-border);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ant-color-text-quaternary);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ant-color-border) transparent;
+}
+
 .monaco-editor,
 .monaco-editor .overflow-guard {
   border-radius: 6px;
