@@ -38,12 +38,16 @@ function extractNodes(upstream: APISIXType['Upstream']): string[] {
 }
 
 export const getTopologyData = async (): Promise<TopologyData> => {
-  const [routes, streamRoutes, services, upstreams] = await Promise.all([
+  const [routesRes, streamRoutesRes, servicesRes, upstreamsRes] = await Promise.allSettled([
     fetchAllResources<APISIXType['Route']>(getRouteListReq),
     fetchAllResources<APISIXType['StreamRoute']>(getStreamRouteListReq),
     fetchAllResources<APISIXType['Service']>(getServiceListReq),
     fetchAllResources<APISIXType['Upstream']>(getUpstreamListReq),
   ]);
+  const routes = routesRes.status === 'fulfilled' ? routesRes.value : [];
+  const streamRoutes = streamRoutesRes.status === 'fulfilled' ? streamRoutesRes.value : [];
+  const services = servicesRes.status === 'fulfilled' ? servicesRes.value : [];
+  const upstreams = upstreamsRes.status === 'fulfilled' ? upstreamsRes.value : [];
 
   return {
     routes: routes.map((r) => ({

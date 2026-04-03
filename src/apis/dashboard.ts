@@ -26,6 +26,7 @@ import {
   API_SSLS,
   API_STREAM_ROUTES,
   API_UPSTREAMS,
+  SKIP_INTERCEPTOR_HEADER,
 } from '@/config/constant';
 import { req } from '@/config/req';
 
@@ -67,7 +68,10 @@ export const getDashboardData = async (): Promise<DashboardData> => {
   const results = await Promise.allSettled(
     RESOURCES.map((r) =>
       req
-        .get(r.api, { params: { page: 1, page_size: 10 } })
+        .get(r.api, {
+          params: { page: 1, page_size: 10 },
+          headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
+        })
         .then((v) => ({
           key: r.key,
           detailPrefix: r.detailPrefix,

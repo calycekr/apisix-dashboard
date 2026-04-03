@@ -107,10 +107,7 @@ const RESOURCE_API_MAP: Record<ResourceKey, string> = {
 };
 
 export async function exportAllResources(): Promise<ExportData> {
-  const [
-    upstreams, services, routes, streamRoutes, consumers,
-    consumerGroups, ssls, globalRules, pluginConfigs, protos, secrets,
-  ] = await Promise.all([
+  const results = await Promise.allSettled([
     fetchAllResources(getUpstreamListReq),
     fetchAllResources(getServiceListReq),
     fetchAllResources(getRouteListReq),
@@ -123,13 +120,15 @@ export async function exportAllResources(): Promise<ExportData> {
     fetchAllResources(getProtoListReq),
     fetchAllResources(getSecretListReq),
   ]);
+  const v = (i: number) => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<Record<string, unknown>[]>).value : [];
 
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
     resources: {
-      upstreams, services, routes, streamRoutes, consumers,
-      consumerGroups, ssls, globalRules, pluginConfigs, protos, secrets,
+      upstreams: v(0), services: v(1), routes: v(2), streamRoutes: v(3),
+      consumers: v(4), consumerGroups: v(5), ssls: v(6), globalRules: v(7),
+      pluginConfigs: v(8), protos: v(9), secrets: v(10),
     },
   };
 }
