@@ -27,8 +27,7 @@ export const pageSearchSchema = z
     page_size: z
       .union([z.string(), z.number()])
       .optional()
-      .default(10)
-      .transform((val) => (val ? Number(val) : 10)),
+      .transform((val) => (val ? Number(val) : undefined)),
     name: z.string().optional(),
     uri: z.string().optional(),
     label: z.string().optional(),
