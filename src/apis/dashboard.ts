@@ -26,6 +26,7 @@ import {
   API_SSLS,
   API_STREAM_ROUTES,
   API_UPSTREAMS,
+  SKIP_INTERCEPTOR_HEADER,
 } from '@/config/constant';
 import { req } from '@/config/req';
 
@@ -59,7 +60,7 @@ export type DashboardData = {
 };
 
 /**
- * Single pass: one API call per resource (page_size=5) gives both
+ * Single pass: one API call per resource (page_size=10) gives both
  * the total count (via response.total) and recent items (via response.list).
  * This halves the number of API calls compared to separate count + recent calls.
  */
@@ -67,7 +68,10 @@ export const getDashboardData = async (): Promise<DashboardData> => {
   const results = await Promise.allSettled(
     RESOURCES.map((r) =>
       req
-        .get(r.api, { params: { page: 1, page_size: 10 } })
+        .get(r.api, {
+          params: { page: 1, page_size: 10 },
+          headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
+        })
         .then((v) => ({
           key: r.key,
           detailPrefix: r.detailPrefix,

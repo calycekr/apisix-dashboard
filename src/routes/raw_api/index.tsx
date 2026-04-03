@@ -30,6 +30,7 @@ import {
   Spin,
   Typography,
 } from 'antd';
+import { useAtomValue } from 'jotai';
 import { useCallback, useEffect, useState } from 'react';
 
 import PageHeader from '@/components/page/PageHeader';
@@ -47,7 +48,7 @@ import {
   API_UPSTREAMS,
 } from '@/config/constant';
 import { req } from '@/config/req';
-import { useThemeMode } from '@/stores/global';
+import { adminKeyAtom, useThemeMode } from '@/stores/global';
 
 const RESOURCE_OPTIONS = [
   { label: 'Routes', value: API_ROUTES },
@@ -125,6 +126,7 @@ function useExistingResources(resource: string) {
 
 function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
+  const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
   const [method, setMethod] = useState('PUT');
   const [resourceId, setResourceId] = useState('');
@@ -330,6 +332,28 @@ function RawApiPage() {
               {method === 'DELETE' && 'DELETE removes the resource permanently. No request body needed.'}
             </Typography.Text>
           </div>
+          <Button
+            size="small"
+            type="text"
+            onClick={async () => {
+              if (!adminKey?.trim()) {
+                message.warning('Admin Key required for curl command');
+                return;
+              }
+              let cmd = `curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}' \\\n  -H 'X-API-KEY: ${adminKey}'`;
+              if (needsBody && body.trim()) {
+                cmd += ` \\\n  --data-binary @- <<'EOF'\n${body}\nEOF`;
+              }
+              try {
+                await navigator.clipboard.writeText(cmd);
+                message.success('Copied as curl');
+              } catch {
+                message.error('Failed to copy');
+              }
+            }}
+          >
+            Copy as curl
+          </Button>
         </Space>
       </Card>
 
@@ -373,7 +397,14 @@ function RawApiPage() {
       )}
 
       {response && (
-        <Card title="Response">
+        <Card
+          title="Response"
+          extra={
+            <Button size="small" onClick={() => { navigator.clipboard.writeText(response); message.success('Response copied'); }}>
+              Copy
+            </Button>
+          }
+        >
           <div
             style={{
               border: '1px solid var(--ant-color-border)',

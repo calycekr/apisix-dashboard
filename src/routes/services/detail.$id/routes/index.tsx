@@ -18,7 +18,6 @@ import { createFileRoute, useParams } from '@tanstack/react-router';
 
 import { getRouteListQueryOptions } from '@/apis/hooks';
 import PageHeader from '@/components/page/PageHeader';
-import { ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { queryClient } from '@/config/global';
 import { RouteList } from '@/routes/routes';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
@@ -35,13 +34,7 @@ function RouteComponent() {
             service_id: id,
           },
         }}
-        ToDetailBtn={({ record }) => (
-          <ToDetailPageBtn
-            key="detail"
-            to="/services/detail/$id/routes/detail/$routeId"
-            params={{ id, routeId: record.value.id }}
-          />
-        )}
+        detailLink={(routeId) => ({ to: '/services/detail/$id/routes/detail/$routeId', params: { id, routeId } })}
       />
     </>
   );

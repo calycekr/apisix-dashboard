@@ -114,13 +114,15 @@ function CredentialsList() {
         loading={isLoading}
         search={false}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:credentials',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
-        headerTitle="Credentials"
+        headerTitle={<Space><span>Credentials</span><ToAddPageBtn label="Add Credential" to="/consumers/detail/$username/credentials/add" params={{ username }} /></Space>}
         pagination={false}
         cardProps={{ bodyStyle: { padding: 0 } }}
-        toolBarRender={() => [
-          <ToAddPageBtn key="add" label="Add Credential" to="/consumers/detail/$username/credentials/add" params={{ username }} />,
-        ]}
+        toolBarRender={() => []}
       />
     </AntdConfigProvider>
   );

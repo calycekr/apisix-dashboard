@@ -110,13 +110,16 @@ function SecretList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:secrets',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
-        headerTitle="Secrets"
+        headerTitle={<Space><span>Secrets</span><ToAddPageBtn label="Add Secret" to="/secrets/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Secret" to="/secrets/add" />,
         ]}
       />
     </AntdConfigProvider>

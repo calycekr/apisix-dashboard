@@ -15,8 +15,9 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
-import { Alert, Button, Drawer, Space } from 'antd';
-import { useCallback, useEffect, useState } from 'react';
+import { Alert, Button, Drawer, message, Radio, Space, Tooltip, Typography } from 'antd';
+import type { editor } from 'monaco-editor';
+import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
@@ -40,6 +41,8 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveMode, setSaveMode] = useState<'patch' | 'put'>('patch');
+  const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
     if (!open || !api) return;
@@ -58,7 +61,6 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
       return;
     }
 
-    // Fetch only if no cached data provided
     setLoading(true);
     setError(null);
     req
@@ -71,7 +73,7 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
       .finally(() => setLoading(false));
   }, [open, api, initialData]);
 
-  const handlePut = useCallback(async () => {
+  const handleSave = useCallback(async () => {
     setError(null);
     let parsed: unknown;
     try {
@@ -82,11 +84,15 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     }
     setSaving(true);
     try {
-      const body = { ...(parsed as Record<string, unknown>) };
-      delete body.id;
-      delete body.username;
-      await req.put(api, body);
-      showNotification({ message: 'Saved successfully (PUT)', type: 'success' });
+      if (saveMode === 'patch') {
+        await req.patch(api, parsed);
+      } else {
+        const body = { ...(parsed as Record<string, unknown>) };
+        delete body.id;
+        delete body.username;
+        await req.put(api, body);
+      }
+      showNotification({ message: `Saved (${saveMode.toUpperCase()})`, type: 'success' });
       queryClient.invalidateQueries();
       onClose();
     } catch (e) {
@@ -94,29 +100,35 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     } finally {
       setSaving(false);
     }
-  }, [api, value, onClose]);
+  }, [api, value, saveMode, onClose]);
 
-  const handlePatch = useCallback(async () => {
-    setError(null);
-    let parsed: unknown;
+  const handleCopy = useCallback(async () => {
     try {
-      parsed = JSON.parse(value);
-    } catch (e) {
-      setError('Invalid JSON: ' + String(e));
-      return;
+      await navigator.clipboard.writeText(value);
+      message.success('Copied to clipboard');
+    } catch {
+      message.error('Failed to copy to clipboard');
     }
-    setSaving(true);
-    try {
-      await req.patch(api, parsed);
-      showNotification({ message: 'Saved successfully (PATCH)', type: 'success' });
-      queryClient.invalidateQueries();
-      onClose();
-    } catch (e) {
-      setError('Save failed: ' + (e instanceof Error ? e.message : String(e)));
-    } finally {
-      setSaving(false);
-    }
-  }, [api, value, onClose]);
+  }, [value]);
+
+  // Ctrl+S: use refs to avoid stale closure
+  const valueRef = useRef(value);
+  const originalRef = useRef(original);
+  const handleSaveRef = useRef(handleSave);
+  valueRef.current = value;
+  originalRef.current = original;
+  handleSaveRef.current = handleSave;
+
+  const handleEditorMount = useCallback(
+    (ed: editor.IStandaloneCodeEditor) => {
+      editorRef.current = ed;
+       
+      ed.addCommand(2048 | 49, () => {
+        if (valueRef.current !== originalRef.current) handleSaveRef.current();
+      });
+    },
+    []
+  );
 
   const isDirty = value !== original;
 
@@ -124,31 +136,46 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     <Drawer
       open={open}
       onClose={onClose}
-      title={title}
-      width={640}
+      title={
+        <div>
+          <div>{title}</div>
+          <Typography.Text type="secondary" copyable style={{ fontSize: 12, fontFamily: 'monospace' }}>
+            {api}
+          </Typography.Text>
+        </div>
+      }
+      width={700}
       placement="right"
       extra={
         <Space>
+          <Tooltip title="Copy JSON">
+            <Button size="small" onClick={handleCopy}>Copy</Button>
+          </Tooltip>
           <Button size="small" onClick={() => setValue(original)} disabled={!isDirty}>
             Reset
           </Button>
-          <Button
+          <Radio.Group
             size="small"
-            loading={saving}
-            onClick={handlePatch}
-            disabled={!isDirty}
-            style={{ background: isDirty ? '#52c41a' : undefined, color: isDirty ? '#fff' : undefined }}
+            value={saveMode}
+            onChange={(e) => setSaveMode(e.target.value)}
+            optionType="button"
+            buttonStyle="solid"
           >
-            PATCH
-          </Button>
+            <Tooltip title="Only send changed fields — other fields untouched">
+              <Radio.Button value="patch">PATCH</Radio.Button>
+            </Tooltip>
+            <Tooltip title="Replace entire resource — omitted fields removed">
+              <Radio.Button value="put">PUT</Radio.Button>
+            </Tooltip>
+          </Radio.Group>
           <Button
             size="small"
             type="primary"
             loading={saving}
-            onClick={handlePut}
+            onClick={handleSave}
             disabled={!isDirty}
           >
-            PUT
+            Save
           </Button>
         </Space>
       }
@@ -156,16 +183,22 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
       {error && (
         <Alert type="error" showIcon message={error} style={{ marginBottom: 12 }} closable onClose={() => setError(null)} />
       )}
+      {isDirty && (
+        <Typography.Text type="warning" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          Unsaved changes · Ctrl+S to save · {saveMode === 'patch' ? 'PATCH mode (partial update)' : 'PUT mode (full replace)'}
+        </Typography.Text>
+      )}
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>Loading...</div>
       ) : (
         <div style={{ border: '1px solid var(--ant-color-border)', borderRadius: 6, overflow: 'hidden' }}>
           <Editor
-            height="calc(100vh - 180px)"
+            height="calc(100vh - 220px)"
             language="json"
             theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
             value={value}
             onChange={(v) => setValue(v ?? '')}
+            onMount={handleEditorMount}
             options={{
               minimap: { enabled: false },
               automaticLayout: true,

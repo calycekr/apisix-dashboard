@@ -24,12 +24,11 @@ import { useMemo, useState } from 'react';
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { ConsumerExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_CONSUMERS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -48,7 +47,11 @@ function ConsumersList() {
         dataIndex: ['value', 'username'],
         title: 'Username',
         key: 'username',
-        render: (_, record) => <CopyableID id={record.value.username} />,
+        render: (_, record) => (
+          <Link to="/consumers/detail/$username" params={{ username: record.value.username }}>
+            <CopyableID id={record.value.username} />
+          </Link>
+        ),
       },
       {
         dataIndex: ['value', 'desc'],
@@ -82,37 +85,23 @@ function ConsumersList() {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_CONSUMERS}/${record.value.username}`, title: `Consumer: ${record.value.username}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailPageBtn
-              key="detail"
-              to="/consumers/detail/$username"
-              params={{ username: record.value.username }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Consumer"
-              target={record.value.username}
-              api={`${API_CONSUMERS}/${record.value.username}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_CONSUMERS}/${record.value.username}`, title: `Consumer: ${record.value.username}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <AntdConfigProvider>
@@ -129,8 +118,12 @@ function ConsumersList() {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:consumers',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
-        headerTitle="Consumers"
+        headerTitle={<Space><span>Consumers</span><ToAddPageBtn label="Add Consumer" to="/consumers/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         expandable={{
@@ -139,7 +132,6 @@ function ConsumersList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumers..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Consumer" to="/consumers/add" />,
         ]}
       />
       <RawDrawer

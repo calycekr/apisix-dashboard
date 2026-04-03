@@ -19,6 +19,7 @@ import { Input, Modal, Spin, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { RESOURCES } from '@/apis/dashboard';
+import { SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
 import { req } from '@/config/req';
 import IconSearch from '~icons/material-symbols/search';
 
@@ -95,6 +96,7 @@ export const GlobalSearch = () => {
         const res = await req.get(r.api, {
           params: { page: 1, page_size: 10, name: q },
           signal: controller.signal,
+          headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
         });
         const list = res.data?.list;
         if (!Array.isArray(list)) return;

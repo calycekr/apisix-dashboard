@@ -27,8 +27,12 @@ export const pageSearchSchema = z
     page_size: z
       .union([z.string(), z.number()])
       .optional()
-      .default(10)
-      .transform((val) => (val ? Number(val) : 10)),
+      .transform((val) => {
+        if (val === undefined || val === null || val === '') return undefined;
+        const n = Number(val);
+        if (isNaN(n) || n < 10 || n > 500) return undefined;
+        return n;
+      }),
     name: z.string().optional(),
     uri: z.string().optional(),
     label: z.string().optional(),

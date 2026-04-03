@@ -26,12 +26,11 @@ import type { WithServiceIdFilter } from '@/apis/routes';
 import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_ROUTES } from '@/config/constant';
@@ -45,9 +44,7 @@ import type { ListPageKeys } from '@/utils/useTablePagination';
 export type RouteListProps = {
   routeKey: Extract<ListPageKeys, '/routes/' | '/services/detail/$id/routes/'>;
   defaultParams?: Partial<WithServiceIdFilter>;
-  ToDetailBtn: (props: {
-    record: APISIXType['RespRouteItem'];
-  }) => React.ReactNode;
+  detailLink: (id: string) => { to: string; params: Record<string, string> };
 };
 
 const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
@@ -132,7 +129,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 };
 
 export const RouteList = (props: RouteListProps) => {
-  const { routeKey, ToDetailBtn, defaultParams } = props;
+  const { routeKey, detailLink, defaultParams } = props;
   const { data, isLoading, refetch, pagination, setParams } = useRouteList(
     routeKey,
     defaultParams
@@ -166,9 +163,14 @@ export const RouteList = (props: RouteListProps) => {
         dataIndex: ['value', 'name'],
         title: 'Name',
         key: 'name',
-        render: (_, record) => (
-          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
-        ),
+        render: (_, record) => {
+          const link = detailLink(record.value.id);
+          return (
+            <Link to={link.to} params={link.params}>
+              <Typography.Text strong>{record.value.name || record.value.id}</Typography.Text>
+            </Link>
+          );
+        },
       },
       {
         dataIndex: ['value', 'host'],
@@ -279,33 +281,23 @@ export const RouteList = (props: RouteListProps) => {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
-            >
-              Raw
-            </Button>
-            <ToDetailBtn key="detail" record={record} />
-            <DeleteResourceBtn
-              key="delete"
-              name="Route"
-              target={record.value.id}
-              api={`${API_ROUTES}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [ToDetailBtn, refetch, pluginFilterOptions]);
+  }, [detailLink, pluginFilterOptions]);
 
   return (
     <AntdConfigProvider>
@@ -323,8 +315,17 @@ export const RouteList = (props: RouteListProps) => {
         search={false}
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
+        columnsState={{
+          persistenceKey: 'table:routes',
+          persistenceType: 'localStorage',
+        }}
         dateFormatter="string"
-        headerTitle="Routes"
+        headerTitle={
+          <Space>
+            <span>Routes</span>
+            <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />
+          </Space>
+        }
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
         scroll={{ x: 'max-content' }}
@@ -335,7 +336,6 @@ export const RouteList = (props: RouteListProps) => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-          <ToAddPageBtn key="add" label="Add Route" to={`${routeKey}add`} />,
         ]}
       />
       <RawDrawer
@@ -355,13 +355,7 @@ function RouteComponent() {
       <PageHeader title="Routes" />
       <RouteList
         routeKey="/routes/"
-        ToDetailBtn={({ record }) => (
-          <ToDetailPageBtn
-            key="detail"
-            to="/routes/detail/$id"
-            params={{ id: record.value.id }}
-          />
-        )}
+        detailLink={(id) => ({ to: '/routes/detail/$id', params: { id } })}
       />
     </>
   );

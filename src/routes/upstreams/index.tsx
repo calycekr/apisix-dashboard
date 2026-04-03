@@ -16,7 +16,7 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button, Space, Tag, Tooltip, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -25,12 +25,11 @@ import { getUpstreamListQueryOptions, useUpstreamList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { UpstreamExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_UPSTREAMS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -59,7 +58,9 @@ function RouteComponent() {
         title: 'Name',
         key: 'name',
         render: (_, record) => (
-          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+          <Link to="/upstreams/detail/$id" params={{ id: record.value.id }}>
+            <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+          </Link>
         ),
       },
       {
@@ -142,37 +143,23 @@ function RouteComponent() {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_UPSTREAMS}/${record.value.id}`, title: `Upstream: ${record.value.name || record.value.id}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailPageBtn
-              key="detail"
-              to="/upstreams/detail/$id"
-              params={{ id: record.value.id }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Upstream"
-              target={record.value.id}
-              api={`${API_UPSTREAMS}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_UPSTREAMS}/${record.value.id}`, title: `Upstream: ${record.value.name || record.value.id}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <>
@@ -191,8 +178,12 @@ function RouteComponent() {
           search={false}
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
+          columnsState={{
+            persistenceKey: 'table:upstreams',
+            persistenceType: 'localStorage',
+          }}
           dateFormatter="string"
-          headerTitle="Upstreams"
+          headerTitle={<Space><span>Upstreams</span><ToAddPageBtn label="Add Upstream" to="/upstreams/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
           expandable={{
@@ -201,7 +192,6 @@ function RouteComponent() {
           }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
-            <ToAddPageBtn key="add" label="Add Upstream" to="/upstreams/add" />,
           ]}
         />
         <RawDrawer
