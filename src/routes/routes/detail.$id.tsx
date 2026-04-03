@@ -51,33 +51,14 @@ import { req } from '@/config/req';
 import { type APISIXType } from '@/types/schema/apisix';
 import { showNotification } from '@/utils/notification';
 
-/** Extract key config value for common plugins to show in summary */
-function summarizePlugin(name: string, cfg: Record<string, unknown>): string {
+/** Summarize plugin config generically — no hardcoded plugin names */
+function summarizePlugin(cfg: Record<string, unknown>): string {
   if (!cfg || Object.keys(cfg).length === 0) return '';
-  switch (name) {
-    case 'limit-count': return `${cfg.count ?? '?'}/${cfg.time_window ?? '?'}s`;
-    case 'limit-req': return `rate:${cfg.rate ?? '?'} burst:${cfg.burst ?? '?'}`;
-    case 'limit-conn': return `conn:${cfg.conn ?? '?'}`;
-    case 'key-auth': return 'key';
-    case 'basic-auth': return 'basic';
-    case 'jwt-auth': return 'jwt';
-    case 'hmac-auth': return 'hmac';
-    case 'cors': return cfg.allow_origins ? `origins:${cfg.allow_origins}` : 'enabled';
-    case 'ip-restriction': {
-      const wl = cfg.whitelist as string[] | undefined;
-      const bl = cfg.blacklist as string[] | undefined;
-      if (wl?.length) return `allow:${wl.length}`;
-      if (bl?.length) return `deny:${bl.length}`;
-      return 'enabled';
-    }
-    case 'proxy-rewrite': return cfg.uri ? `→${cfg.uri}` : 'rewrite';
-    case 'redirect': return cfg.uri ? `→${cfg.uri}` : cfg.http_to_https ? 'https' : 'redirect';
-    default: {
-      const keys = Object.keys(cfg);
-      if (keys.length <= 2) return keys.map((k) => `${k}:${cfg[k]}`).join(' ');
-      return `${keys.length} opts`;
-    }
-  }
+  const entries = Object.entries(cfg).filter(
+    ([, v]) => typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'
+  );
+  if (entries.length === 0) return `${Object.keys(cfg).length} opts`;
+  return entries.slice(0, 2).map(([k, v]) => `${k}:${v}`).join(' ');
 }
 
 type Props = {
@@ -161,7 +142,7 @@ const RouteDetailForm = (props: Props) => {
                 <div style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 4, marginTop: 4 }}>
                   {pluginNames.map((p) => {
                     const cfg = route.plugins?.[p] as Record<string, unknown> | undefined;
-                    const hint = cfg ? summarizePlugin(p, cfg) : '';
+                    const hint = cfg ? summarizePlugin(cfg) : '';
                     return (
                       <Tooltip key={p} title={hint || undefined}>
                         <Tag style={{ fontSize: 11, cursor: hint ? 'help' : 'default' }}>

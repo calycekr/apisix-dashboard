@@ -138,7 +138,7 @@ export const RouteList = (props: RouteListProps) => {
     defaultParams
   );
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
-  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   // Collect all unique plugin names from current page for filter dropdown
   const pluginFilterOptions = useMemo(() => {
@@ -289,7 +289,7 @@ export const RouteList = (props: RouteListProps) => {
               key="raw"
               size="small"
               type="text"
-              onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}` })}
+              onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
             >
               Raw
             </Button>
@@ -343,6 +343,7 @@ export const RouteList = (props: RouteListProps) => {
         onClose={() => setRawTarget(null)}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
       />
     </AntdConfigProvider>
   );

@@ -29,9 +29,11 @@ type RawDrawerProps = {
   /** Full API path, e.g. '/routes/123' */
   api: string;
   title: string;
+  /** Pre-loaded data from list cache — avoids re-fetching */
+  initialData?: Record<string, unknown>;
 };
 
-export const RawDrawer = ({ open, onClose, api, title }: RawDrawerProps) => {
+export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerProps) => {
   const { mode } = useThemeMode();
   const [value, setValue] = useState('');
   const [original, setOriginal] = useState('');
@@ -39,27 +41,35 @@ export const RawDrawer = ({ open, onClose, api, title }: RawDrawerProps) => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Fetch resource when opened
   useEffect(() => {
     if (!open || !api) return;
+
+    const loadData = (data: Record<string, unknown>) => {
+      const copy = { ...data };
+      delete copy.create_time;
+      delete copy.update_time;
+      const json = JSON.stringify(copy, null, 2);
+      setValue(json);
+      setOriginal(json);
+    };
+
+    if (initialData) {
+      loadData(initialData);
+      return;
+    }
+
+    // Fetch only if no cached data provided
     setLoading(true);
     setError(null);
     req
       .get(api)
       .then((res) => {
         const data = res.data?.value;
-        if (data) {
-          const copy = { ...data };
-          delete copy.create_time;
-          delete copy.update_time;
-          const json = JSON.stringify(copy, null, 2);
-          setValue(json);
-          setOriginal(json);
-        }
+        if (data) loadData(data);
       })
       .catch(() => setError('Failed to load resource'))
       .finally(() => setLoading(false));
-  }, [open, api]);
+  }, [open, api, initialData]);
 
   const handlePut = useCallback(async () => {
     setError(null);
