@@ -14,11 +14,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { createFileRoute, useParams } from '@tanstack/react-router';
+import { createFileRoute, Link, useParams } from '@tanstack/react-router';
+import { Typography } from 'antd';
 
 import { getStreamRouteListQueryOptions } from '@/apis/hooks';
 import PageHeader from '@/components/page/PageHeader';
-import { ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
 import { queryClient } from '@/config/global';
 import { StreamRouteList } from '@/routes/stream_routes';
@@ -31,12 +31,10 @@ function StreamRouteComponent() {
       <PageHeader title="Stream Routes" />
       <StreamRouteList
         routeKey="/services/detail/$id/stream_routes/"
-        ToDetailBtn={({ record }) => (
-          <ToDetailPageBtn
-            key="detail"
-            to="/services/detail/$id/stream_routes/detail/$routeId"
-            params={{ id, routeId: record.value.id }}
-          />
+        detailLink={(record) => (
+          <Link to="/services/detail/$id/stream_routes/detail/$routeId" params={{ id, routeId: record.value.id }}>
+            <Typography.Text strong>{record.value.id}</Typography.Text>
+          </Link>
         )}
         defaultParams={{
           filter: {

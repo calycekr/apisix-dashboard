@@ -16,7 +16,7 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
+import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button, Space, Tag, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
@@ -24,12 +24,11 @@ import { useMemo, useState } from 'react';
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { SSLExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SSLS } from '@/config/constant';
@@ -61,7 +60,11 @@ function RouteComponent() {
           const sni = record.value.sni;
           const snis = record.value.snis;
           const display = sni || (snis && snis.length > 0 ? snis.join(', ') : '-');
-          return <Typography.Text strong>{display}</Typography.Text>;
+          return (
+            <Link to="/ssls/detail/$id" params={{ id: record.value.id }}>
+              <Typography.Text strong>{display}</Typography.Text>
+            </Link>
+          );
         },
       },
       {
@@ -133,37 +136,23 @@ function RouteComponent() {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_SSLS}/${record.value.id}`, title: `SSL: ${record.value.id}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailPageBtn
-              key="detail"
-              to="/ssls/detail/$id"
-              params={{ id: record.value.id }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="SSL"
-              target={record.value.id}
-              api={`${API_SSLS}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_SSLS}/${record.value.id}`, title: `SSL: ${record.value.id}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <>

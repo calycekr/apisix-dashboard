@@ -25,13 +25,12 @@ import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { ServiceExpandedRow } from '@/components/page/ExpandedRowComponents';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SERVICES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -59,7 +58,9 @@ const ServiceList = () => {
         title: 'Name',
         key: 'name',
         render: (_, record) => (
-          <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+          <Link to="/services/detail/$id" params={{ id: record.value.id }}>
+            <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+          </Link>
         ),
       },
       {
@@ -109,37 +110,23 @@ const ServiceList = () => {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailPageBtn
-              key="detail"
-              to="/services/detail/$id"
-              params={{ id: record.value.id }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Service"
-              target={record.value.id}
-              api={`${API_SERVICES}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <AntdConfigProvider>

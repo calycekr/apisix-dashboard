@@ -16,20 +16,18 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
-import { Button, Space } from 'antd';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Button, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getGlobalRuleListQueryOptions, useGlobalRuleList } from '@/apis/hooks';
-import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { GlobalRuleExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_GLOBAL_RULES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -52,7 +50,11 @@ function GlobalRulesList() {
         title: 'ID',
         key: 'id',
         width: 120,
-        render: (_, record) => <CopyableID id={record.value.id} />,
+        render: (_, record) => (
+          <Link to="/global_rules/detail/$id" params={{ id: record.value.id }}>
+            <Typography.Text strong>{record.value.id}</Typography.Text>
+          </Link>
+        ),
       },
       {
         dataIndex: ['value', 'plugins'],
@@ -71,37 +73,23 @@ function GlobalRulesList() {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailPageBtn
-              key="detail"
-              to="/global_rules/detail/$id"
-              params={{ id: record.value.id }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Global Rule"
-              target={record.value.id}
-              api={`${API_GLOBAL_RULES}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <AntdConfigProvider>

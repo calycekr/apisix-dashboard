@@ -16,21 +16,19 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
-import { Button, Space } from 'antd';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Button, Space, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
-import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
 import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -46,14 +44,12 @@ export type StreamRouteListProps = {
     ListPageKeys,
     '/stream_routes/' | '/services/detail/$id/stream_routes/'
   >;
-  ToDetailBtn: (props: {
-    record: APISIXType['RespStreamRouteItem'];
-  }) => React.ReactNode;
+  detailLink: (record: APISIXType['RespStreamRouteItem']) => React.ReactNode;
   defaultParams?: Partial<WithServiceIdFilter>;
 };
 
 export const StreamRouteList = (props: StreamRouteListProps) => {
-  const { routeKey, ToDetailBtn, defaultParams } = props;
+  const { routeKey, detailLink, defaultParams } = props;
   const { data, isLoading, refetch, pagination, setParams } = useStreamRouteList(
     routeKey,
     defaultParams
@@ -70,7 +66,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         title: 'ID',
         key: 'id',
         width: 120,
-        render: (_, record) => <CopyableID id={record.value.id} />,
+        render: (_, record) => detailLink(record),
       },
       {
         dataIndex: ['value', 'server_addr'],
@@ -149,33 +145,23 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         },
       },
       {
-        title: 'Actions',
+        title: '',
         valueType: 'option',
         key: 'option',
-        width: 200,
+        width: 60,
         render: (_, record) => [
-          <Space key="actions">
-            <Button
-              key="raw"
-              size="small"
-              type="text"
-              onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}` })}
-            >
-              Raw
-            </Button>
-            <ToDetailBtn key="detail" record={record} />
-            <DeleteResourceBtn
-              key="delete"
-              name="Stream Route"
-              target={record.value.id}
-              api={`${API_STREAM_ROUTES}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="text"
+            onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}` })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [ToDetailBtn, refetch]);
+  }, [detailLink]);
 
   return (
     <AntdConfigProvider>
@@ -226,12 +212,10 @@ function StreamRouteComponent() {
       <PageHeader title="Stream Routes" />
       <StreamRouteList
         routeKey="/stream_routes/"
-        ToDetailBtn={({ record }) => (
-          <ToDetailPageBtn
-            key="detail"
-            to="/stream_routes/detail/$id"
-            params={{ id: record.value.id }}
-          />
+        detailLink={(record) => (
+          <Link to="/stream_routes/detail/$id" params={{ id: record.value.id }}>
+            <Typography.Text strong>{record.value.id}</Typography.Text>
+          </Link>
         )}
       />
     </>
