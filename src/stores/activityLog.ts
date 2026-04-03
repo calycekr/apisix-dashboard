@@ -28,12 +28,10 @@ const MAX_ENTRIES = 100;
 export const activityLogAtom = atom<ActivityLogEntry[]>([]);
 export const unreadErrorCountAtom = atom<number>(0);
 
-let counter = 0;
-
 export const addLogEntry = (type: ActivityLogEntry['type'], message: string) => {
   const store = getDefaultStore();
   const entry: ActivityLogEntry = {
-    id: `${Date.now()}-${counter++}`,
+    id: crypto.randomUUID(),
     timestamp: Date.now(),
     type,
     message,

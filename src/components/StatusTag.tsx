@@ -50,6 +50,7 @@ export const StatusSwitch = ({ status: statusProp, api }: StatusSwitchProps) => 
   if (status === undefined) return <Tag>—</Tag>;
 
   const handleToggle = async (checked: boolean) => {
+    if (loading) return;
     setLoading(true);
     try {
       await req.patch(api, { status: checked ? 1 : 0 });

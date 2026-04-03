@@ -64,7 +64,7 @@ const RESOURCE_OPTIONS = [
   { label: 'Secrets', value: API_SECRETS },
 ];
 
-const METHODS = ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'] as const;
+const METHODS = ['PUT', 'PATCH', 'GET', 'POST', 'DELETE'] as const;
 
 const METHOD_COLORS: Record<string, string> = {
   GET: '#13c2c2',
@@ -121,7 +121,7 @@ function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
   const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
-  const [method, setMethod] = useState<string>('GET');
+  const [method, setMethod] = useState<string>('PUT');
   const [resourceId, setResourceId] = useState('');
   const [body, setBody] = useState(DEFAULT_BODY);
   const [loading, setLoading] = useState(false);
@@ -206,14 +206,19 @@ function RawApiPage() {
 
   const handleCopyCurl = useCallback(async () => {
     if (!adminKey?.trim()) { message.warning('Admin Key required'); return; }
+    const masked = adminKey.length > 4
+      ? adminKey.slice(0, 2) + '*'.repeat(adminKey.length - 4) + adminKey.slice(-2)
+      : '****';
     const baseUrl = `${window.location.origin}/apisix/admin`;
-    const lines = [`curl -i -X ${method} '${baseUrl}${endpoint}'`, `  -H 'X-API-KEY: ${adminKey}'`];
+    const lines = [`curl -i -X ${method} '${baseUrl}${endpoint}'`, `  -H 'X-API-KEY: ${masked}'`];
     if (needsBody && body.trim()) {
       lines.push("  -H 'Content-Type: application/json'");
       lines.push(`  -d '${body.replace(/'/g, "'\\''").replace(/\n\s*/g, ' ').trim()}'`);
     }
-    try { await navigator.clipboard.writeText(lines.join(' \\\n')); message.success('Copied as curl'); }
-    catch { message.error('Failed to copy'); }
+    try {
+      await navigator.clipboard.writeText(lines.join(' \\\n'));
+      message.success('Copied as curl (Admin Key masked — replace the masked value with your key)');
+    } catch { message.error('Failed to copy'); }
   }, [method, endpoint, body, needsBody, adminKey]);
 
   const editorHeight = 'calc(100vh - 340px)';

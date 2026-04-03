@@ -16,11 +16,11 @@
 
 *:hover > ::-webkit-scrollbar-thumb,
 *::-webkit-scrollbar-thumb:hover {
-  background: rgba(128, 128, 128, 0.3);
+  background: rgba(128, 128, 128, 0.4);
 }
 
 *::-webkit-scrollbar-thumb:active {
-  background: rgba(128, 128, 128, 0.5);
+  background: rgba(128, 128, 128, 0.6);
 }
 
 /* Firefox */
@@ -30,7 +30,7 @@
 }
 
 *:hover {
-  scrollbar-color: rgba(128, 128, 128, 0.3) transparent;
+  scrollbar-color: rgba(128, 128, 128, 0.4) transparent;
 }
 
 .monaco-editor,

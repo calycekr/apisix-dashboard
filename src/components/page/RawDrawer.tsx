@@ -74,6 +74,7 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
   }, [open, api, initialData]);
 
   const handleSave = useCallback(async () => {
+    if (saving) return;
     setError(null);
     let parsed: unknown;
     try {
@@ -100,7 +101,7 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     } finally {
       setSaving(false);
     }
-  }, [api, value, saveMode, onClose]);
+  }, [api, value, saveMode, saving, onClose]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -110,6 +111,11 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
       message.error('Failed to copy to clipboard');
     }
   }, [value]);
+
+  // Dispose Monaco on unmount to prevent memory leak
+  useEffect(() => {
+    return () => { editorRef.current?.dispose(); };
+  }, []);
 
   // Ctrl+S: use refs to avoid stale closure
   const valueRef = useRef(value);

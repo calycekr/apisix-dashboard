@@ -35,21 +35,29 @@ import { useCallback, useEffect, useMemo } from 'react';
 
 import { getTopologyData, type TopologyData } from '@/apis/topology';
 import PageHeader from '@/components/page/PageHeader';
+import { useThemeMode } from '@/stores/global';
 
 const NODE_WIDTH = 200;
 const NODE_HEIGHT = 60;
 
-const NODE_COLORS: Record<string, { bg: string; border: string; tag: string }> = {
+const NODE_COLORS_LIGHT: Record<string, { bg: string; border: string; tag: string }> = {
   route: { bg: '#e6f4ff', border: '#1677ff', tag: 'blue' },
   streamRoute: { bg: '#e6fffb', border: '#13c2c2', tag: 'cyan' },
   service: { bg: '#f6ffed', border: '#52c41a', tag: 'green' },
   upstream: { bg: '#f9f0ff', border: '#722ed1', tag: 'purple' },
 };
 
+const NODE_COLORS_DARK: Record<string, { bg: string; border: string; tag: string }> = {
+  route: { bg: '#111a2c', border: '#1668dc', tag: 'blue' },
+  streamRoute: { bg: '#112123', border: '#13a8a8', tag: 'cyan' },
+  service: { bg: '#162312', border: '#49aa19', tag: 'green' },
+  upstream: { bg: '#1a1325', border: '#642ab5', tag: 'purple' },
+};
+
 function buildGraphLayout(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 120 });
+  g.setGraph({ rankdir: 'TB', nodesep: 30, ranksep: 80 });
 
   for (const node of nodes) {
     g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
@@ -72,7 +80,7 @@ function buildGraphLayout(nodes: Node[], edges: Edge[]): Node[] {
   });
 }
 
-function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] } {
+function buildNodesAndEdges(data: TopologyData, nodeColors: NodeColorSet): { nodes: Node[]; edges: Edge[] } {
   const nodes: Node[] = [];
   const edges: Edge[] = [];
 
@@ -87,11 +95,12 @@ function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] 
             type="upstream"
             name={u.name || u.id}
             detail={u.nodes.length ? u.nodes.slice(0, 2).join(', ') + (u.nodes.length > 2 ? '...' : '') : ''}
+            nodeColors={nodeColors}
           />
         ),
       },
       position: { x: 0, y: 0 },
-      style: nodeStyle('upstream'),
+      style: nodeStyle('upstream', nodeColors),
     });
   }
 
@@ -106,11 +115,12 @@ function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] 
             type="service"
             name={s.name || s.id}
             detail={s.hasInlineUpstream ? 'inline upstream' : ''}
+            nodeColors={nodeColors}
           />
         ),
       },
       position: { x: 0, y: 0 },
-      style: nodeStyle('service'),
+      style: nodeStyle('service', nodeColors),
     });
 
     if (s.upstream_id) {
@@ -135,11 +145,12 @@ function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] 
             type="route"
             name={r.name || r.id}
             detail={r.uri || ''}
+            nodeColors={nodeColors}
           />
         ),
       },
       position: { x: 0, y: 0 },
-      style: nodeStyle('route'),
+      style: nodeStyle('route', nodeColors),
     });
 
     if (r.service_id) {
@@ -173,11 +184,12 @@ function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] 
             type="streamRoute"
             name={r.name || r.id}
             detail=""
+            nodeColors={nodeColors}
           />
         ),
       },
       position: { x: 0, y: 0 },
-      style: nodeStyle('streamRoute'),
+      style: nodeStyle('streamRoute', nodeColors),
     });
 
     if (r.service_id) {
@@ -204,8 +216,10 @@ function buildNodesAndEdges(data: TopologyData): { nodes: Node[]; edges: Edge[] 
   return { nodes: layoutNodes, edges };
 }
 
-function nodeStyle(type: string): React.CSSProperties {
-  const colors = NODE_COLORS[type] ?? NODE_COLORS.route;
+type NodeColorSet = Record<string, { bg: string; border: string; tag: string }>;
+
+function nodeStyle(type: string, nodeColors: NodeColorSet): React.CSSProperties {
+  const colors = nodeColors[type] ?? nodeColors.route;
   return {
     background: colors.bg,
     border: `2px solid ${colors.border}`,
@@ -216,8 +230,8 @@ function nodeStyle(type: string): React.CSSProperties {
   };
 }
 
-function NodeLabel({ type, name, detail }: { type: string; name: string; detail: string }) {
-  const colors = NODE_COLORS[type] ?? NODE_COLORS.route;
+function NodeLabel({ type, name, detail, nodeColors }: { type: string; name: string; detail: string; nodeColors: NodeColorSet }) {
+  const colors = nodeColors[type] ?? nodeColors.route;
   const typeLabels: Record<string, string> = {
     route: 'Route',
     streamRoute: 'Stream',
@@ -245,11 +259,13 @@ function NodeLabel({ type, name, detail }: { type: string; name: string; detail:
 
 function TopologyGraph({ data }: { data: TopologyData }) {
   const { token } = theme.useToken();
+  const { mode } = useThemeMode();
   const navigate = useNavigate();
+  const nodeColors = mode === 'dark' ? NODE_COLORS_DARK : NODE_COLORS_LIGHT;
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
-    () => buildNodesAndEdges(data),
-    [data]
+    () => buildNodesAndEdges(data, nodeColors),
+    [data, nodeColors]
   );
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
