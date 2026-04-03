@@ -64,7 +64,7 @@ const RESOURCE_OPTIONS = [
   { label: 'Secrets', value: API_SECRETS },
 ];
 
-const METHODS = ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'] as const;
+const METHODS = ['PUT', 'PATCH', 'GET', 'POST', 'DELETE'] as const;
 
 const METHOD_COLORS: Record<string, string> = {
   GET: '#13c2c2',
@@ -121,7 +121,7 @@ function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
   const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
-  const [method, setMethod] = useState<string>('GET');
+  const [method, setMethod] = useState<string>('PUT');
   const [resourceId, setResourceId] = useState('');
   const [body, setBody] = useState(DEFAULT_BODY);
   const [loading, setLoading] = useState(false);
