@@ -41,7 +41,6 @@ req.interceptors.request.use((conf) => {
   conf.baseURL = API_PREFIX;
   const adminKey = getDefaultStore().get(adminKeyAtom);
   if (!adminKey) {
-    // Block request if no admin key configured
     getDefaultStore().set(isSettingsOpenAtom, true);
     return Promise.reject(new axios.Cancel('Admin Key not configured'));
   }
@@ -54,20 +53,42 @@ export type APISIXRespErr = {
   message?: string;
 };
 
-/**
- * use request header `[SKIP_INTERCEPTOR_HEADER]: ['404', ...]` to skip interceptor for specific status code.
- */
 const matchSkipInterceptor = (err: AxiosError) => {
   const interceptors = err.config?.headers?.[SKIP_INTERCEPTOR_HEADER] || [];
   const status = err.response?.status;
   return interceptors.some((v: string) => v === String(status));
 };
 
+/** Build a human-readable error message with context */
+function buildErrorMessage(err: AxiosError<APISIXRespErr>): string {
+  const method = err.config?.method?.toUpperCase() ?? '';
+  const path = err.config?.url ?? '';
+  const status = err.response?.status;
+  const apisixMsg = err.response?.data?.error_msg || err.response?.data?.message;
+
+  // Network error (server unreachable)
+  if (!err.response) {
+    return `Network error: Cannot reach APISIX (${method} ${path}). Check that APISIX is running.`;
+  }
+
+  const statusLabel =
+    status === 400 ? 'Bad Request' :
+    status === 404 ? 'Not Found' :
+    status === 409 ? 'Conflict' :
+    status === 500 ? 'Server Error' :
+    status === 503 ? 'Service Unavailable' :
+    `Error ${status}`;
+
+  // APISIX returned an error message
+  if (apisixMsg) {
+    return `${statusLabel}: ${apisixMsg} (${method} ${path})`;
+  }
+
+  return `${statusLabel} on ${method} ${path}`;
+}
+
 req.interceptors.response.use(
   (res) => {
-    // it's a apisix design
-    // when list is empty, it will be a object
-    // but we need a array
     if (
       res.data?.list &&
       !Array.isArray(res.data.list) &&
@@ -78,12 +99,16 @@ req.interceptors.response.use(
     return res;
   },
   (err) => {
+    // Don't show error for cancelled requests (e.g., Admin Key not configured)
+    if (axios.isCancel(err)) {
+      return Promise.reject(err);
+    }
+
     if (err.response) {
       if (matchSkipInterceptor(err)) return Promise.reject(err);
       const res = err.response as AxiosResponse<APISIXRespErr>;
-      const d = res.data;
+
       if (res.status === HttpStatusCode.Unauthorized) {
-        // Show single auth error, don't spam for every failed request
         showNotification({
           id: 'auth-error',
           message: 'Authentication failed — check your Admin Key in Settings',
@@ -91,13 +116,23 @@ req.interceptors.response.use(
         });
         getDefaultStore().set(isSettingsOpenAtom, true);
       } else {
+        const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
         showNotification({
-          id: d?.error_msg || d?.message,
-          message: d?.error_msg || d?.message || '',
+          id: message,
+          message,
           type: 'error',
         });
       }
+    } else {
+      // Network error — no response at all
+      const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
+      showNotification({
+        id: 'network-error',
+        message,
+        type: 'error',
+      });
     }
+
     return Promise.reject(err);
   }
 );
