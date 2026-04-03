@@ -29,7 +29,7 @@ export const renderPluginCount = (
   const remaining = names.length - MAX_VISIBLE;
 
   return (
-    <span style={{ display: 'inline-flex', flexWrap: 'wrap', gap: 3 }}>
+    <span style={{ display: 'inline-flex', gap: 3, overflow: 'hidden', maxWidth: '100%' }}>
       {visible.map((n) => (
         <Tag key={n} style={{ margin: 0, fontSize: 11 }}>
           {n}
