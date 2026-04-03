@@ -15,11 +15,12 @@
  * limitations under the License.
  */
 import { Alert, Button, Divider, Input, Modal, Space, Typography } from 'antd';
+import axios from 'axios';
 import { useAtom, useAtomValue } from 'jotai';
 import { useCallback, useState } from 'react';
 
+import { API_HEADER_KEY, API_PREFIX } from '@/config/constant';
 import { queryClient } from '@/config/global';
-import { req } from '@/config/req';
 import { adminKeyAtom, isSettingsOpenAtom } from '@/stores/global';
 import { sha } from '~build/git';
 
@@ -39,14 +40,23 @@ const AdminKey = () => {
     setStatus('testing');
     setErrorMsg('');
     try {
-      await req.get('/routes', { params: { page: 1, page_size: 1 } });
+      // Use raw axios to bypass global interceptors — test the key directly
+      await axios.get(`${API_PREFIX}/routes`, {
+        params: { page: 1, page_size: 1 },
+        headers: { [API_HEADER_KEY]: adminKey },
+      });
       setStatus('success');
-      // Refresh all data with the new key
       queryClient.invalidateQueries();
       queryClient.refetchQueries();
-    } catch {
+    } catch (e) {
       setStatus('error');
-      setErrorMsg('Connection failed — the Admin Key may be incorrect, or APISIX is unreachable');
+      if (axios.isAxiosError(e) && e.response?.status === 401) {
+        setErrorMsg('Authentication failed — the Admin Key is incorrect');
+      } else if (axios.isAxiosError(e) && !e.response) {
+        setErrorMsg('Cannot reach APISIX Admin API — check that APISIX is running');
+      } else {
+        setErrorMsg('Connection failed — check Admin Key and APISIX status');
+      }
     }
   }, [adminKey]);
 
