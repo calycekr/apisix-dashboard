@@ -31,7 +31,7 @@ export const unreadErrorCountAtom = atom<number>(0);
 export const addLogEntry = (type: ActivityLogEntry['type'], message: string) => {
   const store = getDefaultStore();
   const entry: ActivityLogEntry = {
-    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+    id: crypto.randomUUID(),
     timestamp: Date.now(),
     type,
     message,

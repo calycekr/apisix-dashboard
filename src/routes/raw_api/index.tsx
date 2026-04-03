@@ -217,7 +217,7 @@ function RawApiPage() {
     }
     try {
       await navigator.clipboard.writeText(lines.join(' \\\n'));
-      message.success('Copied as curl (Admin Key masked — replace **** with your key)');
+      message.success('Copied as curl (Admin Key masked — replace the masked value with your key)');
     } catch { message.error('Failed to copy'); }
   }, [method, endpoint, body, needsBody, adminKey]);
 

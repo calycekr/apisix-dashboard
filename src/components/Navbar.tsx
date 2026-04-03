@@ -154,6 +154,8 @@ export const Navbar = () => {
             size="small"
             icon={<IconMenuOpen />}
             onClick={() => setCollapsed(true)}
+            aria-label="Collapse sidebar"
+            title="Collapse sidebar"
             style={{ flexShrink: 0 }}
           />
         )}
@@ -163,6 +165,8 @@ export const Navbar = () => {
             size="small"
             icon={<IconMenu />}
             onClick={() => setCollapsed(false)}
+            aria-label="Expand sidebar"
+            title="Expand sidebar"
             style={{ flexShrink: 0 }}
           />
         )}

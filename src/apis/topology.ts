@@ -33,7 +33,9 @@ function extractNodes(upstream: APISIXType['Upstream']): string[] {
     const nodes = upstream.nodes;
     if (!nodes || typeof nodes !== 'object') return [];
     if (Array.isArray(nodes)) {
-      return nodes.filter((n) => n?.host).map((n) => `${n.host}:${n.port ?? 80}`);
+      return nodes
+        .filter((n) => n?.host && typeof n.port === 'number')
+        .map((n) => `${n.host}:${n.port}`);
     }
     return Object.keys(nodes);
   } catch {
