@@ -330,6 +330,21 @@ function RawApiPage() {
               {method === 'DELETE' && 'DELETE removes the resource permanently. No request body needed.'}
             </Typography.Text>
           </div>
+          <Button
+            size="small"
+            type="text"
+            onClick={() => {
+              const curlParts = [`curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}'`];
+              curlParts.push('  -H \'X-API-KEY: <your-key>\'');
+              if (needsBody && body.trim()) {
+                curlParts.push(`  -d '${body.replace(/\n\s*/g, ' ').trim()}'`);
+              }
+              navigator.clipboard.writeText(curlParts.join(' \\\n'));
+              message.success('Copied as curl');
+            }}
+          >
+            Copy as curl
+          </Button>
         </Space>
       </Card>
 
@@ -373,7 +388,14 @@ function RawApiPage() {
       )}
 
       {response && (
-        <Card title="Response">
+        <Card
+          title="Response"
+          extra={
+            <Button size="small" onClick={() => { navigator.clipboard.writeText(response); message.success('Response copied'); }}>
+              Copy
+            </Button>
+          }
+        >
           <div
             style={{
               border: '1px solid var(--ant-color-border)',
