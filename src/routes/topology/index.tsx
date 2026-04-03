@@ -57,7 +57,7 @@ const NODE_COLORS_DARK: Record<string, { bg: string; border: string; tag: string
 function buildGraphLayout(nodes: Node[], edges: Edge[]): Node[] {
   const g = new dagre.graphlib.Graph();
   g.setDefaultEdgeLabel(() => ({}));
-  g.setGraph({ rankdir: 'LR', nodesep: 40, ranksep: 120 });
+  g.setGraph({ rankdir: 'TB', nodesep: 30, ranksep: 80 });
 
   for (const node of nodes) {
     g.setNode(node.id, { width: NODE_WIDTH, height: NODE_HEIGHT });
