@@ -38,13 +38,6 @@ export const setupNotification = (
   notificationApi = ntf;
 };
 
-const TITLES: Record<NotificationType, string> = {
-  success: 'Success',
-  info: 'Info',
-  warning: 'Warning',
-  error: 'Error',
-};
-
 export const showNotification = ({
   message,
   type,
@@ -52,9 +45,13 @@ export const showNotification = ({
 }: ShowNotificationOptions): void => {
   addLogEntry(type, message);
 
-  // Success/info → lightweight center toast (unobtrusive)
+  // Success/info → lightweight center toast
   if (type === 'success' || type === 'info') {
-    if (!messageApi) return;
+    if (!messageApi) {
+      // eslint-disable-next-line no-console
+      console.warn('[notification] messageApi not initialized:', message);
+      return;
+    }
     messageApi.open({
       type,
       content: message,
@@ -64,14 +61,24 @@ export const showNotification = ({
     return;
   }
 
-  // Error/warning → top-right notification card (persistent, detailed)
-  if (!notificationApi) return;
-  notificationApi.open({
-    type,
-    message: TITLES[type],
+  // Error/warning → top-right notification card
+  if (!notificationApi) {
+    // eslint-disable-next-line no-console
+    console.warn('[notification] notificationApi not initialized:', message);
+    return;
+  }
+
+  const config = {
+    message: type === 'error' ? 'Error' : 'Warning',
     description: message,
     key: id,
     duration: type === 'error' ? 10 : 8,
-    placement: 'topRight',
-  });
+    placement: 'topRight' as const,
+  };
+
+  if (type === 'error') {
+    notificationApi.error(config);
+  } else {
+    notificationApi.warning(config);
+  }
 };
