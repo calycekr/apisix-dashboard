@@ -30,6 +30,7 @@ import {
   Spin,
   Typography,
 } from 'antd';
+import { useAtomValue } from 'jotai';
 import { useCallback, useEffect, useState } from 'react';
 
 import PageHeader from '@/components/page/PageHeader';
@@ -47,7 +48,7 @@ import {
   API_UPSTREAMS,
 } from '@/config/constant';
 import { req } from '@/config/req';
-import { useThemeMode } from '@/stores/global';
+import { adminKeyAtom, useThemeMode } from '@/stores/global';
 
 const RESOURCE_OPTIONS = [
   { label: 'Routes', value: API_ROUTES },
@@ -125,6 +126,7 @@ function useExistingResources(resource: string) {
 
 function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
+  const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
   const [method, setMethod] = useState('PUT');
   const [resourceId, setResourceId] = useState('');
@@ -335,7 +337,7 @@ function RawApiPage() {
             type="text"
             onClick={() => {
               const curlParts = [`curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}'`];
-              curlParts.push('  -H \'X-API-KEY: <your-key>\'');
+              curlParts.push(`  -H 'X-API-KEY: ${adminKey}'`);
               if (needsBody && body.trim()) {
                 curlParts.push(`  -d '${body.replace(/\n\s*/g, ' ').trim()}'`);
               }
