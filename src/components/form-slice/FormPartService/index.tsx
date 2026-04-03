@@ -30,7 +30,7 @@ import type { ServicePostType } from './schema';
 
 const FormSectionPlugins = () => {
   return (
-    <FormSection legend="Plugins" collapsible defaultOpen={false}>
+    <FormSection legend="Plugins" collapsible defaultOpen={true}>
       <FormItemPlugins name="plugins" />
     </FormSection>
   );

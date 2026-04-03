@@ -22,7 +22,7 @@ export const FormPartCredential = () => {
   return (
     <>
       <FormPartBasic showName={false} />
-      <FormSection legend="Plugins" collapsible defaultOpen={false}>
+      <FormSection legend="Plugins" collapsible defaultOpen={true}>
         <FormItemPlugins name="plugins" schema="consumer_schema" />
       </FormSection>
     </>

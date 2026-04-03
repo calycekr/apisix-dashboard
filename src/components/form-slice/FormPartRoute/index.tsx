@@ -166,7 +166,7 @@ export const FormSectionUpstream = () => {
 export const FormSectionPlugins = () => {
   const { control } = useFormContext<RoutePostType>();
   return (
-    <FormSection legend="Plugins" collapsible defaultOpen={false}>
+    <FormSection legend="Plugins" collapsible defaultOpen={true}>
       <ResourceSelect
         control={control}
         name="plugin_config_id"
