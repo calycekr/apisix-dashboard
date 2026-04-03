@@ -29,6 +29,17 @@ type ReverseReferencesProps = {
   resourceId: string;
 };
 
+/** Safely fetch all resources, returning empty array on failure */
+async function safeFetchAll<T>(
+  fetcher: Parameters<typeof fetchAllResources<T>>[0]
+): Promise<T[]> {
+  try {
+    return await fetchAllResources<T>(fetcher);
+  } catch {
+    return [];
+  }
+}
+
 export const ReverseReferences = ({ resourceType, resourceId }: ReverseReferencesProps) => {
   const { data, isLoading } = useQuery({
     queryKey: ['reverse-references', resourceType, resourceId],
@@ -36,40 +47,38 @@ export const ReverseReferences = ({ resourceType, resourceId }: ReverseReference
       const refs: Array<{ type: string; id: string; name?: string; detailPath: string }> = [];
 
       if (resourceType === 'upstream') {
-        // Find routes and services referencing this upstream
         const [routes, services, streamRoutes] = await Promise.all([
-          fetchAllResources<APISIXType['Route']>(getRouteListReq),
-          fetchAllResources<APISIXType['Service']>(getServiceListReq),
-          fetchAllResources<APISIXType['StreamRoute']>(getStreamRouteListReq),
+          safeFetchAll<APISIXType['Route']>(getRouteListReq),
+          safeFetchAll<APISIXType['Service']>(getServiceListReq),
+          safeFetchAll<APISIXType['StreamRoute']>(getStreamRouteListReq),
         ]);
         for (const r of routes) {
-          if (r.upstream_id === resourceId) {
+          if (String(r.upstream_id) === String(resourceId)) {
             refs.push({ type: 'Route', id: r.id, name: r.name, detailPath: `/routes/detail/${r.id}` });
           }
         }
         for (const s of services) {
-          if (s.upstream_id === resourceId) {
+          if (String(s.upstream_id) === String(resourceId)) {
             refs.push({ type: 'Service', id: s.id, name: s.name, detailPath: `/services/detail/${s.id}` });
           }
         }
         for (const sr of streamRoutes) {
-          if (sr.upstream_id === resourceId) {
+          if (String(sr.upstream_id) === String(resourceId)) {
             refs.push({ type: 'Stream Route', id: sr.id, detailPath: `/stream_routes/detail/${sr.id}` });
           }
         }
       } else if (resourceType === 'service') {
-        // Find routes referencing this service
         const [routes, streamRoutes] = await Promise.all([
-          fetchAllResources<APISIXType['Route']>(getRouteListReq),
-          fetchAllResources<APISIXType['StreamRoute']>(getStreamRouteListReq),
+          safeFetchAll<APISIXType['Route']>(getRouteListReq),
+          safeFetchAll<APISIXType['StreamRoute']>(getStreamRouteListReq),
         ]);
         for (const r of routes) {
-          if (r.service_id === resourceId) {
+          if (String(r.service_id) === String(resourceId)) {
             refs.push({ type: 'Route', id: r.id, name: r.name, detailPath: `/routes/detail/${r.id}` });
           }
         }
         for (const sr of streamRoutes) {
-          if (sr.service_id === resourceId) {
+          if (String(sr.service_id) === String(resourceId)) {
             refs.push({ type: 'Stream Route', id: sr.id, detailPath: `/stream_routes/detail/${sr.id}` });
           }
         }

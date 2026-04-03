@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import type { MessageInstance } from 'antd/es/message/interface';
+import type { NotificationInstance } from 'antd/es/notification/interface';
 
 import { addLogEntry } from '@/stores/activityLog';
 
@@ -27,16 +28,14 @@ export type ShowNotificationOptions = {
 };
 
 let messageApi: MessageInstance | null = null;
+let notificationApi: NotificationInstance | null = null;
 
-export const setupNotification = (msg: MessageInstance): void => {
+export const setupNotification = (
+  msg: MessageInstance,
+  ntf: NotificationInstance
+): void => {
   messageApi = msg;
-};
-
-const DURATION: Record<NotificationType, number> = {
-  success: 3,
-  info: 5,
-  warning: 6,
-  error: 8,
+  notificationApi = ntf;
 };
 
 export const showNotification = ({
@@ -44,19 +43,42 @@ export const showNotification = ({
   type,
   id,
 }: ShowNotificationOptions): void => {
-  // Always log to activity log for persistence
   addLogEntry(type, message);
 
-  if (!messageApi) {
-    // eslint-disable-next-line no-console
-    console.warn('[notification] setupNotification not called yet:', message);
+  // Success/info → lightweight center toast
+  if (type === 'success' || type === 'info') {
+    if (!messageApi) {
+      // eslint-disable-next-line no-console
+      console.warn('[notification] messageApi not initialized:', message);
+      return;
+    }
+    messageApi.open({
+      type,
+      content: message,
+      key: id,
+      duration: type === 'success' ? 3 : 5,
+    });
     return;
   }
 
-  messageApi.open({
-    type,
-    content: message,
+  // Error/warning → top-right notification card
+  if (!notificationApi) {
+    // eslint-disable-next-line no-console
+    console.warn('[notification] notificationApi not initialized:', message);
+    return;
+  }
+
+  const config = {
+    message: type === 'error' ? 'Error' : 'Warning',
+    description: message,
     key: id,
-    duration: DURATION[type],
-  });
+    duration: type === 'error' ? 10 : 8,
+    placement: 'topRight' as const,
+  };
+
+  if (type === 'error') {
+    notificationApi.error(config);
+  } else {
+    notificationApi.warning(config);
+  }
 };

@@ -28,10 +28,10 @@ import { setupNotification } from './utils/notification';
 
 // eslint-disable-next-line react-refresh/only-export-components
 const NotificationBridge = () => {
-  const { message } = App.useApp();
+  const { message, notification } = App.useApp();
   useEffect(() => {
-    setupNotification(message);
-  }, [message]);
+    setupNotification(message, notification);
+  }, [message, notification]);
   return null;
 };
 

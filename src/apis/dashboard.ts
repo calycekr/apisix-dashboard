@@ -67,7 +67,7 @@ export const getDashboardData = async (): Promise<DashboardData> => {
   const results = await Promise.allSettled(
     RESOURCES.map((r) =>
       req
-        .get(r.api, { params: { page: 1, page_size: 5 } })
+        .get(r.api, { params: { page: 1, page_size: 10 } })
         .then((v) => ({
           key: r.key,
           detailPrefix: r.detailPrefix,
