@@ -59,7 +59,7 @@ export type DashboardData = {
 };
 
 /**
- * Single pass: one API call per resource (page_size=5) gives both
+ * Single pass: one API call per resource (page_size=10) gives both
  * the total count (via response.total) and recent items (via response.list).
  * This halves the number of API calls compared to separate count + recent calls.
  */
