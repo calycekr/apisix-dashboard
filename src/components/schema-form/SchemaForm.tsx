@@ -435,16 +435,24 @@ export const SchemaForm = ({
 
   if (!properties) return null;
 
+  const safeValue = value ?? {};
   const required = requiredFields ?? s.required ?? [];
 
   return (
     <div>
       {Object.entries(properties).map(([key, propSchema]) => {
-        const fieldValue = value[key] ?? (propSchema as JSONSchemaProperty).default;
+        const ps = propSchema as JSONSchemaProperty;
+        const rawValue = safeValue[key];
+        // Provide safe defaults for nested types to prevent "Cannot read properties of undefined"
+        const fieldValue = rawValue ?? ps.default ?? (
+          ps.type === 'object' || ps.properties ? {} :
+          ps.type === 'array' ? [] :
+          undefined
+        );
         const isRequired = required.includes(key);
 
         const handleChange = (val: unknown) => {
-          onChange({ ...value, [key]: val });
+          onChange({ ...safeValue, [key]: val });
         };
 
         return (

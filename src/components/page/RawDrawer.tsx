@@ -199,6 +199,14 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
             value={value}
             onChange={(v) => setValue(v ?? '')}
             onMount={handleEditorMount}
+            beforeMount={(monaco) => {
+              monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+                validate: true,
+                allowComments: false,
+                schemaValidation: 'ignore',
+                enableSchemaRequest: false,
+              });
+            }}
             options={{
               minimap: { enabled: false },
               automaticLayout: true,

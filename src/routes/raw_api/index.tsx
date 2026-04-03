@@ -17,7 +17,6 @@
 import { Editor } from '@monaco-editor/react';
 import { createFileRoute } from '@tanstack/react-router';
 import {
-  Alert,
   AutoComplete,
   Button,
   Card,
@@ -28,6 +27,7 @@ import {
   Select,
   Space,
   Spin,
+  Tag,
   Typography,
 } from 'antd';
 import { useAtomValue } from 'jotai';
@@ -64,20 +64,22 @@ const RESOURCE_OPTIONS = [
   { label: 'Secrets', value: API_SECRETS },
 ];
 
-const METHOD_OPTIONS = [
-  { label: 'PUT — Create or full replace (entire body required)', value: 'PUT' },
-  { label: 'PATCH — Partial update (only changed fields needed)', value: 'PATCH' },
-  { label: 'POST — Create with auto-generated ID', value: 'POST' },
-  { label: 'GET — Read resource by ID', value: 'GET' },
-  { label: 'DELETE — Delete resource by ID', value: 'DELETE' },
-];
+const METHODS = ['GET', 'PUT', 'PATCH', 'POST', 'DELETE'] as const;
 
 const METHOD_COLORS: Record<string, string> = {
+  GET: '#13c2c2',
   PUT: '#faad14',
   PATCH: '#52c41a',
   POST: '#1677ff',
-  GET: '#13c2c2',
   DELETE: '#ff4d4f',
+};
+
+const METHOD_HINTS: Record<string, string> = {
+  GET: 'Read resource',
+  PUT: 'Full replace — omitted fields removed',
+  PATCH: 'Partial update — only changed fields',
+  POST: 'Create with auto-generated ID',
+  DELETE: 'Delete permanently',
 };
 
 const DEFAULT_BODY = `{
@@ -99,10 +101,7 @@ function useExistingResources(resource: string) {
       .then((res) => {
         if (cancelled) return;
         const list = res.data?.list;
-        if (!Array.isArray(list)) {
-          setItems([]);
-          return;
-        }
+        if (!Array.isArray(list)) { setItems([]); return; }
         setItems(
           list.map((item: { value: Record<string, unknown> }) => ({
             id: String(item.value.id || item.value.username || ''),
@@ -110,15 +109,9 @@ function useExistingResources(resource: string) {
           }))
         );
       })
-      .catch(() => {
-        if (!cancelled) setItems([]);
-      })
-      .finally(() => {
-        if (!cancelled) setLoading(false);
-      });
-    return () => {
-      cancelled = true;
-    };
+      .catch(() => { if (!cancelled) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
   }, [resource]);
 
   return { items, loading };
@@ -128,26 +121,22 @@ function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
   const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
-  const [method, setMethod] = useState('PUT');
+  const [method, setMethod] = useState<string>('GET');
   const [resourceId, setResourceId] = useState('');
   const [body, setBody] = useState(DEFAULT_BODY);
   const [loading, setLoading] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
-  const [response, setResponse] = useState<string | null>(null);
+  const [response, setResponse] = useState<{ status: number; data: string; time: number } | null>(null);
   const [responseError, setResponseError] = useState<string | null>(null);
 
-  const { items: existingResources, loading: resourcesLoading } =
-    useExistingResources(resource);
+  const { items: existingResources, loading: resourcesLoading } = useExistingResources(resource);
 
   const needsId = method !== 'POST';
   const needsBody = method !== 'GET' && method !== 'DELETE';
   const endpoint = needsId && resourceId ? `${resource}/${resourceId}` : resource;
 
   const handleLoadExisting = useCallback(async () => {
-    if (!resourceId) {
-      message.warning('Enter an ID to load');
-      return;
-    }
+    if (!resourceId) { message.warning('Enter an ID to load'); return; }
     setLoadingExisting(true);
     try {
       const res = await req.get(`${resource}/${resourceId}`);
@@ -158,8 +147,6 @@ function RawApiPage() {
         delete copy.update_time;
         setBody(JSON.stringify(copy, null, 2));
         message.success(`Loaded ${resourceId}`);
-      } else {
-        setBody(JSON.stringify(res.data, null, 2));
       }
     } catch {
       message.error(`Failed to load ${resourceId}`);
@@ -174,262 +161,230 @@ function RawApiPage() {
       try {
         parsedBody = JSON.parse(body);
       } catch (e) {
-        message.error('Invalid JSON body: ' + String(e));
+        message.error('Invalid JSON: ' + String(e));
         return;
       }
     }
-
     setLoading(true);
     setResponse(null);
     setResponseError(null);
-
+    const start = performance.now();
     try {
-      const res = await req.request({
-        method: method.toLowerCase(),
-        url: endpoint,
-        data: parsedBody,
+      const res = await req.request({ method: method.toLowerCase(), url: endpoint, data: parsedBody });
+      setResponse({
+        status: res.status,
+        data: JSON.stringify(res.data, null, 2),
+        time: Math.round(performance.now() - start),
       });
-      setResponse(JSON.stringify(res.data, null, 2));
-      message.success(`${method} ${endpoint} — Success`);
     } catch (e) {
-      const errMsg = e instanceof Error ? e.message : String(e);
-      setResponseError(errMsg);
+      setResponseError(e instanceof Error ? e.message : String(e));
+      setResponse({ status: 0, data: '', time: Math.round(performance.now() - start) });
     } finally {
       setLoading(false);
     }
   }, [method, endpoint, body, needsBody]);
 
   const handleExecute = useCallback(() => {
-    if (needsId && !resourceId) {
-      message.warning('Please enter a resource ID');
-      return;
-    }
-
+    if (needsId && !resourceId) { message.warning('Please enter a resource ID'); return; }
     if (method === 'DELETE') {
       Modal.confirm({
-        centered: true,
-        okButtonProps: { danger: true },
+        centered: true, okButtonProps: { danger: true },
         title: `DELETE ${endpoint}`,
-        content: 'This will permanently delete the resource. Are you sure?',
-        okText: 'Delete',
-        onOk: doExecute,
+        content: 'This will permanently delete the resource.',
+        okText: 'Delete', onOk: doExecute,
       });
     } else if (method === 'PUT' && resourceId) {
       Modal.confirm({
-        centered: true,
-        title: `PUT ${endpoint}`,
-        content: 'PUT replaces the entire resource. Omitted fields will be removed. Continue?',
-        okText: 'Execute',
-        onOk: doExecute,
+        centered: true, title: `PUT ${endpoint}`,
+        content: 'PUT replaces the entire resource. Omitted fields will be removed.',
+        okText: 'Execute', onOk: doExecute,
       });
     } else {
       doExecute();
     }
   }, [method, endpoint, needsId, resourceId, doExecute]);
 
-  const autocompleteOptions = existingResources.map((r) => ({
-    value: r.id,
-    label: (
-      <span>
-        <Typography.Text code style={{ fontSize: 12 }}>
-          {r.id}
-        </Typography.Text>
-        {r.name && (
-          <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
-            {r.name}
-          </Typography.Text>
-        )}
-      </span>
-    ),
-  }));
+  const handleCopyCurl = useCallback(async () => {
+    if (!adminKey?.trim()) { message.warning('Admin Key required'); return; }
+    const baseUrl = `${window.location.origin}/apisix/admin`;
+    const lines = [`curl -i -X ${method} '${baseUrl}${endpoint}'`, `  -H 'X-API-KEY: ${adminKey}'`];
+    if (needsBody && body.trim()) {
+      lines.push("  -H 'Content-Type: application/json'");
+      lines.push(`  -d '${body.replace(/'/g, "'\\''").replace(/\n\s*/g, ' ').trim()}'`);
+    }
+    try { await navigator.clipboard.writeText(lines.join(' \\\n')); message.success('Copied as curl'); }
+    catch { message.error('Failed to copy'); }
+  }, [method, endpoint, body, needsBody, adminKey]);
+
+  const editorHeight = 'calc(100vh - 340px)';
+  const statusColor = response ? (response.status < 300 ? 'success' : response.status < 400 ? 'warning' : 'error') : undefined;
 
   return (
     <>
-      <PageHeader
-        title="Raw API"
-        desc="Execute APISIX Admin API requests directly — select an existing resource or create new ones"
-      />
+      <PageHeader title="Raw API" desc="Execute APISIX Admin API requests directly" />
 
-      <Card style={{ marginBottom: 16 }}>
-        <Space direction="vertical" style={{ width: '100%' }} size="middle">
-          <Row gutter={12} align="middle">
-            <Col flex="160px">
-              <Select
-                value={method}
-                onChange={setMethod}
-                options={METHOD_OPTIONS}
-                style={{ width: '100%' }}
-                labelRender={({ value }) => (
-                  <span style={{ color: METHOD_COLORS[value as string], fontWeight: 600 }}>
-                    {value as string}
-                  </span>
-                )}
-              />
-            </Col>
-            <Col flex="200px">
-              <Select
-                value={resource}
-                onChange={(v) => {
-                  setResource(v);
-                  setResourceId('');
-                  setResponse(null);
-                  setResponseError(null);
-                }}
-                options={RESOURCE_OPTIONS}
-                style={{ width: '100%' }}
-                showSearch
-                optionFilterProp="label"
-              />
-            </Col>
-            <Col>
-              <Typography.Text type="secondary">/</Typography.Text>
-            </Col>
-            <Col flex="auto">
-              <AutoComplete
-                value={resourceId}
-                onChange={setResourceId}
-                options={autocompleteOptions}
-                placeholder={needsId ? 'Resource ID (type or select from list)' : 'ID (auto-generated for POST)'}
-                disabled={!needsId}
-                style={{ width: '100%', fontFamily: 'monospace' }}
-                filterOption={(input, option) =>
-                  !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())
-                }
-                notFoundContent={resourcesLoading ? <Spin size="small" /> : null}
-              />
-            </Col>
-            <Col>
-              <Button
-                loading={loadingExisting}
-                disabled={!resourceId}
-                onClick={handleLoadExisting}
-              >
-                Load
-              </Button>
-            </Col>
-            <Col>
-              <Button
-                type="primary"
-                loading={loading}
-                onClick={handleExecute}
-                style={{ background: METHOD_COLORS[method] }}
-              >
-                Execute
-              </Button>
-            </Col>
-          </Row>
-
-          <div>
+      {/* URL Bar */}
+      <Card size="small" style={{ marginBottom: 12 }}>
+        <Row gutter={8} align="middle">
+          <Col>
+            <Select
+              value={method}
+              onChange={setMethod}
+              style={{ width: 110 }}
+              labelRender={({ value }) => (
+                <span style={{ color: METHOD_COLORS[value as string], fontWeight: 700 }}>
+                  {value as string}
+                </span>
+              )}
+              options={METHODS.map((m) => ({ value: m, label: m }))}
+            />
+          </Col>
+          <Col flex="180px">
+            <Select
+              value={resource}
+              onChange={(v) => { setResource(v); setResourceId(''); setResponse(null); setResponseError(null); }}
+              options={RESOURCE_OPTIONS}
+              style={{ width: '100%' }}
+              showSearch
+              optionFilterProp="label"
+            />
+          </Col>
+          <Col>
+            <Typography.Text type="secondary" style={{ fontSize: 16 }}>/</Typography.Text>
+          </Col>
+          <Col flex="auto">
+            <AutoComplete
+              value={resourceId}
+              onChange={setResourceId}
+              options={existingResources.map((r) => ({
+                value: r.id,
+                label: <span><Typography.Text code style={{ fontSize: 12 }}>{r.id}</Typography.Text>{r.name && <Typography.Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>{r.name}</Typography.Text>}</span>,
+              }))}
+              placeholder={needsId ? 'ID (type or select)' : 'auto-generated'}
+              disabled={!needsId}
+              style={{ width: '100%', fontFamily: 'monospace' }}
+              filterOption={(input, option) => !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())}
+              notFoundContent={resourcesLoading ? <Spin size="small" /> : null}
+            />
+          </Col>
+          <Col>
+            <Button loading={loadingExisting} disabled={!resourceId} onClick={handleLoadExisting}>
+              Load
+            </Button>
+          </Col>
+          <Col>
+            <Button
+              type="primary"
+              loading={loading}
+              onClick={handleExecute}
+              style={{ background: METHOD_COLORS[method], minWidth: 90 }}
+            >
+              {method}
+            </Button>
+          </Col>
+        </Row>
+        <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Space size={8}>
             <Typography.Text type="secondary" style={{ fontFamily: 'monospace', fontSize: 12 }}>
               {method} /apisix/admin{endpoint}
             </Typography.Text>
-            <br />
             <Typography.Text type="secondary" style={{ fontSize: 11 }}>
-              {method === 'PUT' && 'PUT replaces the entire resource. All fields must be provided — omitted fields will be removed.'}
-              {method === 'PATCH' && 'PATCH updates only the specified fields. Omitted fields are left unchanged.'}
-              {method === 'POST' && 'POST creates a new resource with an auto-generated ID. The body defines the configuration.'}
-              {method === 'GET' && 'GET retrieves the resource. No request body needed.'}
-              {method === 'DELETE' && 'DELETE removes the resource permanently. No request body needed.'}
+              — {METHOD_HINTS[method]}
             </Typography.Text>
-          </div>
-          <Button
-            size="small"
-            type="text"
-            onClick={async () => {
-              if (!adminKey?.trim()) {
-                message.warning('Admin Key required for curl command');
-                return;
-              }
-              let cmd = `curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}' \\\n  -H 'X-API-KEY: ${adminKey}'`;
-              if (needsBody && body.trim()) {
-                cmd += ` \\\n  --data-binary @- <<'EOF'\n${body}\nEOF`;
-              }
-              try {
-                await navigator.clipboard.writeText(cmd);
-                message.success('Copied as curl');
-              } catch {
-                message.error('Failed to copy');
-              }
-            }}
-          >
+          </Space>
+          <Button size="small" type="text" onClick={handleCopyCurl}>
             Copy as curl
           </Button>
-        </Space>
+        </div>
       </Card>
 
-      {needsBody && (
-        <Card title="Request Body" style={{ marginBottom: 16 }}>
-          <div
-            style={{
-              border: '1px solid var(--ant-color-border)',
-              borderRadius: 6,
-              overflow: 'hidden',
-            }}
-          >
-            <Editor
-              height="300px"
-              language="json"
-              theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
-              value={body}
-              onChange={(val) => setBody(val ?? '')}
-              options={{
-                minimap: { enabled: false },
-                automaticLayout: true,
-                lineNumbers: 'on',
-                contextmenu: false,
-                lineNumbersMinChars: 3,
-                renderLineHighlight: 'none',
-                tabSize: 2,
-              }}
-            />
-          </div>
-        </Card>
-      )}
+      {/* Request + Response side by side */}
+      <Row gutter={12} style={{ height: editorHeight }}>
+        {/* Request */}
+        <Col span={needsBody ? 12 : 0} style={{ height: '100%' }}>
+          {needsBody && (
+            <Card
+              size="small"
+              title="Request"
+              style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+              styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
+            >
+              <Editor
+                height="100%"
+                language="json"
+                theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
+                value={body}
+                onChange={(val) => setBody(val ?? '')}
+                beforeMount={(monaco) => {
+                  monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+                    validate: true,
+                    schemaValidation: 'ignore',
+                    enableSchemaRequest: false,
+                  });
+                }}
+                options={{
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                  lineNumbers: 'on',
+                  tabSize: 2,
+                  renderLineHighlight: 'none',
+                }}
+              />
+            </Card>
+          )}
+        </Col>
 
-      {responseError && (
-        <Alert
-          type="error"
-          showIcon
-          message="Request Failed"
-          description={responseError}
-          style={{ marginBottom: 16 }}
-        />
-      )}
-
-      {response && (
-        <Card
-          title="Response"
-          extra={
-            <Button size="small" onClick={() => { navigator.clipboard.writeText(response); message.success('Response copied'); }}>
-              Copy
-            </Button>
-          }
-        >
-          <div
-            style={{
-              border: '1px solid var(--ant-color-border)',
-              borderRadius: 6,
-              overflow: 'hidden',
-            }}
+        {/* Response */}
+        <Col span={needsBody ? 12 : 24} style={{ height: '100%' }}>
+          <Card
+            size="small"
+            title={
+              <Space>
+                <span>Response</span>
+                {response && statusColor && (
+                  <Tag color={statusColor}>{response.status || 'Error'}</Tag>
+                )}
+                {response && (
+                  <Typography.Text type="secondary" style={{ fontSize: 12 }}>{response.time}ms</Typography.Text>
+                )}
+              </Space>
+            }
+            extra={response?.data && (
+              <Button size="small" type="text" onClick={async () => {
+                try { await navigator.clipboard.writeText(response.data); message.success('Copied'); }
+                catch { message.error('Failed'); }
+              }}>Copy</Button>
+            )}
+            style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
+            styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
           >
-            <Editor
-              height="400px"
-              language="json"
-              theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
-              value={response}
-              options={{
-                minimap: { enabled: false },
-                automaticLayout: true,
-                readOnly: true,
-                lineNumbers: 'on',
-                contextmenu: false,
-                lineNumbersMinChars: 3,
-                renderLineHighlight: 'none',
-              }}
-            />
-          </div>
-        </Card>
-      )}
+            {responseError && !response?.data && (
+              <div style={{ padding: 16 }}>
+                <Typography.Text type="danger">{responseError}</Typography.Text>
+              </div>
+            )}
+            {response?.data ? (
+              <Editor
+                height="100%"
+                language="json"
+                theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
+                value={response.data}
+                options={{
+                  readOnly: true,
+                  minimap: { enabled: false },
+                  automaticLayout: true,
+                  lineNumbers: 'on',
+                  renderLineHighlight: 'none',
+                }}
+              />
+            ) : !responseError && (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100%', opacity: 0.3 }}>
+                <Typography.Text type="secondary">Execute a request to see the response</Typography.Text>
+              </div>
+            )}
+          </Card>
+        </Col>
+      </Row>
     </>
   );
 }

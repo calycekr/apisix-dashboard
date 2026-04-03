@@ -38,7 +38,8 @@ const Root = () => {
 
   useEffect(() => {
     document.documentElement.dataset.theme = mode;
-  }, [mode]);
+    document.body.style.backgroundColor = token.colorBgLayout;
+  }, [mode, token.colorBgLayout]);
 
   return (
     <>
