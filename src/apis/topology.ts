@@ -29,12 +29,16 @@ export type TopologyData = {
 };
 
 function extractNodes(upstream: APISIXType['Upstream']): string[] {
-  const nodes = upstream.nodes;
-  if (!nodes) return [];
-  if (Array.isArray(nodes)) {
-    return nodes.map((n) => `${n.host}:${n.port}`);
+  try {
+    const nodes = upstream.nodes;
+    if (!nodes || typeof nodes !== 'object') return [];
+    if (Array.isArray(nodes)) {
+      return nodes.filter((n) => n?.host).map((n) => `${n.host}:${n.port ?? 80}`);
+    }
+    return Object.keys(nodes);
+  } catch {
+    return [];
   }
-  return Object.keys(nodes);
 }
 
 export const getTopologyData = async (): Promise<TopologyData> => {

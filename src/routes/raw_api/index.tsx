@@ -206,14 +206,19 @@ function RawApiPage() {
 
   const handleCopyCurl = useCallback(async () => {
     if (!adminKey?.trim()) { message.warning('Admin Key required'); return; }
+    const masked = adminKey.length > 4
+      ? adminKey.slice(0, 2) + '*'.repeat(adminKey.length - 4) + adminKey.slice(-2)
+      : '****';
     const baseUrl = `${window.location.origin}/apisix/admin`;
-    const lines = [`curl -i -X ${method} '${baseUrl}${endpoint}'`, `  -H 'X-API-KEY: ${adminKey}'`];
+    const lines = [`curl -i -X ${method} '${baseUrl}${endpoint}'`, `  -H 'X-API-KEY: ${masked}'`];
     if (needsBody && body.trim()) {
       lines.push("  -H 'Content-Type: application/json'");
       lines.push(`  -d '${body.replace(/'/g, "'\\''").replace(/\n\s*/g, ' ').trim()}'`);
     }
-    try { await navigator.clipboard.writeText(lines.join(' \\\n')); message.success('Copied as curl'); }
-    catch { message.error('Failed to copy'); }
+    try {
+      await navigator.clipboard.writeText(lines.join(' \\\n'));
+      message.success('Copied as curl (Admin Key masked — replace **** with your key)');
+    } catch { message.error('Failed to copy'); }
   }, [method, endpoint, body, needsBody, adminKey]);
 
   const editorHeight = 'calc(100vh - 340px)';
