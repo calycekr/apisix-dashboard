@@ -335,14 +335,21 @@ function RawApiPage() {
           <Button
             size="small"
             type="text"
-            onClick={() => {
-              const curlParts = [`curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}'`];
-              curlParts.push(`  -H 'X-API-KEY: ${adminKey}'`);
-              if (needsBody && body.trim()) {
-                curlParts.push(`  -d '${body.replace(/\n\s*/g, ' ').trim()}'`);
+            onClick={async () => {
+              if (!adminKey?.trim()) {
+                message.warning('Admin Key required for curl command');
+                return;
               }
-              navigator.clipboard.writeText(curlParts.join(' \\\n'));
-              message.success('Copied as curl');
+              let cmd = `curl -X ${method} 'http://localhost:9180/apisix/admin${endpoint}' \\\n  -H 'X-API-KEY: ${adminKey}'`;
+              if (needsBody && body.trim()) {
+                cmd += ` \\\n  --data-binary @- <<'EOF'\n${body}\nEOF`;
+              }
+              try {
+                await navigator.clipboard.writeText(cmd);
+                message.success('Copied as curl');
+              } catch {
+                message.error('Failed to copy');
+              }
             }}
           >
             Copy as curl

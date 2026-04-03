@@ -49,6 +49,11 @@ export const getTopologyData = async (): Promise<TopologyData> => {
   const services = servicesRes.status === 'fulfilled' ? servicesRes.value : [];
   const upstreams = upstreamsRes.status === 'fulfilled' ? upstreamsRes.value : [];
 
+  // If core resources (routes, services, upstreams) all failed, throw
+  if (routesRes.status === 'rejected' && servicesRes.status === 'rejected' && upstreamsRes.status === 'rejected') {
+    throw new Error('Failed to fetch topology data — check APISIX connection');
+  }
+
   return {
     routes: routes.map((r) => ({
       id: r.id,

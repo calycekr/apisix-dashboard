@@ -46,6 +46,7 @@ export const EXPORT_VERSION = 1;
 export type ExportData = {
   version: number;
   exportedAt: string;
+  skippedResources?: string[];
   resources: {
     upstreams: Record<string, unknown>[];
     services: Record<string, unknown>[];
@@ -120,11 +121,17 @@ export async function exportAllResources(): Promise<ExportData> {
     fetchAllResources(getProtoListReq),
     fetchAllResources(getSecretListReq),
   ]);
+  const resourceNames: ResourceKey[] = [
+    'upstreams', 'services', 'routes', 'streamRoutes', 'consumers',
+    'consumerGroups', 'ssls', 'globalRules', 'pluginConfigs', 'protos', 'secrets',
+  ];
   const v = (i: number) => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<Record<string, unknown>[]>).value : [];
+  const skipped = resourceNames.filter((_, i) => results[i].status === 'rejected');
 
   return {
     version: EXPORT_VERSION,
     exportedAt: new Date().toISOString(),
+    skippedResources: skipped,
     resources: {
       upstreams: v(0), services: v(1), routes: v(2), streamRoutes: v(3),
       consumers: v(4), consumerGroups: v(5), ssls: v(6), globalRules: v(7),

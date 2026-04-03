@@ -102,24 +102,32 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     }
   }, [api, value, saveMode, onClose]);
 
-  const handleCopy = useCallback(() => {
-    navigator.clipboard.writeText(value);
-    message.success('Copied to clipboard');
+  const handleCopy = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(value);
+      message.success('Copied to clipboard');
+    } catch {
+      message.error('Failed to copy to clipboard');
+    }
   }, [value]);
 
-  // Ctrl+S keyboard shortcut
+  // Ctrl+S: use refs to avoid stale closure
+  const valueRef = useRef(value);
+  const originalRef = useRef(original);
+  const handleSaveRef = useRef(handleSave);
+  valueRef.current = value;
+  originalRef.current = original;
+  handleSaveRef.current = handleSave;
+
   const handleEditorMount = useCallback(
     (ed: editor.IStandaloneCodeEditor) => {
       editorRef.current = ed;
-      ed.addCommand(
-         
-        2048 | 49, // KeyMod.CtrlCmd | KeyCode.KeyS
-        () => {
-          if (value !== original) handleSave();
-        }
-      );
+       
+      ed.addCommand(2048 | 49, () => {
+        if (valueRef.current !== originalRef.current) handleSaveRef.current();
+      });
     },
-    [value, original, handleSave]
+    []
   );
 
   const isDirty = value !== original;

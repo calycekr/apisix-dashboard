@@ -66,7 +66,11 @@ function ExportSection() {
     try {
       const data = await exportAllResources();
       downloadJson(data);
-      message.success('Configuration exported successfully');
+      if (data.skippedResources?.length) {
+        message.warning(`Exported with ${data.skippedResources.length} skipped: ${data.skippedResources.join(', ')}`);
+      } else {
+        message.success('Configuration exported successfully');
+      }
     } catch {
       message.error('Failed to export configuration');
     } finally {
