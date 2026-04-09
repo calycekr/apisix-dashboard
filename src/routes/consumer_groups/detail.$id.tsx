@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -47,7 +47,7 @@ type Props = {
 };
 
 const ConsumerGroupDetailForm = (props: Props) => {
-  const { id, readOnly, setReadOnly } = props;
+  const { id, readOnly } = props;
 
   const consumerGroupQuery = useSuspenseQuery(getConsumerGroupQueryOptions(id));
   const { data } = consumerGroupQuery;
@@ -61,7 +61,6 @@ const ConsumerGroupDetailForm = (props: Props) => {
         type: 'success',
       });
       consumerGroupQuery.refetch();
-      setReadOnly(true);
     },
   });
 
@@ -97,34 +96,24 @@ const ConsumerGroupDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/consumer_groups/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Consumer Group: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Consumer Group"
-                target={id}
-                api={`${API_CONSUMER_GROUPS}/${id}`}
-                onSuccess={() => navigate({ to: '/consumer_groups' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Consumer Group"
+              target={id}
+              api={`${API_CONSUMER_GROUPS}/${id}`}
+              onSuccess={() => navigate({ to: '/consumer_groups' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <ConsumerGroupDetailForm

@@ -16,7 +16,7 @@
  */
 import { useQuery } from '@tanstack/react-query';
 import { Select, type SelectProps, Typography } from 'antd';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo, useState } from 'react';
 import {
   type FieldValues,
   useController,
@@ -49,35 +49,60 @@ export const ResourceSelect = <T extends FieldValues>(
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
+  const [open, setOpen] = useState(false);
 
   const { data: options, isLoading } = useQuery({
     queryKey: ['resource-select', resourceApi],
     queryFn: async () => {
-      const res = await req.get(resourceApi, { params: { page: 1, page_size: 100 } });
-      const list = res.data?.list;
-      if (!Array.isArray(list)) return [];
-      return list.map((item: { value: Record<string, unknown> }) => {
-        const id = String(item.value.id || item.value.username || '');
-        const name = String(item.value.name || item.value.desc || '');
-        return { id, name };
-      });
+      const pageSize = 300;
+      const maxPages = 20;
+      const resourceMap = new Map<string, { id: string; name: string }>();
+
+      for (let page = 1; page <= maxPages; page += 1) {
+        const res = await req.get(resourceApi, {
+          params: {
+            page,
+            page_size: pageSize,
+          },
+        });
+        const list = res.data?.list;
+        if (!Array.isArray(list) || list.length === 0) break;
+
+        list.forEach((item: { value: Record<string, unknown> }) => {
+          const id = String(item.value.id || item.value.username || '');
+          if (!id) return;
+
+          const name = String(item.value.name || item.value.desc || '');
+          resourceMap.set(id, { id, name });
+        });
+
+        if (list.length < pageSize) break;
+      }
+
+      return Array.from(resourceMap.values());
     },
     staleTime: 30_000,
+    enabled: open || !!value,
   });
 
-  const selectOptions = (options ?? []).map((opt) => ({
-    value: opt.id,
-    label: (
-      <span>
-        <Typography.Text code style={{ fontSize: 12 }}>{opt.id}</Typography.Text>
-        {opt.name && (
-          <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
-            {opt.name}
-          </Typography.Text>
-        )}
-      </span>
-    ),
-  }));
+  const selectOptions = useMemo(
+    () =>
+      (options ?? []).map((opt) => ({
+        value: opt.id,
+        searchText: `${opt.id} ${opt.name}`.toLowerCase(),
+        label: (
+          <span>
+            <Typography.Text code style={{ fontSize: 12 }}>{opt.id}</Typography.Text>
+            {opt.name && (
+              <Typography.Text type="secondary" style={{ marginLeft: 8, fontSize: 12 }}>
+                {opt.name}
+              </Typography.Text>
+            )}
+          </span>
+        ),
+      })),
+    [options]
+  );
 
   return (
     <InputWrapper
@@ -90,12 +115,17 @@ export const ResourceSelect = <T extends FieldValues>(
         {...restProps}
         value={value || undefined}
         onChange={(v) => fOnChange(v || undefined)}
+        onOpenChange={setOpen}
         options={selectOptions}
         showSearch
         allowClear
-        filterOption={(input, option) =>
-          !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())
-        }
+        filterOption={(input, option) => {
+          const q = input.toLowerCase().trim();
+          if (!q) return true;
+          const valueMatch = option?.value?.toString().toLowerCase().includes(q);
+          const optionText = ((option as { searchText?: string } | undefined)?.searchText ?? '');
+          return !!valueMatch || optionText.includes(q);
+        }}
         loading={isLoading}
         placeholder={`Select ${resourceLabel}...`}
         style={{ width: '100%' }}

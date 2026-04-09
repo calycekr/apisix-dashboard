@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Space } from 'antd';
+import { Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -45,7 +45,7 @@ type Props = {
   setReadOnly: (v: boolean) => void;
 };
 const GlobalRuleDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly } = props;
+  const { readOnly } = props;
   const { id } = useParams({ from: '/global_rules/detail/$id' });
   const detailReq = useSuspenseQuery(getGlobalRuleQueryOptions(id));
 
@@ -72,7 +72,6 @@ const GlobalRuleDetailForm = (props: Props) => {
         type: 'success',
       });
       await detailReq.refetch();
-      setReadOnly(true);
     },
   });
 
@@ -94,34 +93,24 @@ const GlobalRuleDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/global_rules/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Global Rule: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Global Rule"
-                target={id}
-                api={`${API_GLOBAL_RULES}/${id}`}
-                onSuccess={() => navigate({ to: '/global_rules' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Global Rule"
+              target={id}
+              api={`${API_GLOBAL_RULES}/${id}`}
+              onSuccess={() => navigate({ to: '/global_rules' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <GlobalRuleDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

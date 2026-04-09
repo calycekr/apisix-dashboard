@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -46,7 +46,7 @@ type Props = {
 };
 
 const SecretDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly } = props;
+  const { readOnly } = props;
   const { manager, id } = useParams({ from: '/secrets/detail/$manager/$id' });
 
   const secretQuery = useQuery(
@@ -81,7 +81,6 @@ const SecretDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -106,7 +105,7 @@ const SecretDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const { manager, id } = useParams({ from: '/secrets/detail/$manager/$id' });
   const navigate = useNavigate();
 
@@ -114,27 +113,17 @@ function RouteComponent() {
     <>
       <PageHeader showBackBtn
         title={`Secret: ${manager}/${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Secret"
-                target={id}
-                api={`${API_SECRETS}/${manager}/${id}`}
-                onSuccess={() => navigate({ to: '/secrets' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Secret"
+              target={id}
+              api={`${API_SECRETS}/${manager}/${id}`}
+              onSuccess={() => navigate({ to: '/secrets' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <SecretDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

@@ -21,6 +21,18 @@ import { pipeProduce } from '@/utils/producer';
 
 import type { RoutePostType, RoutePutType } from './schema';
 
+const isBlankString = (value: unknown): value is string =>
+  typeof value === 'string' && value.trim() === '';
+
+const compactStringArray = (value: unknown): string[] | undefined => {
+  if (!Array.isArray(value)) return undefined;
+  const compacted = value
+    .filter((item): item is string => typeof item === 'string')
+    .map((item) => item.trim())
+    .filter((item) => item.length > 0);
+  return compacted.length > 0 ? compacted : undefined;
+};
+
 export const produceVarsToForm = produce((draft: RoutePostType) => {
   if (draft.vars && Array.isArray(draft.vars)) {
     draft.vars = JSON.stringify(draft.vars);
@@ -28,11 +40,53 @@ export const produceVarsToForm = produce((draft: RoutePostType) => {
 }) as (draft: RoutePostType) => RoutePutType;
 
 export const produceVarsToAPI = produce((draft: RoutePostType) => {
+  const d = draft as Record<string, unknown>;
+
+  const optionalStringFields = [
+    'uri',
+    'host',
+    'remote_addr',
+    'service_id',
+    'upstream_id',
+    'plugin_config_id',
+    'filter_func',
+    'script',
+    'script_id',
+    'name',
+    'desc',
+  ];
+
+  optionalStringFields.forEach((field) => {
+    if (isBlankString(d[field])) {
+      delete d[field];
+    }
+  });
+
+  const optionalArrayFields = ['uris', 'hosts', 'remote_addrs', 'methods'];
+  optionalArrayFields.forEach((field) => {
+    const compacted = compactStringArray(d[field]);
+    if (!compacted) {
+      delete d[field];
+      return;
+    }
+    d[field] = compacted;
+  });
+
   if (draft.vars && typeof draft.vars === 'string') {
     try {
       const parsed = JSON.parse(draft.vars);
       if (Array.isArray(parsed)) {
-        (draft as Record<string, unknown>).vars = parsed;
+        d.vars = parsed
+          .filter((item): item is [unknown, unknown, unknown] =>
+            Array.isArray(item) && item.length >= 3
+          )
+          .map(([variable, operator, value]) => [variable, operator, value])
+          .filter(
+            ([variable, operator, value]) =>
+              !isBlankString(variable) &&
+              !isBlankString(operator) &&
+              !isBlankString(value)
+          );
       } else {
         delete draft.vars;
       }
@@ -43,17 +97,29 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
   if (draft.vars === '' || draft.vars === undefined) {
     delete draft.vars;
   }
-  if (draft.filter_func === '' || draft.filter_func === undefined) {
-    delete draft.filter_func;
+  if (Array.isArray(d.vars) && d.vars.length === 0) {
+    delete d.vars;
   }
-  if (draft.script === '' || draft.script === undefined) {
-    delete draft.script;
+
+  if (
+    d.plugins &&
+    typeof d.plugins === 'object' &&
+    !Array.isArray(d.plugins) &&
+    Object.keys(d.plugins as Record<string, unknown>).length === 0
+  ) {
+    delete d.plugins;
   }
-  if (draft.script_id === '' || draft.script_id === undefined) {
-    delete draft.script_id;
+
+  if (
+    d.timeout &&
+    typeof d.timeout === 'object' &&
+    !Array.isArray(d.timeout) &&
+    Object.keys(d.timeout as Record<string, unknown>).length === 0
+  ) {
+    delete d.timeout;
   }
+
   // Enforce mutual exclusivity: prefer singular over plural if both exist
-  const d = draft as Record<string, unknown>;
   if (d.uri && d.uris) {
     delete d.uris;
   }

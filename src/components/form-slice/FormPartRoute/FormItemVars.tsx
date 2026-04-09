@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Button, Input, Select, Space, theme } from 'antd';
-import { useCallback } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
@@ -63,6 +63,16 @@ const VARIABLE_OPTIONS = [
 
 type VarTuple = [string, string, string];
 
+const areVarsEqual = (a: VarTuple[], b: VarTuple[]) => {
+  if (a.length !== b.length) return false;
+  for (let i = 0; i < a.length; i += 1) {
+    if (a[i][0] !== b[i][0] || a[i][1] !== b[i][1] || a[i][2] !== b[i][2]) {
+      return false;
+    }
+  }
+  return true;
+};
+
 const parseVarsString = (val: string | undefined): VarTuple[] => {
   if (!val) return [];
   try {
@@ -79,9 +89,8 @@ const parseVarsString = (val: string | undefined): VarTuple[] => {
 };
 
 const serializeVars = (vars: VarTuple[]): string => {
-  const clean = vars.filter(([v, o, val]) => v && o && val);
-  if (clean.length === 0) return '';
-  return JSON.stringify(clean);
+  if (vars.length === 0) return '';
+  return JSON.stringify(vars);
 };
 
 export const FormItemVars = () => {
@@ -92,10 +101,20 @@ export const FormItemVars = () => {
     fieldState,
   } = useController({ control, name: 'vars', defaultValue: '' });
 
-  const vars = parseVarsString(value as string);
+  const [vars, setVars] = useState<VarTuple[]>(() =>
+    parseVarsString(value as string)
+  );
+
+  useEffect(() => {
+    const parsed = parseVarsString(value as string);
+    setVars((prev) => {
+      return areVarsEqual(prev, parsed) ? prev : parsed;
+    });
+  }, [value]);
 
   const updateVars = useCallback(
     (newVars: VarTuple[]) => {
+      setVars(newVars);
       onChange(serializeVars(newVars));
     },
     [onChange]

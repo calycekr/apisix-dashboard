@@ -134,6 +134,17 @@ export const RouteList = (props: RouteListProps) => {
     routeKey,
     defaultParams
   );
+  const sortedList = useMemo(() => {
+    const list = [...(data?.list ?? [])];
+    return list.sort((a, b) => {
+      const aCreate = Number(a.value.create_time ?? 0);
+      const bCreate = Number(b.value.create_time ?? 0);
+      if (aCreate !== bCreate) {
+        return aCreate - bCreate; // older first, newer last
+      }
+      return String(a.value.id).localeCompare(String(b.value.id));
+    });
+  }, [data?.list]);
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -309,7 +320,7 @@ export const RouteList = (props: RouteListProps) => {
       />
       <ProTable
         columns={columns}
-        dataSource={data?.list}
+        dataSource={sortedList}
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}

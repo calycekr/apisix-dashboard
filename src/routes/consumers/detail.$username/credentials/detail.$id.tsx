@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -46,7 +46,7 @@ type CredentialFormProps = {
 };
 
 const CredentialDetailForm = (props: CredentialFormProps) => {
-  const { readOnly, setReadOnly } = props;
+  const { readOnly } = props;
   const { username, id } = useParams({
     from: '/consumers/detail/$username/credentials/detail/$id',
   });
@@ -80,7 +80,6 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -104,7 +103,7 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
 };
 
 function RouteComponent() {
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const { username, id } = useParams({
     from: '/consumers/detail/$username/credentials/detail/$id',
   });
@@ -113,31 +112,21 @@ function RouteComponent() {
   return (
     <>
       <PageHeader showBackBtn
-        title={`Edit ${'Credential'}`}
-        {...(readOnly && {
-          title: `${'Credential'} Detail`,
-          extra: (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                key="delete"
-                name="Credential"
-                target={id}
-                api={`${API_CREDENTIALS(username)}/${id}`}
-                onSuccess={() =>
-                  navigate({ to: `/consumers/detail/${username}/credentials` })
-                }
-              />
-            </Space>
-          ),
-        })}
+        title={`${'Credential'} Detail`}
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              key="delete"
+              name="Credential"
+              target={id}
+              api={`${API_CREDENTIALS(username)}/${id}`}
+              onSuccess={() =>
+                navigate({ to: `/consumers/detail/${username}/credentials` })
+              }
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <CredentialDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

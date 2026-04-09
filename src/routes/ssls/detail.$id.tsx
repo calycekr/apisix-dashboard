@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -51,7 +51,7 @@ type Props = {
 };
 
 const SSLDetailForm = (props: Props & { id: string }) => {
-  const { id, readOnly, setReadOnly } = props;
+  const { id, readOnly } = props;
   const {
     data: { value: sslData },
     isLoading,
@@ -73,7 +73,6 @@ const SSLDetailForm = (props: Props & { id: string }) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -108,35 +107,25 @@ const SSLDetailForm = (props: Props & { id: string }) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/ssls/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`SSL: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <StatusSwitch api={`${API_SSLS}/${id}`} />
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="SSL"
-                target={id}
-                api={`${API_SSLS}/${id}`}
-                onSuccess={() => navigate({ to: '/ssls' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <StatusSwitch api={`${API_SSLS}/${id}`} />
+            <DeleteResourceBtn
+              mode="detail"
+              name="SSL"
+              target={id}
+              api={`${API_SSLS}/${id}`}
+              onSuccess={() => navigate({ to: '/ssls' })}
+            />
+          </Space>
+        )}
       />
       <SSLDetailForm id={id} readOnly={readOnly} setReadOnly={setReadOnly} />
     </>

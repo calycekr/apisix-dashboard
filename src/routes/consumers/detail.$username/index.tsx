@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -46,7 +46,7 @@ type Props = {
 };
 
 const ConsumerDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly } = props;
+  const { readOnly } = props;
   const { username } = useParams({ from: '/consumers/detail/$username' });
 
   const consumerQuery = useSuspenseQuery(getConsumerQueryOptions(username));
@@ -74,7 +74,6 @@ const ConsumerDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -99,7 +98,7 @@ const ConsumerDetailForm = (props: Props) => {
 };
 
 const ConsumerDetailTab = () => {
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const { username } = useParams({ from: '/consumers/detail/$username' });
   const navigate = useNavigate();
 
@@ -107,27 +106,17 @@ const ConsumerDetailTab = () => {
     <>
       <PageHeader showBackBtn
         title={`Consumer: ${username}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Consumer"
-                target={username}
-                api={`${API_CONSUMERS}/${username}`}
-                onSuccess={() => navigate({ to: '/consumers' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Consumer"
+              target={username}
+              api={`${API_CONSUMERS}/${username}`}
+              onSuccess={() => navigate({ to: '/consumers' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <ConsumerDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

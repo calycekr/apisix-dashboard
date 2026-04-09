@@ -49,7 +49,7 @@ type Props = {
 };
 
 const ServiceDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly } = props;
+  const { readOnly } = props;
   const { id } = useParams({ from: '/services/detail/$id' });
 
   const serviceQuery = useSuspenseQuery(getServiceQueryOptions(id));
@@ -81,7 +81,6 @@ const ServiceDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -107,7 +106,7 @@ const ServiceDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const { id } = useParams({ from: '/services/detail/$id' });
   const navigate = useNavigate();
 
@@ -115,33 +114,23 @@ function RouteComponent() {
     <>
       <PageHeader showBackBtn
         title={`Service: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Link to="/routes/add" search={{ service_id: id }}>
-                <Button size="small">+ Route</Button>
-              </Link>
-              <Link to="/services/add" search={{ clone_from: id }}>
-                <Button size="small">Clone</Button>
-              </Link>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Service"
-                target={id}
-                api={`${API_SERVICES}/${id}`}
-                onSuccess={() => navigate({ to: '/services' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <Link to="/routes/add" search={{ service_id: id }}>
+              <Button size="small">+ Route</Button>
+            </Link>
+            <Link to="/services/add" search={{ clone_from: id }}>
+              <Button size="small">Clone</Button>
+            </Link>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Service"
+              target={id}
+              api={`${API_SERVICES}/${id}`}
+              onSuccess={() => navigate({ to: '/services' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <ServiceDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />

@@ -68,7 +68,7 @@ type Props = {
 };
 
 const RouteDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly, id } = props;
+  const { readOnly, id } = props;
 
   const routeQuery = useQuery(getRouteQueryOptions(id));
   const { data: routeData, isLoading, refetch } = routeQuery;
@@ -100,7 +100,6 @@ const RouteDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -113,7 +112,7 @@ const RouteDetailForm = (props: Props) => {
 
   return (
     <>
-      {readOnly && route && (
+      {route && (
         <Card size="small" style={{ marginBottom: 16 }}>
           <Space size="large" wrap>
             <Typography.Text>
@@ -170,7 +169,7 @@ const RouteDetailForm = (props: Props) => {
           <FormPartRoute />
         </FormJsonTabs>
       </FormProvider>
-      {readOnly && route && (
+      {route && (
         <ApiTestPanel
           defaultUri={route.uri || route.uris?.[0] || '/'}
           defaultHost={route.host || route.hosts?.[0]}
@@ -186,37 +185,27 @@ type RouteDetailProps = Pick<Props, 'id'> & {
 };
 export const RouteDetail = (props: RouteDetailProps) => {
   const { id, onDeleteSuccess } = props;
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Route: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <StatusSwitch api={`${API_ROUTES}/${id}`} />
-              <Link to="/routes/add" search={{ clone_from: id }}>
-                <Button size="small">Clone</Button>
-              </Link>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Route"
-                target={id}
-                api={`${API_ROUTES}/${id}`}
-                onSuccess={onDeleteSuccess}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <StatusSwitch api={`${API_ROUTES}/${id}`} />
+            <Link to="/routes/add" search={{ clone_from: id }}>
+              <Button size="small">Clone</Button>
+            </Link>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Route"
+              target={id}
+              api={`${API_ROUTES}/${id}`}
+              onSuccess={onDeleteSuccess}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <RouteDetailForm
