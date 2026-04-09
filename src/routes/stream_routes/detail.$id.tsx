@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -49,7 +49,7 @@ type Props = {
 };
 
 const StreamRouteDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly, id } = props;
+  const { readOnly, id } = props;
 
   const streamRouteQuery = useQuery(getStreamRouteQueryOptions(id));
   const { data: streamRouteData, isLoading, refetch } = streamRouteQuery;
@@ -77,7 +77,6 @@ const StreamRouteDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -108,34 +107,24 @@ type StreamRouteDetailProps = Pick<Props, 'id'> & {
 
 export const StreamRouteDetail = (props: StreamRouteDetailProps) => {
   const { id, onDeleteSuccess } = props;
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Stream Route: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <StatusSwitch api={`${API_STREAM_ROUTES}/${id}`} />
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Stream Route"
-                target={id}
-                api={`${API_STREAM_ROUTES}/${id}`}
-                onSuccess={onDeleteSuccess}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <StatusSwitch api={`${API_STREAM_ROUTES}/${id}`} />
+            <DeleteResourceBtn
+              mode="detail"
+              name="Stream Route"
+              target={id}
+              api={`${API_STREAM_ROUTES}/${id}`}
+              onSuccess={onDeleteSuccess}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <StreamRouteDetailForm

@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -47,7 +47,7 @@ type Props = {
 };
 
 const PluginConfigDetailForm = (props: Props) => {
-  const { id, readOnly, setReadOnly } = props;
+  const { id, readOnly } = props;
 
   const pluginConfigQuery = useSuspenseQuery(getPluginConfigQueryOptions(id));
   const { data } = pluginConfigQuery;
@@ -62,7 +62,6 @@ const PluginConfigDetailForm = (props: Props) => {
         type: 'success',
       });
       pluginConfigQuery.refetch();
-      setReadOnly(true);
     },
   });
 
@@ -99,34 +98,24 @@ const PluginConfigDetailForm = (props: Props) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/plugin_configs/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Plugin Config: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Plugin Config"
-                target={id}
-                api={`${API_PLUGIN_CONFIGS}/${id}`}
-                onSuccess={() => navigate({ to: '/plugin_configs' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Plugin Config"
+              target={id}
+              api={`${API_PLUGIN_CONFIGS}/${id}`}
+              onSuccess={() => navigate({ to: '/plugin_configs' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <PluginConfigDetailForm

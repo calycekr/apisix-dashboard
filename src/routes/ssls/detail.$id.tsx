@@ -21,10 +21,9 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useBoolean } from 'react-use';
 
 import { getSSLQueryOptions } from '@/apis/hooks';
 import { putSSLReq } from '@/apis/ssls';
@@ -45,13 +44,8 @@ import { req } from '@/config/req';
 import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
-type Props = {
-  readOnly: boolean;
-  setReadOnly: (v: boolean) => void;
-};
-
-const SSLDetailForm = (props: Props & { id: string }) => {
-  const { id, readOnly, setReadOnly } = props;
+const SSLDetailForm = (props: { id: string }) => {
+  const { id } = props;
   const {
     data: { value: sslData },
     isLoading,
@@ -62,7 +56,6 @@ const SSLDetailForm = (props: Props & { id: string }) => {
     resolver: zodResolver(SSLPutSchema),
     shouldUnregister: true,
     mode: 'all',
-    disabled: readOnly,
   });
 
   const putSSL = useMutation({
@@ -73,7 +66,6 @@ const SSLDetailForm = (props: Props & { id: string }) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -94,7 +86,6 @@ const SSLDetailForm = (props: Props & { id: string }) => {
           form={form}
           onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
           submitLabel="Save"
-          disabled={readOnly}
           rawData={sslData}
           patchApi={`${API_SSLS}/${id}`}
         >
@@ -108,37 +99,26 @@ const SSLDetailForm = (props: Props & { id: string }) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/ssls/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`SSL: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <StatusSwitch api={`${API_SSLS}/${id}`} />
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="SSL"
-                target={id}
-                api={`${API_SSLS}/${id}`}
-                onSuccess={() => navigate({ to: '/ssls' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <StatusSwitch api={`${API_SSLS}/${id}`} />
+            <DeleteResourceBtn
+              mode="detail"
+              name="SSL"
+              target={id}
+              api={`${API_SSLS}/${id}`}
+              onSuccess={() => navigate({ to: '/ssls' })}
+            />
+          </Space>
+        )}
       />
-      <SSLDetailForm id={id} readOnly={readOnly} setReadOnly={setReadOnly} />
+      <SSLDetailForm id={id} />
     </>
   );
 }

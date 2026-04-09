@@ -23,6 +23,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import { PAGE_SIZE_MAX } from '@/config/constant';
 import { req } from '@/config/req';
 
 import { InputWrapper } from './InputWrapper';
@@ -54,19 +55,32 @@ export const ResourceSelect = <T extends FieldValues>(
   const { data: options, isLoading } = useQuery({
     queryKey: ['resource-select', resourceApi],
     queryFn: async () => {
-      const res = await req.get(resourceApi, {
-        params: {
-          page: 1,
-          page_size: 300,
-        },
-      });
-      const list = res.data?.list;
-      if (!Array.isArray(list)) return [];
-      return list.map((item: { value: Record<string, unknown> }) => {
-        const id = String(item.value.id || item.value.username || '');
-        const name = String(item.value.name || item.value.desc || '');
-        return { id, name };
-      });
+      const pageSize = PAGE_SIZE_MAX;
+      const maxPages = 20;
+      const resourceMap = new Map<string, { id: string; name: string }>();
+
+      for (let page = 1; page <= maxPages; page += 1) {
+        const res = await req.get(resourceApi, {
+          params: {
+            page,
+            page_size: pageSize,
+          },
+        });
+        const list = res.data?.list;
+        if (!Array.isArray(list) || list.length === 0) break;
+
+        list.forEach((item: { value: Record<string, unknown> }) => {
+          const id = String(item.value.id || item.value.username || '');
+          if (!id) return;
+
+          const name = String(item.value.name || item.value.desc || '');
+          resourceMap.set(id, { id, name });
+        });
+
+        if (list.length < pageSize) break;
+      }
+
+      return Array.from(resourceMap.values());
     },
     staleTime: 30_000,
     enabled: open || !!value,

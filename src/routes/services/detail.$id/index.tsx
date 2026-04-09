@@ -25,7 +25,6 @@ import {
 import { Button, Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useBoolean } from 'react-use';
 
 import { getServiceQueryOptions } from '@/apis/hooks';
 import { putServiceReq } from '@/apis/services';
@@ -43,13 +42,7 @@ import { produceRmUpstreamWhenHas } from '@/utils/form-producer';
 import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
-type Props = {
-  readOnly: boolean;
-  setReadOnly: (v: boolean) => void;
-};
-
-const ServiceDetailForm = (props: Props) => {
-  const { readOnly, setReadOnly } = props;
+const ServiceDetailForm = () => {
   const { id } = useParams({ from: '/services/detail/$id' });
 
   const serviceQuery = useSuspenseQuery(getServiceQueryOptions(id));
@@ -60,7 +53,6 @@ const ServiceDetailForm = (props: Props) => {
     shouldUnregister: true,
     shouldFocusError: true,
     mode: 'all',
-    disabled: readOnly,
   });
 
   useEffect(() => {
@@ -81,7 +73,6 @@ const ServiceDetailForm = (props: Props) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -95,7 +86,6 @@ const ServiceDetailForm = (props: Props) => {
         form={form}
         onSubmit={(d) => putService.mutateAsync(d)}
         submitLabel="Save"
-        disabled={readOnly}
         rawData={serviceData?.value}
         patchApi={`${API_SERVICES}/${id}`}
       >
@@ -107,7 +97,6 @@ const ServiceDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const [readOnly, setReadOnly] = useBoolean(true);
   const { id } = useParams({ from: '/services/detail/$id' });
   const navigate = useNavigate();
 
@@ -115,36 +104,26 @@ function RouteComponent() {
     <>
       <PageHeader showBackBtn
         title={`Service: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Link to="/routes/add" search={{ service_id: id }}>
-                <Button size="small">+ Route</Button>
-              </Link>
-              <Link to="/services/add" search={{ clone_from: id }}>
-                <Button size="small">Clone</Button>
-              </Link>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Service"
-                target={id}
-                api={`${API_SERVICES}/${id}`}
-                onSuccess={() => navigate({ to: '/services' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <Link to="/routes/add" search={{ service_id: id }}>
+              <Button size="small">+ Route</Button>
+            </Link>
+            <Link to="/services/add" search={{ clone_from: id }}>
+              <Button size="small">Clone</Button>
+            </Link>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Service"
+              target={id}
+              api={`${API_SERVICES}/${id}`}
+              onSuccess={() => navigate({ to: '/services' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
-        <ServiceDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />
+        <ServiceDetailForm />
       </FormTOCBox>
       <ReverseReferences resourceType="service" resourceId={id} />
     </>

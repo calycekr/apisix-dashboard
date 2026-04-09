@@ -61,7 +61,7 @@ const getUpstreamQueryOptions = (id: string) =>
 const UpstreamDetailForm = (
   props: Props & Pick<APISIXType['Upstream'], 'id'>
 ) => {
-  const { id, readOnly, setReadOnly } = props;
+  const { id, readOnly } = props;
   const {
     data: { value: upstreamData },
     isLoading,
@@ -83,7 +83,6 @@ const UpstreamDetailForm = (
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -118,40 +117,30 @@ const UpstreamDetailForm = (
 
 function RouteComponent() {
   const { id } = useParams({ from: '/upstreams/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Upstream: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Link to="/services/add" search={{ upstream_id: id }}>
-                <Button size="small">+ Service</Button>
-              </Link>
-              <Link to="/upstreams/add" search={{ clone_from: id }}>
-                <Button size="small">Clone</Button>
-              </Link>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Upstream"
-                target={id}
-                api={`${API_UPSTREAMS}/${id}`}
-                onSuccess={() => navigate({ to: '/upstreams' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <Link to="/services/add" search={{ upstream_id: id }}>
+              <Button size="small">+ Service</Button>
+            </Link>
+            <Link to="/upstreams/add" search={{ clone_from: id }}>
+              <Button size="small">Clone</Button>
+            </Link>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Upstream"
+              target={id}
+              api={`${API_UPSTREAMS}/${id}`}
+              onSuccess={() => navigate({ to: '/upstreams' })}
+            />
+          </Space>
+        )}
       />
       <UpstreamDetailForm
         id={id}

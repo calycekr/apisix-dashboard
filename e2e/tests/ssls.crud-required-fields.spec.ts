@@ -89,18 +89,13 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     // Verify certificate and key fields are displayed (key might be empty for security)
     const certField = page.getByRole('textbox', { name: 'Certificate 1' });
     await expect(certField).toBeVisible();
-    await expect(certField).toBeDisabled();
 
     const keyField = page.getByRole('textbox', { name: 'Private Key 1' });
     await expect(keyField).toBeVisible();
-    await expect(keyField).toBeDisabled();
   });
 
   await test.step('edit and update SSL in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
+    // Fields are always editable in detail page (always-edit UX)
     const certField = page.getByRole('textbox', { name: 'Certificate 1' });
     await expect(certField).toBeEnabled();
 
@@ -114,10 +109,10 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     // Verify the new SNI is displayed
     await expect(page.getByText('updated.example.com', { exact: true })).toBeVisible();
 
-    // Click Cancel instead of Save to avoid validation issues with empty key
+    // Click Cancel to reset the form without saving
     await page.getByRole('button', { name: 'Cancel' }).click();
 
-    // Verify we're back in detail view mode
+    // Verify we're still on the detail page
     await sslsPom.isDetailPage(page);
 
     // Return to list page and verify the SSL exists

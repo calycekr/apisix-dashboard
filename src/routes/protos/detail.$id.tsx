@@ -21,7 +21,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -46,7 +46,7 @@ type ProtoFormProps = {
   setReadOnly: (v: boolean) => void;
 };
 
-const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
+const ProtoDetailForm = ({ id, readOnly }: ProtoFormProps) => {
   const {
     data: protoData,
     isLoading,
@@ -68,7 +68,6 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
         type: 'success',
       });
       await refetch();
-      setReadOnly(true);
     },
   });
 
@@ -101,34 +100,24 @@ const ProtoDetailForm = ({ id, readOnly, setReadOnly }: ProtoFormProps) => {
 
 function RouteComponent() {
   const { id } = useParams({ from: '/protos/detail/$id' });
-  const [readOnly, setReadOnly] = useBoolean(true);
+  const [readOnly, setReadOnly] = useBoolean(false);
   const navigate = useNavigate();
 
   return (
     <>
       <PageHeader showBackBtn
         title={`Proto: ${id}`}
-        tag={readOnly ? undefined : { label: 'Editing', color: 'orange' }}
-        extra={
-          readOnly ? (
-            <Space>
-              <Button
-                onClick={() => setReadOnly(false)}
-                size="small"
-                type="primary"
-              >
-                Edit
-              </Button>
-              <DeleteResourceBtn
-                mode="detail"
-                name="Proto"
-                target={id}
-                api={`${API_PROTOS}/${id}`}
-                onSuccess={() => navigate({ to: '/protos' })}
-              />
-            </Space>
-          ) : undefined
-        }
+        extra={(
+          <Space>
+            <DeleteResourceBtn
+              mode="detail"
+              name="Proto"
+              target={id}
+              api={`${API_PROTOS}/${id}`}
+              onSuccess={() => navigate({ to: '/protos' })}
+            />
+          </Space>
+        )}
       />
       <FormTOCBox>
         <ProtoDetailForm
