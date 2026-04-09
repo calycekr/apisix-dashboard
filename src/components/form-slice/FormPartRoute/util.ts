@@ -54,7 +54,6 @@ const normalizeVarsValue = (value: unknown): unknown => {
   }
   return value;
 };
-
 export const produceVarsToForm = produce((draft: RoutePostType) => {
   if (draft.vars && Array.isArray(draft.vars)) {
     draft.vars = JSON.stringify(draft.vars);
