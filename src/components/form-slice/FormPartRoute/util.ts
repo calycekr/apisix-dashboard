@@ -21,8 +21,11 @@ import { pipeProduce } from '@/utils/producer';
 
 import type { RoutePostType, RoutePutType } from './schema';
 
-const isBlankString = (value: unknown): value is string =>
-  typeof value === 'string' && value.trim() === '';
+const normalizeString = (value: unknown): string | undefined => {
+  if (typeof value !== 'string') return undefined;
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : undefined;
+};
 
 const compactStringArray = (value: unknown): string[] | undefined => {
   if (!Array.isArray(value)) return undefined;
@@ -31,6 +34,25 @@ const compactStringArray = (value: unknown): string[] | undefined => {
     .map((item) => item.trim())
     .filter((item) => item.length > 0);
   return compacted.length > 0 ? compacted : undefined;
+};
+
+const VALID_VARS_OPERATORS = new Set([
+  '==', '~=', '>', '>=', '<', '<=',
+  '~~', 'in', 'not_in', 'has', 'not_has',
+]);
+
+const normalizeVarsValue = (value: unknown): unknown => {
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+    return trimmed.length > 0 ? trimmed : undefined;
+  }
+  if (Array.isArray(value)) {
+    return value.length > 0 ? value : undefined;
+  }
+  if (value === undefined || value === null) {
+    return undefined;
+  }
+  return value;
 };
 
 export const produceVarsToForm = produce((draft: RoutePostType) => {
@@ -57,9 +79,12 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
   ];
 
   optionalStringFields.forEach((field) => {
-    if (isBlankString(d[field])) {
+    const normalized = normalizeString(d[field]);
+    if (!normalized && d[field] !== undefined) {
       delete d[field];
+      return;
     }
+    if (normalized) d[field] = normalized;
   });
 
   const optionalArrayFields = ['uris', 'hosts', 'remote_addrs', 'methods'];
@@ -80,13 +105,21 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
           .filter((item): item is [unknown, unknown, unknown] =>
             Array.isArray(item) && item.length >= 3
           )
-          .map(([variable, operator, value]) => [variable, operator, value])
-          .filter(
-            ([variable, operator, value]) =>
-              !isBlankString(variable) &&
-              !isBlankString(operator) &&
-              !isBlankString(value)
-          );
+          .map(([variable, operator, value]) => {
+            const normalizedVariable = normalizeString(variable);
+            const normalizedOperator = normalizeString(operator);
+            const normalizedValue = normalizeVarsValue(value);
+
+            if (!normalizedVariable || !normalizedOperator || !normalizedValue) {
+              return undefined;
+            }
+            if (!VALID_VARS_OPERATORS.has(normalizedOperator)) {
+              return undefined;
+            }
+
+            return [normalizedVariable, normalizedOperator, normalizedValue] as [string, string, unknown];
+          })
+          .filter((item) => item !== undefined) as [string, string, unknown][];
       } else {
         delete draft.vars;
       }
