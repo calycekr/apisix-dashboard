@@ -25,7 +25,6 @@ import {
 import { Button, Skeleton, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useBoolean } from 'react-use';
 
 import { getServiceQueryOptions } from '@/apis/hooks';
 import { putServiceReq } from '@/apis/services';
@@ -43,13 +42,7 @@ import { produceRmUpstreamWhenHas } from '@/utils/form-producer';
 import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
-type Props = {
-  readOnly: boolean;
-  setReadOnly: (v: boolean) => void;
-};
-
-const ServiceDetailForm = (props: Props) => {
-  const { readOnly } = props;
+const ServiceDetailForm = () => {
   const { id } = useParams({ from: '/services/detail/$id' });
 
   const serviceQuery = useSuspenseQuery(getServiceQueryOptions(id));
@@ -60,7 +53,6 @@ const ServiceDetailForm = (props: Props) => {
     shouldUnregister: true,
     shouldFocusError: true,
     mode: 'all',
-    disabled: readOnly,
   });
 
   useEffect(() => {
@@ -94,7 +86,6 @@ const ServiceDetailForm = (props: Props) => {
         form={form}
         onSubmit={(d) => putService.mutateAsync(d)}
         submitLabel="Save"
-        disabled={readOnly}
         rawData={serviceData?.value}
         patchApi={`${API_SERVICES}/${id}`}
       >
@@ -106,7 +97,6 @@ const ServiceDetailForm = (props: Props) => {
 };
 
 function RouteComponent() {
-  const [readOnly, setReadOnly] = useBoolean(false);
   const { id } = useParams({ from: '/services/detail/$id' });
   const navigate = useNavigate();
 
@@ -133,7 +123,7 @@ function RouteComponent() {
         )}
       />
       <FormTOCBox>
-        <ServiceDetailForm readOnly={readOnly} setReadOnly={setReadOnly} />
+        <ServiceDetailForm />
       </FormTOCBox>
       <ReverseReferences resourceType="service" resourceId={id} />
     </>

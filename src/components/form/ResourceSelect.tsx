@@ -23,6 +23,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import { PAGE_SIZE_MAX } from '@/config/constant';
 import { req } from '@/config/req';
 
 import { InputWrapper } from './InputWrapper';
@@ -54,7 +55,7 @@ export const ResourceSelect = <T extends FieldValues>(
   const { data: options, isLoading } = useQuery({
     queryKey: ['resource-select', resourceApi],
     queryFn: async () => {
-      const pageSize = 300;
+      const pageSize = PAGE_SIZE_MAX;
       const maxPages = 20;
       const resourceMap = new Map<string, { id: string; name: string }>();
 

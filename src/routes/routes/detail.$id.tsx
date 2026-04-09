@@ -25,7 +25,6 @@ import {
 import { Button, Card, Skeleton, Space, Tag, Tooltip, Typography } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
-import { useBoolean } from 'react-use';
 
 import { getRouteQueryOptions } from '@/apis/hooks';
 import { putRouteReq } from '@/apis/routes';
@@ -62,13 +61,11 @@ function summarizePlugin(cfg: Record<string, unknown>): string {
 }
 
 type Props = {
-  readOnly: boolean;
-  setReadOnly: (v: boolean) => void;
   id: string;
 };
 
 const RouteDetailForm = (props: Props) => {
-  const { readOnly, id } = props;
+  const { id } = props;
 
   const routeQuery = useQuery(getRouteQueryOptions(id));
   const { data: routeData, isLoading, refetch } = routeQuery;
@@ -78,7 +75,6 @@ const RouteDetailForm = (props: Props) => {
     shouldUnregister: true,
     shouldFocusError: true,
     mode: 'all',
-    disabled: readOnly,
   });
 
   useEffect(() => {
@@ -161,7 +157,6 @@ const RouteDetailForm = (props: Props) => {
           form={form}
           onSubmit={(d) => putRoute.mutateAsync(d)}
           submitLabel="Save"
-          disabled={readOnly}
           rawData={routeData?.value}
           patchApi={`${API_ROUTES}/${id}`}
         >
@@ -185,7 +180,6 @@ type RouteDetailProps = Pick<Props, 'id'> & {
 };
 export const RouteDetail = (props: RouteDetailProps) => {
   const { id, onDeleteSuccess } = props;
-  const [readOnly, setReadOnly] = useBoolean(false);
 
   return (
     <>
@@ -209,8 +203,6 @@ export const RouteDetail = (props: RouteDetailProps) => {
       />
       <FormTOCBox>
         <RouteDetailForm
-          readOnly={readOnly}
-          setReadOnly={setReadOnly}
           id={id}
         />
       </FormTOCBox>
