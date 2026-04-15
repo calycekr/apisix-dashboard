@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import { PluginConfigExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -38,7 +39,7 @@ import { renderPluginCount } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function PluginConfigsList() {
-  const { data, isLoading, refetch, pagination, setParams } = usePluginConfigList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = usePluginConfigList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
@@ -137,6 +138,7 @@ function PluginConfigsList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search plugin configs..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
     </AntdConfigProvider>

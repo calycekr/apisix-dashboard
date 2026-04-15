@@ -26,6 +26,7 @@ import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -36,7 +37,7 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination, setParams } = useProtoList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useProtoList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
 
   const columns = useMemo<
@@ -127,6 +128,7 @@ function RouteComponent() {
           cardProps={{ bodyStyle: { padding: 0 } }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
           ]}
         />
       </AntdConfigProvider>
