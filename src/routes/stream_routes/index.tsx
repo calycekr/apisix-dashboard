@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
@@ -50,7 +51,7 @@ export type StreamRouteListProps = {
 
 export const StreamRouteList = (props: StreamRouteListProps) => {
   const { routeKey, detailLink, defaultParams } = props;
-  const { data, isLoading, refetch, pagination, setParams } = useStreamRouteList(
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useStreamRouteList(
     routeKey,
     defaultParams
   );
@@ -193,6 +194,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer

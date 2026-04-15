@@ -29,6 +29,7 @@ import { ServiceExpandedRow } from '@/components/page/ExpandedRowComponents';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -40,7 +41,7 @@ import { renderPluginCount } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 const ServiceList = () => {
-  const { data, isLoading, refetch, pagination, setParams } = useServiceList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useServiceList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
@@ -158,6 +159,7 @@ const ServiceList = () => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer

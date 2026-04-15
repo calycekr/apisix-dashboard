@@ -29,6 +29,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
@@ -130,21 +131,10 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 
 export const RouteList = (props: RouteListProps) => {
   const { routeKey, detailLink, defaultParams } = props;
-  const { data, isLoading, refetch, pagination, setParams } = useRouteList(
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useRouteList(
     routeKey,
     defaultParams
   );
-  const sortedList = useMemo(() => {
-    const list = [...(data?.list ?? [])];
-    return list.sort((a, b) => {
-      const aCreate = Number(a.value.create_time ?? 0);
-      const bCreate = Number(b.value.create_time ?? 0);
-      if (aCreate !== bCreate) {
-        return aCreate - bCreate; // older first, newer last
-      }
-      return String(a.value.id).localeCompare(String(b.value.id));
-    });
-  }, [data?.list]);
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -320,7 +310,7 @@ export const RouteList = (props: RouteListProps) => {
       />
       <ProTable
         columns={columns}
-        dataSource={sortedList}
+        dataSource={data?.list}
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
@@ -347,6 +337,7 @@ export const RouteList = (props: RouteListProps) => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer

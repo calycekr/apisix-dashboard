@@ -16,6 +16,7 @@
  */
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosInstance } from 'axios';
+import { useMemo } from 'react';
 
 import { getRouteListReq, getRouteReq } from '@/apis/routes';
 import { getUpstreamListReq, getUpstreamReq } from '@/apis/upstreams';
@@ -44,6 +45,32 @@ import { getSecretListReq, getSecretReq } from './secrets';
 import { getServiceListReq, getServiceReq } from './services';
 import { getSSLListReq, getSSLReq } from './ssls';
 import { getStreamRouteListReq, getStreamRouteReq } from './stream_routes';
+
+const SORT_KEY_PREFIX = 'table:sort:';
+const DEFAULT_SORT = {
+  sort_by: 'create_time',
+  sort_order: 'asc' as const,
+};
+
+const readSavedSort = (key: string) => {
+  try {
+    const raw = localStorage.getItem(`${SORT_KEY_PREFIX}${key}`);
+    if (!raw) return undefined;
+    const parsed = JSON.parse(raw) as { sort_by?: string; sort_order?: 'asc' | 'desc' };
+    if (!parsed.sort_by || !parsed.sort_order) return undefined;
+    return parsed;
+  } catch {
+    return undefined;
+  }
+};
+
+const saveSort = (key: string, next: { sort_by: string; sort_order: 'asc' | 'desc' }) => {
+  try {
+    localStorage.setItem(`${SORT_KEY_PREFIX}${key}`, JSON.stringify(next));
+  } catch {
+    // ignore
+  }
+};
 
 const genDetailQueryOptions =
   <T extends unknown[], R>(
@@ -85,13 +112,46 @@ export const genUseList = <
   return (replaceKey?: U, defaultParams?: Partial<P>) => {
     const key = replaceKey || routeKey;
     const { params, setParams } = useSearchParams<T | U, P>(key);
+    const savedSort = useMemo(() => readSavedSort(key), [key]);
     const listQuery = useSuspenseQuery(
       listQueryOptions({ ...defaultParams, ...params })
     );
     const { data, isLoading, refetch } = listQuery;
-    const opts = { data, setParams, params };
+    const sortBy = (params as PageSearchType).sort_by
+      || (defaultParams as PageSearchType | undefined)?.sort_by
+      || savedSort?.sort_by
+      || DEFAULT_SORT.sort_by;
+    const sortOrder = (params as PageSearchType).sort_order
+      || (defaultParams as PageSearchType | undefined)?.sort_order
+      || savedSort?.sort_order
+      || DEFAULT_SORT.sort_order;
+    const sortedData = useMemo(() => {
+      if (!Array.isArray(data?.list)) return data;
+      const list = [...data.list];
+      list.sort((a, b) => {
+        const aVal = (a as { value?: Record<string, unknown> })?.value?.[sortBy];
+        const bVal = (b as { value?: Record<string, unknown> })?.value?.[sortBy];
+        const aNum = Number(aVal ?? 0);
+        const bNum = Number(bVal ?? 0);
+
+        const base = Number.isNaN(aNum) || Number.isNaN(bNum)
+          ? String(aVal ?? '').localeCompare(String(bVal ?? ''), undefined, { numeric: true, sensitivity: 'base' })
+          : aNum - bNum;
+
+        return sortOrder === 'desc' ? -base : base;
+      });
+      return { ...data, list };
+    }, [data, sortBy, sortOrder]);
+
+    const setSort = (next: { sort_by: string; sort_order: 'asc' | 'desc' }) =>
+      {
+        saveSort(key, next);
+        return setParams({ ...next, page: 1 } as Partial<P>);
+      };
+
+    const opts = { data: sortedData, setParams, params };
     const pagination = useTablePagination(opts);
-    return { data, isLoading, refetch, pagination, setParams };
+    return { data: sortedData, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort };
   };
 };
 

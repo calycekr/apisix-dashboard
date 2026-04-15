@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { ConsumerExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -37,7 +38,7 @@ import { pageSearchSchema } from '@/types/schema/pageSearch';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function ConsumersList() {
-  const { data, isLoading, refetch, pagination, setParams } = useConsumerList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useConsumerList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
@@ -132,6 +133,7 @@ function ConsumersList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumers..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer
