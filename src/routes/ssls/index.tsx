@@ -202,7 +202,7 @@ function RouteComponent() {
         <RawDrawer
           open={!!rawTarget}
           onClose={() => setRawTarget(null)}
-          onSaved={refetch}
+          onSaved={async () => { await refetch(); }}
           api={rawTarget?.api ?? ''}
           title={rawTarget?.title ?? ''}
         />

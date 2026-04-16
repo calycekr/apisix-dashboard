@@ -350,7 +350,7 @@ export const RouteList = (props: RouteListProps) => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
         initialData={rawTarget?.data}
