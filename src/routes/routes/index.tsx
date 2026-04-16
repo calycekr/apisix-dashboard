@@ -292,7 +292,7 @@ export const RouteList = (props: RouteListProps) => {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -350,7 +350,7 @@ export const RouteList = (props: RouteListProps) => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
         initialData={rawTarget?.data}

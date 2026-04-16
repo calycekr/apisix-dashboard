@@ -96,7 +96,7 @@ function ConsumersList() {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -146,7 +146,7 @@ function ConsumersList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />
