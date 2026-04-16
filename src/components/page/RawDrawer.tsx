@@ -57,11 +57,11 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     };
 
     if (initialData) {
+      // Show cached row data immediately, but still fetch latest from API
       loadData(initialData);
-      return;
+    } else {
+      setLoading(true);
     }
-
-    setLoading(true);
     setError(null);
     req
       .get(api)
@@ -69,7 +69,9 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
         const data = res.data?.value;
         if (data) loadData(data);
       })
-      .catch(() => setError('Failed to load resource'))
+      .catch(() => {
+        if (!initialData) setError('Failed to load resource');
+      })
       .finally(() => setLoading(false));
   }, [open, api, initialData]);
 
@@ -85,6 +87,13 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     }
     setSaving(true);
     try {
+      const normalizeRaw = (data: Record<string, unknown>) => {
+        const copy = { ...data };
+        delete copy.create_time;
+        delete copy.update_time;
+        return JSON.stringify(copy, null, 2);
+      };
+
       if (saveMode === 'patch') {
         await req.patch(api, parsed);
       } else {
@@ -93,8 +102,15 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
         delete body.username;
         await req.put(api, body);
       }
+      const latest = await req.get(api);
+      const latestData = latest.data?.value as Record<string, unknown> | undefined;
+      if (latestData) {
+        const latestJson = normalizeRaw(latestData);
+        setValue(latestJson);
+        setOriginal(latestJson);
+      }
       showNotification({ message: `Saved (${saveMode.toUpperCase()})`, type: 'success' });
-      queryClient.invalidateQueries();
+      await queryClient.invalidateQueries();
       onClose();
     } catch (e) {
       setError('Save failed: ' + (e instanceof Error ? e.message : String(e)));

@@ -38,6 +38,7 @@ export const pageSearchSchema = z
     label: z.string().optional(),
     sort_by: z.string().optional(),
     sort_order: z.enum(['asc', 'desc']).optional(),
+
   })
   .passthrough();
 

@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute } from '@tanstack/react-router';
 import { Space } from 'antd';
-import dayjs from 'dayjs';
 import { useMemo } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
@@ -34,6 +33,7 @@ import { API_SECRETS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function SecretList() {
@@ -59,14 +59,21 @@ function SecretList() {
         render: (_, record) => <CopyableID id={record.value.id} />,
       },
       {
+        dataIndex: ['value', 'create_time'],
+        title: 'Created At',
+        key: 'create_time',
+        valueType: 'dateTime',
+        defaultSortOrder: 'ascend',
+        sorter: unixFieldSorter('create_time'),
+        renderText: renderUnixDateTime,
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
-        renderText: (text) => {
-          if (!text) return '-';
-          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
-        },
+        sorter: unixFieldSorter('update_time'),
+        renderText: renderUnixDateTime,
       },
       {
         title: 'Actions',

@@ -72,6 +72,7 @@ const saveSort = (key: string, next: { sort_by: string; sort_order: 'asc' | 'des
   }
 };
 
+
 const genDetailQueryOptions =
   <T extends unknown[], R>(
     key: string,
@@ -113,6 +114,7 @@ export const genUseList = <
     const key = replaceKey || routeKey;
     const { params, setParams } = useSearchParams<T | U, P>(key);
     const savedSort = useMemo(() => readSavedSort(key), [key]);
+
     const listQuery = useSuspenseQuery(
       listQueryOptions({ ...defaultParams, ...params })
     );
@@ -125,6 +127,7 @@ export const genUseList = <
       || (defaultParams as PageSearchType | undefined)?.sort_order
       || savedSort?.sort_order
       || DEFAULT_SORT.sort_order;
+
     const sortedData = useMemo(() => {
       if (!Array.isArray(data?.list)) return data;
       const list = [...data.list];
@@ -152,6 +155,7 @@ export const genUseList = <
     const opts = { data: sortedData, setParams, params };
     const pagination = useTablePagination(opts);
     return { data: sortedData, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort };
+
   };
 };
 

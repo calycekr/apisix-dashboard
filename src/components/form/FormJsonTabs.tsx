@@ -122,8 +122,13 @@ const RawTabContent = ({
     setPatchError(null);
     try {
       await req.patch(patchApi, parsed);
+      await queryClient.invalidateQueries();
+      const latest = await req.get(patchApi);
+      const latestValue = latest.data?.value;
+      if (latestValue !== undefined) {
+        setRawEditValue(JSON.stringify(latestValue, null, 2));
+      }
       showNotification({ message: 'PATCH applied successfully', type: 'success' });
-      queryClient.invalidateQueries();
     } catch (e) {
       setPatchError(`PATCH failed: ${e instanceof Error ? e.message : String(e)}`);
     } finally {

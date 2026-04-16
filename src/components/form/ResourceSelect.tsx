@@ -98,7 +98,10 @@ export const ResourceSelect = <T extends FieldValues>(
 
         if (list.length < pageSize) break;
       }
-      return Array.from(resourceMap.values()).sort((a, b) => a.id.localeCompare(b.id));
+      return Array.from(resourceMap.values()).sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' })
+      );
+
     },
     staleTime: 30_000,
     enabled: open || !!value,
@@ -106,7 +109,9 @@ export const ResourceSelect = <T extends FieldValues>(
 
   const selectOptions = useMemo(
     () =>
-      (options ?? []).map((opt) => ({
+      (options ?? [])
+        .filter((opt) => opt.id.trim() !== '')
+        .map((opt) => ({
         value: opt.id,
         searchText: `${opt.id} ${opt.name}`.toLowerCase(),
         label: (

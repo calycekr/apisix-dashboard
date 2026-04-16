@@ -85,7 +85,7 @@ const ConsumerDetailForm = (props: Props) => {
     <FormProvider {...form}>
       <FormJsonTabs
         form={form}
-        onSubmit={(d) => { putConsumer.mutateAsync(pipeProduce()(d)); }}
+        onSubmit={(d) => putConsumer.mutateAsync(pipeProduce()(d))}
         submitLabel="Save"
         disabled={readOnly}
         rawData={consumerData?.value}

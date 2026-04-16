@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { Tag, Tooltip } from 'antd';
+import dayjs from 'dayjs';
 
 const MAX_VISIBLE = 2;
 
@@ -42,4 +43,21 @@ export const renderPluginCount = (
       )}
     </span>
   );
+};
+
+export const renderUnixDateTime = (value: unknown) => {
+  if (value === null || value === undefined || value === '') return '-';
+  const n = Number(value);
+  if (Number.isNaN(n) || n <= 0) return '-';
+  return dayjs.unix(n).format('YYYY-MM-DD HH:mm:ss');
+};
+
+export const unixFieldSorter = <T extends { value?: Record<string, unknown> }>(
+  field: string
+) => {
+  return (a: T, b: T) => {
+    const aNum = Number(a.value?.[field] ?? 0);
+    const bNum = Number(b.value?.[field] ?? 0);
+    return aNum - bNum;
+  };
 };

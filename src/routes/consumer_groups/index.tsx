@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button, Space, Typography } from 'antd';
-import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
@@ -34,7 +33,7 @@ import { API_CONSUMER_GROUPS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderPluginCount } from '@/utils/columns';
+import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function ConsumerGroupsList() {
@@ -70,15 +69,21 @@ function ConsumerGroupsList() {
         render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
+        dataIndex: ['value', 'create_time'],
+        title: 'Created At',
+        key: 'create_time',
+        valueType: 'dateTime',
+        defaultSortOrder: 'ascend',
+        sorter: unixFieldSorter('create_time'),
+        renderText: renderUnixDateTime,
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
-        sorter: true,
-        renderText: (text) => {
-          if (!text) return '-';
-          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
-        },
+        sorter: unixFieldSorter('update_time'),
+        renderText: renderUnixDateTime,
       },
       {
         title: '',

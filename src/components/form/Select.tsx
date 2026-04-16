@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Select, type SelectProps } from 'antd';
-import type { ReactNode } from 'react';
+import { type ReactNode, useMemo } from 'react';
 import {
   type FieldValues,
   useController,
@@ -48,6 +48,32 @@ export const FormItemSelect = <T extends FieldValues, R>(
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
+
+  const sanitizedOptions = useMemo(() => {
+    const sanitize = (options: SelectProps['options']): SelectProps['options'] => {
+      if (!options) return options;
+      return options
+        .map((opt) => {
+          if (!opt) return undefined;
+          if ('options' in opt && Array.isArray(opt.options)) {
+            const childOptions = sanitize(opt.options);
+            if (!childOptions || childOptions.length === 0) return undefined;
+            return { ...opt, options: childOptions };
+          }
+          const rawValue = opt.value;
+          const value = typeof rawValue === 'string' ? rawValue.trim() : rawValue;
+          if (value === '' || value === undefined || value === null) return undefined;
+          const label = opt.label;
+          const isBlankLabel = typeof label === 'string' && label.trim() === '';
+          if (isBlankLabel) return undefined;
+          return { ...opt, value };
+        })
+        .filter((opt): opt is NonNullable<typeof opt> => !!opt);
+    };
+
+    return sanitize(restProps.options);
+  }, [restProps.options]);
+
   return (
     <InputWrapper
       label={label}
@@ -66,6 +92,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
         allowClear={false}
         {...restField}
         {...restProps}
+        options={sanitizedOptions}
       />
     </InputWrapper>
   );
