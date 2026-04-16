@@ -28,7 +28,7 @@ import { showNotification } from '@/utils/notification';
 type RawDrawerProps = {
   open: boolean;
   onClose: () => void;
-  onSaved?: () => unknown | Promise<unknown>;
+  onSaved?: () => void | Promise<void>;
   /** Full API path, e.g. '/routes/123' */
   api: string;
   title: string;
