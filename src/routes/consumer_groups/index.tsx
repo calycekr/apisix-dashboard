@@ -90,7 +90,7 @@ function ConsumerGroupsList() {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -121,13 +121,14 @@ function ConsumerGroupsList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:consumer-groups',
+          persistenceKey: 'table-v2:consumer-groups',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Consumer Groups</span><ToAddPageBtn label="Add Consumer Group" to="/consumer_groups/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <ConsumerGroupExpandedRow group={record.value} />,
           rowExpandable: () => true,
@@ -140,7 +141,7 @@ function ConsumerGroupsList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

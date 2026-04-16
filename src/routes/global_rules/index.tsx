@@ -84,7 +84,7 @@ function GlobalRulesList() {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -115,13 +115,14 @@ function GlobalRulesList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:global-rules',
+          persistenceKey: 'table-v2:global-rules',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Global Rules</span><ToAddPageBtn label="Add Global Rule" to="/global_rules/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <GlobalRuleExpandedRow rule={record.value} />,
           rowExpandable: () => true,
@@ -134,7 +135,7 @@ function GlobalRulesList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

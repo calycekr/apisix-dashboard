@@ -96,7 +96,7 @@ function ConsumersList() {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -127,13 +127,14 @@ function ConsumersList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:consumers',
+          persistenceKey: 'table-v2:consumers',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Consumers</span><ToAddPageBtn label="Add Consumer" to="/consumers/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <ConsumerExpandedRow consumer={record.value} />,
           rowExpandable: () => true,
@@ -146,7 +147,7 @@ function ConsumersList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

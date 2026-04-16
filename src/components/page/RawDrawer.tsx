@@ -169,7 +169,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
         </div>
       }
       width={700}
-      placement="left"
+      placement="right"
       extra={
         <Space>
           <Tooltip title="Copy JSON">

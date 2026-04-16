@@ -157,7 +157,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         valueType: 'option',
         key: 'option',
         width: 72,
-        fixed: 'left',
+        fixed: 'right',
         render: (_, record) => [
           <Button
             key="raw"
@@ -189,13 +189,14 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:stream-routes',
+          persistenceKey: 'table-v2:stream-routes',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Stream Routes</span><ToAddPageBtn label="Add Stream Route" to={`${routeKey}add`} /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <StreamRouteExpandedRow route={record.value as APISIXType['StreamRoute']} />,
           rowExpandable: () => true,
@@ -208,7 +209,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
-        onSaved={refetch}
+        onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />
