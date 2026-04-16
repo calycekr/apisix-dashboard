@@ -29,6 +29,7 @@ import { ServicePostSchema } from '@/components/form-slice/FormPartService/schem
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { produceRmUpstreamWhenHas } from '@/utils/form-producer';
 import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
@@ -86,10 +87,7 @@ function RouteComponent() {
 
   const cloneValues = sourceData?.value
     ? (() => {
-        const copy = { ...sourceData.value } as Record<string, unknown>;
-        delete copy.id;
-        delete copy.create_time;
-        delete copy.update_time;
+        const copy = stripSystemReadonlyFields(sourceData.value as Record<string, unknown>);
         if (copy.name) copy.name = `${copy.name} (copy)`;
         return copy as ServicePostType;
       })()

@@ -288,15 +288,16 @@ export const RouteList = (props: RouteListProps) => {
         renderText: renderUnixDateTime,
       },
       {
-        title: '',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 60,
+        width: 72,
+        fixed: 'left',
         render: (_, record) => [
           <Button
             key="raw"
             size="small"
-            type="text"
+            type="link"
             onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
           >
             Raw
@@ -349,6 +350,7 @@ export const RouteList = (props: RouteListProps) => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
+        onSaved={refetch}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
         initialData={rawTarget?.data}
