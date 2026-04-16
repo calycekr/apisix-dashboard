@@ -29,6 +29,7 @@ import { FormPartUpstreamSchema } from '@/components/form-slice/FormPartUpstream
 import { FormTOCBox } from '@/components/form-slice/FormSection';
 import PageHeader from '@/components/page/PageHeader';
 import { req } from '@/config/req';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 import { pipeProduce } from '@/utils/producer';
 
@@ -83,8 +84,7 @@ function RouteComponent() {
 
   const cloneValues = sourceData?.value
     ? (() => {
-        const copy = { ...sourceData.value } as Record<string, unknown>;
-        delete copy.id;
+        const copy = stripSystemReadonlyFields(sourceData.value as Record<string, unknown>);
         if (copy.name) copy.name = `${copy.name} (copy)`;
         return copy as PostUpstreamType;
       })()

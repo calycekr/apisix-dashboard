@@ -22,11 +22,13 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
 import { useThemeMode } from '@/stores/global';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 
 type RawDrawerProps = {
   open: boolean;
   onClose: () => void;
+  onSaved?: () => void | Promise<void>;
   /** Full API path, e.g. '/routes/123' */
   api: string;
   title: string;
@@ -34,7 +36,7 @@ type RawDrawerProps = {
   initialData?: Record<string, unknown>;
 };
 
-export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerProps) => {
+export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: RawDrawerProps) => {
   const { mode } = useThemeMode();
   const [value, setValue] = useState('');
   const [original, setOriginal] = useState('');
@@ -48,9 +50,7 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     if (!open || !api) return;
 
     const loadData = (data: Record<string, unknown>) => {
-      const copy = { ...data };
-      delete copy.create_time;
-      delete copy.update_time;
+      const copy = stripSystemReadonlyFields(data);
       const json = JSON.stringify(copy, null, 2);
       setValue(json);
       setOriginal(json);
@@ -88,17 +88,18 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
     setSaving(true);
     try {
       const normalizeRaw = (data: Record<string, unknown>) => {
-        const copy = { ...data };
-        delete copy.create_time;
-        delete copy.update_time;
+        const copy = stripSystemReadonlyFields(data);
         return JSON.stringify(copy, null, 2);
       };
 
+      const requestBody = typeof parsed === 'object' && parsed !== null
+        ? stripSystemReadonlyFields(parsed as Record<string, unknown>)
+        : parsed;
+
       if (saveMode === 'patch') {
-        await req.patch(api, parsed);
+        await req.patch(api, requestBody);
       } else {
-        const body = { ...(parsed as Record<string, unknown>) };
-        delete body.id;
+        const body = { ...(requestBody as Record<string, unknown>) };
         delete body.username;
         await req.put(api, body);
       }
@@ -111,13 +112,14 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
       }
       showNotification({ message: `Saved (${saveMode.toUpperCase()})`, type: 'success' });
       await queryClient.invalidateQueries();
+      await onSaved?.();
       onClose();
     } catch (e) {
       setError('Save failed: ' + (e instanceof Error ? e.message : String(e)));
     } finally {
       setSaving(false);
     }
-  }, [api, value, saveMode, saving, onClose]);
+  }, [api, value, saveMode, saving, onClose, onSaved]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -167,7 +169,7 @@ export const RawDrawer = ({ open, onClose, api, title, initialData }: RawDrawerP
         </div>
       }
       width={700}
-      placement="right"
+      placement="left"
       extra={
         <Space>
           <Tooltip title="Copy JSON">

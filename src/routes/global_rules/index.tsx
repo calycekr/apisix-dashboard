@@ -80,15 +80,16 @@ function GlobalRulesList() {
         renderText: renderUnixDateTime,
       },
       {
-        title: '',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 60,
+        width: 72,
+        fixed: 'left',
         render: (_, record) => [
           <Button
             key="raw"
             size="small"
-            type="text"
+            type="link"
             onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}` })}
           >
             Raw
@@ -133,6 +134,7 @@ function GlobalRulesList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
+        onSaved={refetch}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

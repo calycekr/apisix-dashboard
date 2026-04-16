@@ -23,6 +23,7 @@ import { type UseFormReturn } from 'react-hook-form';
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
 import { useThemeMode } from '@/stores/global';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 
 import { FormSubmitBtn } from './Btn';
@@ -41,6 +42,15 @@ function flattenErrors(
     }
   }
   return result;
+}
+
+function hasAnyDirtyField(dirtyFields: unknown): boolean {
+  if (!dirtyFields || typeof dirtyFields !== 'object') return false;
+  return Object.values(dirtyFields as Record<string, unknown>).some((value) => {
+    if (value === true) return true;
+    if (value && typeof value === 'object') return hasAnyDirtyField(value);
+    return false;
+  });
 }
 
 const FormErrorSummary = ({ errors }: { errors: Record<string, unknown> }) => {
@@ -194,20 +204,24 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [diffModalOpen, setDiffModalOpen] = useState(false);
   const pendingSubmitRef = useRef<unknown>(null);
 
-  const isDirty = form.formState.isDirty && !disabled;
+  const isDirty = hasAnyDirtyField(form.formState.dirtyFields) && !disabled && !isSaving;
 
   const doSubmit = useCallback(
     async (data: unknown) => {
       setApiError(null);
+      setIsSaving(true);
       try {
         await onSubmit(data);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         setApiError(`Save failed: ${msg}`);
+      } finally {
+        setIsSaving(false);
       }
     },
     [onSubmit]
@@ -258,14 +272,16 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     (key: string) => {
       if (key === 'json' && activeTab === 'form') {
         // Serialize current form values to JSON editor
-        const values = form.getValues();
-        setJsonStr(JSON.stringify(values, null, 2));
+        const values = form.getValues() as Record<string, unknown>;
+        const sanitizedValues = rawData ? stripSystemReadonlyFields(values) : values;
+        setJsonStr(JSON.stringify(sanitizedValues, null, 2));
         setJsonError(null);
       } else if (key === 'form' && activeTab === 'json') {
         // Parse JSON editor back into form
         try {
           const parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
-          form.reset(parsed);
+          const sanitizedParsed = rawData ? stripSystemReadonlyFields(parsed) : parsed;
+          form.reset(sanitizedParsed);
           setJsonError(null);
         } catch {
           // Keep current form state if JSON is invalid
@@ -273,7 +289,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       }
       setActiveTab(key);
     },
-    [activeTab, form, jsonStr]
+    [activeTab, form, jsonStr, rawData]
   );
 
   const handleJsonSubmit = useCallback(async () => {
@@ -281,6 +297,9 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     let parsed: Record<string, unknown>;
     try {
       parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
+      if (rawData) {
+        parsed = stripSystemReadonlyFields(parsed);
+      }
     } catch (e) {
       setJsonError('Invalid JSON: ' + String(e));
       return;
@@ -303,7 +322,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [jsonStr, form, safeSubmit]);
+  }, [jsonStr, form, safeSubmit, rawData]);
 
   const handleCancel = useCallback(() => {
     if (form.formState.isDirty) {
