@@ -18,7 +18,6 @@ import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
 import { Button, Space, Tag, Typography } from 'antd';
-import dayjs from 'dayjs';
 import { useMemo, useState } from 'react';
 
 import { getRouteListQueryOptions, useRouteList } from '@/apis/hooks';
@@ -37,7 +36,7 @@ import { API_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderPluginCount } from '@/utils/columns';
+import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
@@ -134,17 +133,6 @@ export const RouteList = (props: RouteListProps) => {
     routeKey,
     defaultParams
   );
-  const sortedList = useMemo(() => {
-    const list = [...(data?.list ?? [])];
-    return list.sort((a, b) => {
-      const aCreate = Number(a.value.create_time ?? 0);
-      const bCreate = Number(b.value.create_time ?? 0);
-      if (aCreate !== bCreate) {
-        return aCreate - bCreate; // older first, newer last
-      }
-      return String(a.value.id).localeCompare(String(b.value.id));
-    });
-  }, [data?.list]);
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -282,14 +270,21 @@ export const RouteList = (props: RouteListProps) => {
         render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
+        dataIndex: ['value', 'create_time'],
+        title: 'Created At',
+        key: 'create_time',
+        valueType: 'dateTime',
+        defaultSortOrder: 'ascend',
+        sorter: unixFieldSorter('create_time'),
+        renderText: renderUnixDateTime,
+      },
+      {
         dataIndex: ['value', 'update_time'],
         title: 'Updated At',
         key: 'update_time',
         valueType: 'dateTime',
-        renderText: (text) => {
-          if (!text) return '-';
-          return dayjs.unix(Number(text)).format('YYYY-MM-DD HH:mm:ss');
-        },
+        sorter: unixFieldSorter('update_time'),
+        renderText: renderUnixDateTime,
       },
       {
         title: '',
@@ -320,7 +315,7 @@ export const RouteList = (props: RouteListProps) => {
       />
       <ProTable
         columns={columns}
-        dataSource={sortedList}
+        dataSource={data?.list}
         rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}

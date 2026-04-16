@@ -16,6 +16,7 @@
  */
 import { queryOptions, useSuspenseQuery } from '@tanstack/react-query';
 import type { AxiosInstance } from 'axios';
+import { useMemo } from 'react';
 
 import { getRouteListReq, getRouteReq } from '@/apis/routes';
 import { getUpstreamListReq, getUpstreamReq } from '@/apis/upstreams';
@@ -89,9 +90,23 @@ export const genUseList = <
       listQueryOptions({ ...defaultParams, ...params })
     );
     const { data, isLoading, refetch } = listQuery;
-    const opts = { data, setParams, params };
+    const sortedData = useMemo(() => {
+      if (!Array.isArray(data?.list)) return data;
+      const list = [...data.list];
+      list.sort((a, b) => {
+        const aVal = Number((a as { value?: Record<string, unknown> })?.value?.create_time ?? 0);
+        const bVal = Number((b as { value?: Record<string, unknown> })?.value?.create_time ?? 0);
+        if (aVal !== bVal) return aVal - bVal;
+        const aId = String((a as { value?: Record<string, unknown> })?.value?.id ?? '');
+        const bId = String((b as { value?: Record<string, unknown> })?.value?.id ?? '');
+        return aId.localeCompare(bId, undefined, { numeric: true, sensitivity: 'base' });
+      });
+      return { ...data, list };
+    }, [data]);
+
+    const opts = { data: sortedData, setParams, params };
     const pagination = useTablePagination(opts);
-    return { data, isLoading, refetch, pagination, setParams };
+    return { data: sortedData, isLoading, refetch, pagination, setParams };
   };
 };
 

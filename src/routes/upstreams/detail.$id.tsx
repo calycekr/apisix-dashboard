@@ -101,7 +101,7 @@ const UpstreamDetailForm = (
       <FormProvider {...form}>
         <FormJsonTabs
           form={form}
-          onSubmit={(d) => { putUpstream.mutateAsync(pipeProduce()(d)); }}
+          onSubmit={(d) => putUpstream.mutateAsync(pipeProduce()(d))}
           submitLabel="Save"
           disabled={readOnly}
           rawData={upstreamData}

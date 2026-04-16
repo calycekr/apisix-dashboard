@@ -59,6 +59,25 @@ export const ResourceSelect = <T extends FieldValues>(
       const maxPages = 20;
       const resourceMap = new Map<string, { id: string; name: string }>();
 
+      const normalizeText = (raw: unknown): string => {
+        if (typeof raw === 'string') return raw.trim();
+        if (typeof raw === 'number' || typeof raw === 'boolean') return String(raw);
+        return '';
+      };
+
+      const parseId = (item: { key?: unknown; value?: Record<string, unknown> }) => {
+        const directId = normalizeText(item.value?.id);
+        if (directId) return directId;
+
+        const usernameId = normalizeText(item.value?.username);
+        if (usernameId) return usernameId;
+
+        const key = normalizeText(item.key);
+        if (!key) return '';
+        const seg = key.split('/').filter(Boolean).at(-1);
+        return seg ? normalizeText(seg) : '';
+      };
+
       for (let page = 1; page <= maxPages; page += 1) {
         const res = await req.get(resourceApi, {
           params: {
@@ -69,18 +88,19 @@ export const ResourceSelect = <T extends FieldValues>(
         const list = res.data?.list;
         if (!Array.isArray(list) || list.length === 0) break;
 
-        list.forEach((item: { value: Record<string, unknown> }) => {
-          const id = String(item.value.id || item.value.username || '');
+        list.forEach((item: { key?: unknown; value?: Record<string, unknown> }) => {
+          const id = parseId(item);
           if (!id) return;
 
-          const name = String(item.value.name || item.value.desc || '');
+          const name = normalizeText(item.value?.name) || normalizeText(item.value?.desc);
           resourceMap.set(id, { id, name });
         });
 
         if (list.length < pageSize) break;
       }
-
-      return Array.from(resourceMap.values());
+      return Array.from(resourceMap.values()).sort((a, b) =>
+        a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' })
+      );
     },
     staleTime: 30_000,
     enabled: open || !!value,
@@ -88,7 +108,9 @@ export const ResourceSelect = <T extends FieldValues>(
 
   const selectOptions = useMemo(
     () =>
-      (options ?? []).map((opt) => ({
+      (options ?? [])
+        .filter((opt) => opt.id.trim() !== '')
+        .map((opt) => ({
         value: opt.id,
         searchText: `${opt.id} ${opt.name}`.toLowerCase(),
         label: (
