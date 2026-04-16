@@ -28,6 +28,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StatusSwitch } from '@/components/StatusTag';
@@ -129,7 +130,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 
 export const RouteList = (props: RouteListProps) => {
   const { routeKey, detailLink, defaultParams } = props;
-  const { data, isLoading, refetch, pagination, setParams } = useRouteList(
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useRouteList(
     routeKey,
     defaultParams
   );
@@ -342,6 +343,7 @@ export const RouteList = (props: RouteListProps) => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer

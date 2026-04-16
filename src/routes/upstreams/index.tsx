@@ -27,6 +27,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { UpstreamExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -38,7 +39,7 @@ import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination, setParams } = useUpstreamList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useUpstreamList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
@@ -199,6 +200,7 @@ function RouteComponent() {
           }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
           ]}
         />
         <RawDrawer

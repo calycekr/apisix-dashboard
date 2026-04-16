@@ -101,6 +101,7 @@ export const ResourceSelect = <T extends FieldValues>(
       return Array.from(resourceMap.values()).sort((a, b) =>
         a.id.localeCompare(b.id, undefined, { numeric: true, sensitivity: 'base' })
       );
+
     },
     staleTime: 30_000,
     enabled: open || !!value,

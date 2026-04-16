@@ -25,6 +25,7 @@ import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { GlobalRuleExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
@@ -36,7 +37,7 @@ import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function GlobalRulesList() {
-  const { data, isLoading, refetch, pagination, setParams } = useGlobalRuleList();
+  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useGlobalRuleList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
 
@@ -126,6 +127,7 @@ function GlobalRulesList() {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
       <RawDrawer
