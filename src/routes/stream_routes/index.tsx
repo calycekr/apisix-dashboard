@@ -153,15 +153,16 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         renderText: renderUnixDateTime,
       },
       {
-        title: '',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 60,
+        width: 72,
+        fixed: 'left',
         render: (_, record) => [
           <Button
             key="raw"
             size="small"
-            type="text"
+            type="link"
             onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}` })}
           >
             Raw
@@ -207,6 +208,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
+        onSaved={refetch}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

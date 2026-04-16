@@ -86,15 +86,16 @@ function ConsumerGroupsList() {
         renderText: renderUnixDateTime,
       },
       {
-        title: '',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 60,
+        width: 72,
+        fixed: 'left',
         render: (_, record) => [
           <Button
             key="raw"
             size="small"
-            type="text"
+            type="link"
             onClick={() => setRawTarget({ api: `${API_CONSUMER_GROUPS}/${record.value.id}`, title: `Consumer Group: ${record.value.id}` })}
           >
             Raw
@@ -139,6 +140,7 @@ function ConsumerGroupsList() {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
+        onSaved={refetch}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />

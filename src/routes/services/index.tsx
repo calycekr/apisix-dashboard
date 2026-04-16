@@ -116,15 +116,16 @@ const ServiceList = () => {
         renderText: renderUnixDateTime,
       },
       {
-        title: '',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 60,
+        width: 72,
+        fixed: 'left',
         render: (_, record) => [
           <Button
             key="raw"
             size="small"
-            type="text"
+            type="link"
             onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}` })}
           >
             Raw
@@ -170,6 +171,7 @@ const ServiceList = () => {
       <RawDrawer
         open={!!rawTarget}
         onClose={() => setRawTarget(null)}
+        onSaved={refetch}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
       />
