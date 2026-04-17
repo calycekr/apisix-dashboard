@@ -151,13 +151,14 @@ const ServiceList = () => {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:services',
+          persistenceKey: 'table-v2:services',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Services</span><ToAddPageBtn label="Add Service" to="/services/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <ServiceExpandedRow service={record.value} />,
           rowExpandable: () => true,

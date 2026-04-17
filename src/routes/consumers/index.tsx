@@ -127,13 +127,14 @@ function ConsumersList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:consumers',
+          persistenceKey: 'table-v2:consumers',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Consumers</span><ToAddPageBtn label="Add Consumer" to="/consumers/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <ConsumerExpandedRow consumer={record.value} />,
           rowExpandable: () => true,

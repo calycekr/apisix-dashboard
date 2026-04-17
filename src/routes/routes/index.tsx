@@ -45,6 +45,7 @@ export type RouteListProps = {
   routeKey: Extract<ListPageKeys, '/routes/' | '/services/detail/$id/routes/'>;
   defaultParams?: Partial<WithServiceIdFilter>;
   detailLink: (id: string) => { to: string; params: Record<string, string> };
+  tablePersistenceKey?: string;
 };
 
 const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
@@ -53,7 +54,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
   const methods = route.methods?.join(', ') || 'ANY';
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: '8px 0' }}>
+    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 16, padding: '8px 0' }}>
       <div>
         <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
           Matching
@@ -129,7 +130,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 };
 
 export const RouteList = (props: RouteListProps) => {
-  const { routeKey, detailLink, defaultParams } = props;
+  const { routeKey, detailLink, defaultParams, tablePersistenceKey = 'table-v2:routes' } = props;
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useRouteList(
     routeKey,
     defaultParams
@@ -324,7 +325,7 @@ export const RouteList = (props: RouteListProps) => {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:routes',
+          persistenceKey: tablePersistenceKey,
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
@@ -365,6 +366,7 @@ function RouteComponent() {
       <PageHeader title="Routes" />
       <RouteList
         routeKey="/routes/"
+        tablePersistenceKey="table-v2:routes"
         detailLink={(id) => ({ to: '/routes/detail/$id', params: { id } })}
       />
     </>

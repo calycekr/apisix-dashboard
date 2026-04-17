@@ -183,13 +183,14 @@ function RouteComponent() {
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
           columnsState={{
-            persistenceKey: 'table:ssls',
+            persistenceKey: 'table-v2:ssls',
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
           headerTitle={<Space><span>SSLs</span><ToAddPageBtn label="Add SSL" to="/ssls/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
           expandable={{
             expandedRowRender: (record) => <SSLExpandedRow ssl={record.value as Record<string, unknown>} />,
             rowExpandable: () => true,

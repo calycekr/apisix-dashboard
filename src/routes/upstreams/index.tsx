@@ -188,13 +188,14 @@ function RouteComponent() {
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
           columnsState={{
-            persistenceKey: 'table:upstreams',
+            persistenceKey: 'table-v2:upstreams',
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
           headerTitle={<Space><span>Upstreams</span><ToAddPageBtn label="Add Upstream" to="/upstreams/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
           expandable={{
             expandedRowRender: (record) => <UpstreamExpandedRow upstream={record.value} />,
             rowExpandable: () => true,

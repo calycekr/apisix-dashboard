@@ -115,13 +115,14 @@ function GlobalRulesList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:global-rules',
+          persistenceKey: 'table-v2:global-rules',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Global Rules</span><ToAddPageBtn label="Add Global Rule" to="/global_rules/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         expandable={{
           expandedRowRender: (record) => <GlobalRuleExpandedRow rule={record.value} />,
           rowExpandable: () => true,
