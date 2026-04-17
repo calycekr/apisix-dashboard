@@ -25,6 +25,13 @@ import { useThemeMode } from '@/stores/global';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 
+
+const PATCH_RISKY_RESOURCES = new Set(['consumers', 'consumer_groups', 'secrets', 'protos']);
+
+const getResourceName = (path: string) => path.split('/').filter(Boolean)[0] || '';
+
+const isPatchRiskyForApi = (path: string) => PATCH_RISKY_RESOURCES.has(getResourceName(path));
+
 type RawDrawerProps = {
   open: boolean;
   onClose: () => void;
@@ -43,7 +50,9 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [saveFeedback, setSaveFeedback] = useState<{ type: 'success' | 'error'; message: string; at: string } | null>(null);
   const [saveMode, setSaveMode] = useState<'patch' | 'put'>('patch');
+  const patchRisky = isPatchRiskyForApi(api);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
 
   useEffect(() => {
@@ -63,6 +72,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       setLoading(true);
     }
     setError(null);
+    setSaveFeedback(null);
     req
       .get(api)
       .then((res) => {
@@ -75,9 +85,11 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       .finally(() => setLoading(false));
   }, [open, api, initialData]);
 
+
   const handleSave = useCallback(async () => {
     if (saving) return;
     setError(null);
+    setSaveFeedback(null);
     let parsed: unknown;
     try {
       parsed = JSON.parse(value);
@@ -85,6 +97,12 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       setError('Invalid JSON: ' + String(e));
       return;
     }
+
+    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+      setError('Invalid payload: top-level JSON must be an object');
+      return;
+    }
+
     setSaving(true);
     try {
       const normalizeRaw = (data: Record<string, unknown>) => {
@@ -92,17 +110,31 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
         return JSON.stringify(copy, null, 2);
       };
 
-      const requestBody = typeof parsed === 'object' && parsed !== null
-        ? stripSystemReadonlyFields(parsed as Record<string, unknown>)
-        : parsed;
+      const requestBody = stripSystemReadonlyFields(parsed as Record<string, unknown>);
+      const saveWithPut = async () => req.put(api, { ...requestBody });
+      const saveLabel = saveMode.toUpperCase();
 
       if (saveMode === 'patch') {
-        await req.patch(api, requestBody);
+        try {
+          await req.patch(api, requestBody);
+        } catch (e) {
+          const status = (e as { response?: { status?: number } }).response?.status;
+          if (status === 405 || status === 501) {
+            const unsupportedMsg = 'PATCH is not supported for this resource. Please switch to PUT and retry save.';
+            setError(unsupportedMsg);
+            setSaveFeedback({
+              type: 'error',
+              message: unsupportedMsg,
+              at: new Date().toLocaleTimeString(),
+            });
+            return;
+          }
+          throw e;
+        }
       } else {
-        const body = { ...(requestBody as Record<string, unknown>) };
-        delete body.username;
-        await req.put(api, body);
+        await saveWithPut();
       }
+
       const latest = await req.get(api);
       const latestData = latest.data?.value as Record<string, unknown> | undefined;
       if (latestData) {
@@ -110,16 +142,19 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
         setValue(latestJson);
         setOriginal(latestJson);
       }
-      showNotification({ message: `Saved (${saveMode.toUpperCase()})`, type: 'success' });
+      const successMsg = `Saved successfully with ${saveLabel}`;
+      showNotification({ message: successMsg, type: 'success' });
+      setSaveFeedback({ type: 'success', message: successMsg, at: new Date().toLocaleTimeString() });
       await queryClient.invalidateQueries();
       await onSaved?.();
-      onClose();
     } catch (e) {
-      setError('Save failed: ' + (e instanceof Error ? e.message : String(e)));
+      const failureMsg = 'Save failed: ' + (e instanceof Error ? e.message : String(e));
+      setError(failureMsg);
+      setSaveFeedback({ type: 'error', message: failureMsg, at: new Date().toLocaleTimeString() });
     } finally {
       setSaving(false);
     }
-  }, [api, value, saveMode, saving, onClose, onSaved]);
+  }, [api, value, saveMode, saving, onSaved]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -185,7 +220,13 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
             optionType="button"
             buttonStyle="solid"
           >
-            <Tooltip title="Only send changed fields — other fields untouched">
+            <Tooltip
+              title={
+                patchRisky
+                  ? 'PATCH may be unsupported for this resource in APISIX. If save fails, switch to PUT.'
+                  : 'Only send changed fields — other fields untouched'
+              }
+            >
               <Radio.Button value="patch">PATCH</Radio.Button>
             </Tooltip>
             <Tooltip title="Replace entire resource — omitted fields removed">
@@ -207,9 +248,30 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       {error && (
         <Alert type="error" showIcon message={error} style={{ marginBottom: 12 }} closable onClose={() => setError(null)} />
       )}
+      {saveFeedback && (
+        <Alert
+          type={saveFeedback.type}
+          showIcon
+          message={saveFeedback.message}
+          description={`Time: ${saveFeedback.at}`}
+          style={{ marginBottom: 12 }}
+          closable
+          onClose={() => setSaveFeedback(null)}
+        />
+      )}
       {isDirty && (
         <Typography.Text type="warning" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
           Unsaved changes · Ctrl+S to save · {saveMode === 'patch' ? 'PATCH mode (partial update)' : 'PUT mode (full replace)'}
+        </Typography.Text>
+      )}
+      {saveMode === 'patch' && patchRisky && (
+        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          This resource may reject PATCH in APISIX. If that happens, switch to PUT manually.
+        </Typography.Text>
+      )}
+      {saveFeedback?.type === 'success' && (
+        <Typography.Text type="success" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
+          Last successful save: {saveFeedback.at}
         </Typography.Text>
       )}
       {loading ? (
@@ -221,7 +283,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
             language="json"
             theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
             value={value}
-            onChange={(v) => setValue(v ?? '')}
+            onChange={(v) => { setValue(v ?? ''); setSaveFeedback(null); }}
             onMount={handleEditorMount}
             beforeMount={(monaco) => {
               monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
