@@ -207,7 +207,17 @@ function RouteComponent() {
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-            <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+            <ResourceSortSelect
+              key="sort"
+              sortBy={sortBy}
+              sortOrder={sortOrder}
+              fields={[
+                { label: 'ID', value: 'id' },
+                { label: 'SNI', value: 'sni' },
+                { label: 'Expiry', value: 'validity_end' },
+              ]}
+              onChange={setSort}
+            />,
           ]}
         />
         <RawDrawer

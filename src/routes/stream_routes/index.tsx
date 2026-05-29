@@ -220,7 +220,18 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+          <ResourceSortSelect
+            key="sort"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            fields={[
+              { label: 'ID', value: 'id' },
+              { label: 'Server Address', value: 'server_addr' },
+              { label: 'Server Port', value: 'server_port' },
+              { label: 'SNI', value: 'sni' },
+            ]}
+            onChange={setSort}
+          />,
         ]}
       />
       <RawDrawer

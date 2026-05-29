@@ -26,7 +26,6 @@ import { GlobalRuleExpandedRow } from '@/components/page/ExpandedRowComponents';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
-import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_GLOBAL_RULES } from '@/config/constant';
@@ -37,7 +36,7 @@ import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function GlobalRulesList() {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useGlobalRuleList();
+  const { data, isLoading, refetch, pagination, sortBy, sortOrder, setSort } = useGlobalRuleList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -128,8 +127,13 @@ function GlobalRulesList() {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search global rules..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+          <ResourceSortSelect
+            key="sort"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            fields={[{ label: 'ID', value: 'id' }]}
+            onChange={setSort}
+          />,
         ]}
       />
       <RawDrawer

@@ -137,7 +137,16 @@ function SecretList() {
         scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+          <ResourceSortSelect
+            key="sort"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            fields={[
+              { label: 'Manager', value: 'manager' },
+              { label: 'ID', value: 'id' },
+            ]}
+            onChange={setSort}
+          />,
         ]}
       />
       <RawDrawer

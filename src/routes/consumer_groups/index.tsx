@@ -145,7 +145,13 @@ function ConsumerGroupsList() {
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search consumer groups..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
-          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+          <ResourceSortSelect
+            key="sort"
+            sortBy={sortBy}
+            sortOrder={sortOrder}
+            fields={[{ label: 'ID', value: 'id' }]}
+            onChange={setSort}
+          />,
         ]}
       />
       <RawDrawer
