@@ -5,6 +5,7 @@
       "dom"
     ],
     "allowJs": true,
+    "noEmit": true,
     "sourceMap": false,
     "target": "ESNext",
     "module": "ESNext",

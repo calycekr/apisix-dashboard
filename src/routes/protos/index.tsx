@@ -16,18 +16,18 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
-import { Space, Typography } from 'antd';
-import { useMemo } from 'react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Button, Space, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 
 import { getProtoListQueryOptions, useProtoList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_PROTOS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -39,6 +39,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function RouteComponent() {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useProtoList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespProtoList']['data']['list'][number]>[]
@@ -49,7 +50,11 @@ function RouteComponent() {
         title: 'ID',
         key: 'id',
         width: 120,
-        render: (_, record) => <CopyableID id={record.value.id} />,
+        render: (_, record) => (
+          <Link to="/protos/detail/$id" params={{ id: record.value.id }}>
+            <CopyableID id={record.value.id} />
+          </Link>
+        ),
       },
       {
         dataIndex: ['value', 'content'],
@@ -84,29 +89,24 @@ function RouteComponent() {
         renderText: renderUnixDateTime,
       },
       {
-        title: 'Actions',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 72,
+        fixed: 'right',
         render: (_, record) => [
-          <Space key="actions">
-            <ToDetailPageBtn
-              key="detail"
-              to="/protos/detail/$id"
-              params={{ id: record.value.id }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Proto"
-              target={record.value.id}
-              api={`${API_PROTOS}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_PROTOS}/${record.value.id}`, title: `Proto: ${record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <>
@@ -126,17 +126,26 @@ function RouteComponent() {
           rowSelection={rowSelection}
           options={{ density: true, fullScreen: false, reload: true, setting: true }}
           columnsState={{
-            persistenceKey: 'table:protos',
+            persistenceKey: 'table-v2:protos',
             persistenceType: 'localStorage',
           }}
           dateFormatter="string"
           headerTitle={<Space><span>Protos</span><ToAddPageBtn label="Add Proto" to="/protos/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
+          scroll={{ x: 'max-content' }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
           ]}
+        />
+        <RawDrawer
+          open={!!rawTarget}
+          onClose={() => setRawTarget(null)}
+          onSaved={async () => { await refetch(); }}
+          api={rawTarget?.api ?? ''}
+          title={rawTarget?.title ?? ''}
+          initialData={rawTarget?.data}
         />
       </AntdConfigProvider>
     </>

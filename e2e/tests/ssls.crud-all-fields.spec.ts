@@ -103,7 +103,7 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     const firstSni = snis[0];
     await page
       .getByRole('row', { name: firstSni })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: new RegExp(firstSni) })
       .click();
     await sslsPom.isDetailPage(page);
 
@@ -162,7 +162,7 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     const firstSni = snis[0];
     await page
       .getByRole('row', { name: firstSni })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: new RegExp(firstSni) })
       .click();
     await sslsPom.isDetailPage(page);
 

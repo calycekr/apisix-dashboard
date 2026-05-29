@@ -33,6 +33,7 @@ const updatedStreamRouteServerAddr = '127.0.0.2';
 const updatedStreamRouteServerPort = 8081;
 
 let testServiceId: string;
+let streamRouteId: string;
 
 test.beforeAll(async () => {
   await deleteAllStreamRoutes(e2eReq);
@@ -60,7 +61,7 @@ test('should CRUD stream route under service', async ({ page }) => {
   // Click on the service to go to detail page
   await page
     .getByRole('row', { name: serviceName })
-    .getByRole('button', { name: 'View' })
+    .getByRole('link', { name: serviceName, exact: true })
     .click();
   await servicesPom.isDetailPage(page);
 
@@ -92,6 +93,7 @@ test('should CRUD stream route under service', async ({ page }) => {
     const ID = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(ID).toBeVisible();
     await expect(ID).toBeDisabled();
+    streamRouteId = await ID.inputValue();
 
     // Verify service_id is still pre-filled and disabled
     const serviceIdField = page.getByLabel('Service ID', { exact: true });
@@ -191,7 +193,7 @@ test('should CRUD stream route under service', async ({ page }) => {
     // Click on the stream route to go to the detail page
     await page
       .getByRole('row', { name: updatedStreamRouteServerAddr })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: streamRouteId, exact: true })
       .click();
     await servicesPom.isServiceStreamRouteDetailPage(page);
   });

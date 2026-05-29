@@ -41,7 +41,7 @@ test('should navigate to SSLs page', async ({ page }) => {
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(table.getByText('SNI', { exact: true })).toBeVisible();
     await expect(table.getByText('Status', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

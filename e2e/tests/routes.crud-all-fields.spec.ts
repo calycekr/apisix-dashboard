@@ -349,7 +349,7 @@ test('should CRUD route with all fields', async ({ page }) => {
     // Navigate to detail page
     await page
       .getByRole('row', { name: routeNameWithAllFields })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: routeNameWithAllFields, exact: true })
       .click();
     await routesPom.isDetailPage(page);
 

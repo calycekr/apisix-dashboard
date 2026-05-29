@@ -38,7 +38,7 @@ test('should navigate to consumers page', async ({ page }) => {
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
     await expect(table.getByText('Username', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

@@ -23,8 +23,10 @@ import { useMemo, useState } from 'react';
 
 import { getSSLListQueryOptions, useSSLList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { SSLExpandedRow } from '@/components/page/ExpandedRowComponents';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
@@ -42,7 +44,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function RouteComponent() {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useSSLList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
-  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<ProColumns<APISIXType['RespSSLItem']>[]>(() => {
     return [
@@ -128,6 +130,13 @@ function RouteComponent() {
         },
       },
       {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        hideInTable: true,
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
+      },
+      {
         dataIndex: ['value', 'create_time'],
         title: 'Created At',
         key: 'create_time',
@@ -155,7 +164,7 @@ function RouteComponent() {
             key="raw"
             size="small"
             type="link"
-            onClick={() => setRawTarget({ api: `${API_SSLS}/${record.value.id}`, title: `SSL: ${record.value.id}` })}
+            onClick={() => setRawTarget({ api: `${API_SSLS}/${record.value.id}`, title: `SSL: ${record.value.id}`, data: record.value as Record<string, unknown> })}
           >
             Raw
           </Button>,
@@ -190,13 +199,14 @@ function RouteComponent() {
           headerTitle={<Space><span>SSLs</span><ToAddPageBtn label="Add SSL" to="/ssls/add" /></Space>}
           pagination={pagination}
           cardProps={{ bodyStyle: { padding: 0 } }}
-        scroll={{ x: 'max-content' }}
+          scroll={{ x: 'max-content' }}
           expandable={{
             expandedRowRender: (record) => <SSLExpandedRow ssl={record.value as Record<string, unknown>} />,
             rowExpandable: () => true,
           }}
           toolBarRender={() => [
             <SearchInput key="search" placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
             <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
           ]}
         />
@@ -206,6 +216,7 @@ function RouteComponent() {
           onSaved={async () => { await refetch(); }}
           api={rawTarget?.api ?? ''}
           title={rawTarget?.title ?? ''}
+          initialData={rawTarget?.data}
         />
       </AntdConfigProvider>
     </>

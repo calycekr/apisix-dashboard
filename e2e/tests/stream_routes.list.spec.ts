@@ -41,7 +41,7 @@ test('should navigate to stream routes page', async ({ page }) => {
     await expect(
       table.getByText('Server Port', { exact: true })
     ).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

@@ -88,7 +88,7 @@ test('should CRUD service with all fields', async ({ page }) => {
     await expect(row).toBeVisible();
 
     // Click to view details
-    await row.getByRole('button', { name: 'View' }).click();
+    await row.getByRole('link', { name: serviceNameWithAllFields, exact: true }).click();
 
     // Verify entered detail page
     await servicesPom.isDetailPage(page);

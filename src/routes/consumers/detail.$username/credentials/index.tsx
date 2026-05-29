@@ -16,7 +16,7 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute, useParams } from '@tanstack/react-router';
+import { createFileRoute, Link, useParams } from '@tanstack/react-router';
 import { Space } from 'antd';
 import dayjs from 'dayjs';
 import { useMemo } from 'react';
@@ -27,7 +27,7 @@ import {
 } from '@/apis/hooks';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_CREDENTIALS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -48,6 +48,17 @@ function CredentialsList() {
         title: 'ID',
         key: 'id',
         valueType: 'text',
+        render: (_, record) => (
+          <Link
+            to="/consumers/detail/$username/credentials/detail/$id"
+            params={{
+              username: username as string,
+              id: record.value.id,
+            }}
+          >
+            {record.value.id}
+          </Link>
+        ),
       },
       {
         dataIndex: ['value', 'desc'],
@@ -84,14 +95,6 @@ function CredentialsList() {
         width: 160,
         render: (_, record) => [
           <Space key="actions">
-            <ToDetailPageBtn
-              key="detail"
-              to="/consumers/detail/$username/credentials/detail/$id"
-              params={{
-                username: username as string,
-                id: record.value.id,
-              }}
-            />
             <DeleteResourceBtn
               key="delete"
               name="Credential"
@@ -110,18 +113,19 @@ function CredentialsList() {
       <ProTable
         columns={columns}
         dataSource={data?.list}
-        rowKey="id"
+        rowKey={(record) => record.value.id}
         loading={isLoading}
         search={false}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:credentials',
+          persistenceKey: 'table-v2:credentials',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Credentials</span><ToAddPageBtn label="Add Credential" to="/consumers/detail/$username/credentials/add" params={{ username }} /></Space>}
         pagination={false}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => []}
       />
     </AntdConfigProvider>

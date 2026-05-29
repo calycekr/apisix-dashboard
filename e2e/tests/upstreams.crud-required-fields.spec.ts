@@ -81,7 +81,7 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     // Click on the upstream name to go to the detail page
     await page
       .getByRole('row', { name: upstreamName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: upstreamName, exact: true })
       .click();
     await upstreamsPom.isDetailPage(page);
     const name = page.getByLabel('Name', { exact: true });

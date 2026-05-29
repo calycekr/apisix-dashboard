@@ -96,7 +96,7 @@ test('should CRUD service with required fields', async ({ page }) => {
     // Click on the service name to go to the detail page
     await page
       .getByRole('row', { name: serviceName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: serviceName, exact: true })
       .click();
     await servicesPom.isDetailPage(page);
     const name = page.getByRole('textbox', { name: 'Name' }).first();
@@ -162,7 +162,7 @@ test('should CRUD service with required fields', async ({ page }) => {
     // Navigate back to detail page
     await page
       .getByRole('row', { name: serviceName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: serviceName, exact: true })
       .click();
     await servicesPom.isDetailPage(page);
 

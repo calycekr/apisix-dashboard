@@ -69,7 +69,7 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
 
       // Find and click the View button for the created secret
       const row = page.locator('tr').filter({ hasText: createdSecretId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdSecretId, exact: true }).click();
       await secretsPom.isDetailPage(page);
 
       // Assert Vault field values using input selectors
@@ -91,7 +91,7 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
       await secretsPom.isIndexPage(page);
 
       const row = page.locator('tr').filter({ hasText: createdSecretId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdSecretId, exact: true }).click();
       await secretsPom.isDetailPage(page);
     });
 
@@ -123,7 +123,7 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
       await secretsPom.isIndexPage(page);
 
       const row = page.locator('tr').filter({ hasText: createdSecretId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdSecretId, exact: true }).click();
       await secretsPom.isDetailPage(page);
 
       await page.getByRole('button', { name: 'Delete' }).click();

@@ -40,7 +40,7 @@ test('should navigate to routes page', async ({ page }) => {
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(table.getByText('Name', { exact: true })).toBeVisible();
     await expect(table.getByText('URI', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 
@@ -71,7 +71,9 @@ test.describe('page and page_size should work correctly', () => {
 
   test.afterAll(async () => {
     await Promise.all(
-      routes.map((d) => e2eReq.delete(`${API_ROUTES}/${d.id}`))
+      routes.map((d) =>
+        e2eReq.delete(`${API_ROUTES}/${d.id}`).catch(() => {})
+      )
     );
   });
 

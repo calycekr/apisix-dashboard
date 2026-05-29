@@ -23,13 +23,13 @@ import { expect } from '@playwright/test';
 
 import { deleteAllRoutes, postRouteReq } from '@/apis/routes';
 import { deleteAllServices, postServiceReq } from '@/apis/services';
-import type { APISIXType } from '@/types/schema/apisix';
+import type { RoutePostType } from '@/components/form-slice/FormPartRoute/schema';
 
 test.describe.configure({ mode: 'serial' });
 
 const serviceName = randomId('test-service');
 const anotherServiceName = randomId('another-service');
-const routes: APISIXType['Route'][] = [
+const routes: RoutePostType[] = [
   {
     name: randomId('route1'),
     uri: '/api/v1/test1',
@@ -48,7 +48,7 @@ const routes: APISIXType['Route'][] = [
 ];
 
 // Route that uses upstream directly instead of service_id
-const upstreamRoute: APISIXType['Route'] = {
+const upstreamRoute: RoutePostType = {
   name: randomId('upstream-route'),
   uri: '/api/v1/upstream-test',
   methods: ['GET'],
@@ -58,7 +58,7 @@ const upstreamRoute: APISIXType['Route'] = {
 };
 
 // Route that belongs to another service
-const anotherServiceRoute: APISIXType['Route'] = {
+const anotherServiceRoute: RoutePostType = {
   name: randomId('another-service-route'),
   uri: '/api/v1/another-test',
   methods: ['GET'],
@@ -119,7 +119,7 @@ test('should only show routes with current service_id', async ({ page }) => {
 
     await page
       .getByRole('row', { name: serviceName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: serviceName, exact: true })
       .click();
     await servicesPom.isDetailPage(page);
 
@@ -165,7 +165,7 @@ test('should display routes list under service', async ({ page }) => {
   // Click on the service to go to detail page
   await page
     .getByRole('row', { name: serviceName })
-    .getByRole('button', { name: 'View' })
+    .getByRole('link', { name: serviceName, exact: true })
     .click();
   await servicesPom.isDetailPage(page);
 
@@ -187,16 +187,14 @@ test('should display routes list under service', async ({ page }) => {
       page.getByRole('columnheader', { name: 'Name' })
     ).toBeVisible();
     await expect(page.getByRole('columnheader', { name: 'URI' })).toBeVisible();
-    await expect(
-      page.getByRole('columnheader', { name: 'Actions' })
-    ).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'RAW' })).toBeVisible();
   });
 
   await test.step('should be able to navigate to route detail', async () => {
     // Click on the first route's View button
     await page
       .getByRole('row', { name: routes[0].name })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: routes[0].name, exact: true })
       .click();
 
     await servicesPom.isServiceRouteDetailPage(page);

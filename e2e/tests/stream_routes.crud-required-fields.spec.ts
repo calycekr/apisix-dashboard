@@ -77,6 +77,9 @@ test('CRUD stream route with required fields', async ({ page }) => {
   });
 
   await streamRoutesPom.isDetailPage(page);
+  const streamRouteId = await page
+    .getByRole('textbox', { name: 'ID', exact: true })
+    .inputValue();
 
   // Verify created values in detail view
   await uiCheckStreamRouteRequiredFields(page, streamRouteData);
@@ -116,7 +119,10 @@ test('CRUD stream route with required fields', async ({ page }) => {
   await expect(row.first()).toBeVisible({ timeout: 10000 }); // Longer timeout for parallel tests
 
   // View detail page from the list
-  await row.first().getByRole('button', { name: 'View' }).click();
+  await row
+    .first()
+    .getByRole('link', { name: streamRouteId, exact: true })
+    .click();
   await streamRoutesPom.isDetailPage(page);
   await uiCheckStreamRouteRequiredFields(page, updatedData);
 

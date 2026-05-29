@@ -39,7 +39,7 @@ test('should navigate to upstreams page', async ({ page }) => {
     await expect(table).toBeVisible();
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(table.getByText('Name', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

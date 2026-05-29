@@ -102,7 +102,7 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
     // Click View button to go to detail page
     await page
       .getByRole('row', { name: new RegExp(testId) })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: testId, exact: true })
       .click();
     await consumerGroupsPom.isDetailPage(page);
 

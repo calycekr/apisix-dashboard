@@ -39,7 +39,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function GlobalRulesList() {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useGlobalRuleList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
-  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespGlobalRuleItem']>[]
@@ -90,7 +90,7 @@ function GlobalRulesList() {
             key="raw"
             size="small"
             type="link"
-            onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}` })}
+            onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}`, data: record.value as Record<string, unknown> })}
           >
             Raw
           </Button>,
@@ -138,6 +138,7 @@ function GlobalRulesList() {
         onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
       />
     </AntdConfigProvider>
   );

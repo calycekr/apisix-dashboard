@@ -38,7 +38,7 @@ test('should navigate to protos page', async ({ page }) => {
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

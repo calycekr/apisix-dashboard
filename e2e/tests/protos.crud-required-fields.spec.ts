@@ -104,7 +104,7 @@ test.describe('CRUD proto with required fields only', () => {
 
       // Find and click the View button for the created proto
       const row = page.locator('tr').filter({ hasText: createdProtoId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdProtoId, exact: true }).click();
       
       // Verify we're on the detail page
       await protosPom.isDetailPage(page);
@@ -132,7 +132,7 @@ message UpdatedTestMessage {
       await protosPom.isIndexPage(page);
 
       const row = page.locator('tr').filter({ hasText: createdProtoId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdProtoId, exact: true }).click();
       await protosPom.isDetailPage(page);
     });
 
@@ -180,7 +180,7 @@ message UpdatedTestMessage {
 
       // Find and click the View button
       const row = page.locator('tr').filter({ hasText: createdProtoId });
-      await row.getByRole('button', { name: 'View' }).click();
+      await row.getByRole('link', { name: createdProtoId, exact: true }).click();
       await protosPom.isDetailPage(page);
 
       // Click Delete button

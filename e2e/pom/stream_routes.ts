@@ -32,18 +32,18 @@ const assert = {
     await expect(title).toBeVisible({ timeout: 15000 });
   },
   isAddPage: async (page: Page) => {
-    await expect(
-      page,
+    await expect(page).toHaveURL(
+      (url) => url.pathname.endsWith('/stream_routes/add'),
       { timeout: 15000 }
-    ).toHaveURL((url) => url.pathname.endsWith('/stream_routes/add'));
+    );
     const title = page.getByRole('heading', { name: 'Add Stream Route' });
     await expect(title).toBeVisible({ timeout: 15000 });
   },
   isDetailPage: async (page: Page) => {
-    await expect(
-      page,
+    await expect(page).toHaveURL(
+      (url) => url.pathname.includes('/stream_routes/detail'),
       { timeout: 20000 }
-    ).toHaveURL((url) => url.pathname.includes('/stream_routes/detail'));
+    );
     const title = page.getByRole('heading', {
       name: 'Stream Route Detail',
     });

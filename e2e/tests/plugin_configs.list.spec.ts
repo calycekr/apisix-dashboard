@@ -47,7 +47,7 @@ test('should navigate to plugin configs page', async ({ page }) => {
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(table.getByText('Name', { exact: true })).toBeVisible();
     await expect(table.getByText('Description', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

@@ -154,7 +154,7 @@ test('should CRUD route with required fields', async ({ page }) => {
     // Click on the route name to go to the detail page
     await page
       .getByRole('row', { name: routeName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: routeName, exact: true })
       .click();
     await routesPom.isDetailPage(page);
   });

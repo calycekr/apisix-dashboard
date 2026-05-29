@@ -184,7 +184,7 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     // Click on the plugin config name to go to the detail page
     await page
       .getByRole('row', { name: `${pluginConfigName}-updated` })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: `${pluginConfigName}-updated`, exact: true })
       .click();
     await pluginConfigsPom.isDetailPage(page);
   });

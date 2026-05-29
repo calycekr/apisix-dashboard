@@ -16,18 +16,18 @@
  */
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
-import { createFileRoute } from '@tanstack/react-router';
-import { Space } from 'antd';
-import { useMemo } from 'react';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Button, Space, Typography } from 'antd';
+import { useMemo, useState } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
 import { CopyableID } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
-import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
 import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
-import { ToAddPageBtn, ToDetailPageBtn } from '@/components/page/ToAddPageBtn';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_SECRETS } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -39,6 +39,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 function SecretList() {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useSecretList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespSecretList']['data']['list'][number]>[]
@@ -50,13 +51,28 @@ function SecretList() {
         key: 'manager',
         valueType: 'text',
         width: 120,
+        render: (_, record) => (
+          <Typography.Text code style={{ fontSize: 12 }}>
+            {record.value.manager}
+          </Typography.Text>
+        ),
       },
       {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
         width: 150,
-        render: (_, record) => <CopyableID id={record.value.id} />,
+        render: (_, record) => (
+          <Link
+            to="/secrets/detail/$manager/$id"
+            params={{
+              manager: record.value.manager,
+              id: record.value.id,
+            }}
+          >
+            <CopyableID id={record.value.id} />
+          </Link>
+        ),
       },
       {
         dataIndex: ['value', 'create_time'],
@@ -76,32 +92,24 @@ function SecretList() {
         renderText: renderUnixDateTime,
       },
       {
-        title: 'Actions',
+        title: 'RAW',
         valueType: 'option',
         key: 'option',
-        width: 160,
+        width: 72,
+        fixed: 'right',
         render: (_, record) => [
-          <Space key="actions">
-            <ToDetailPageBtn
-              key="detail"
-              to="/secrets/detail/$manager/$id"
-              params={{
-                manager: record.value.manager,
-                id: record.value.id,
-              }}
-            />
-            <DeleteResourceBtn
-              key="delete"
-              name="Secret"
-              target={record.value.id}
-              api={`${API_SECRETS}/${record.value.manager}/${record.value.id}`}
-              onSuccess={refetch}
-            />
-          </Space>,
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_SECRETS}/${record.value.manager}/${record.value.id}`, title: `Secret: ${record.value.manager}/${record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
         ],
       },
     ];
-  }, [refetch]);
+  }, []);
 
   return (
     <AntdConfigProvider>
@@ -119,17 +127,26 @@ function SecretList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table:secrets',
+          persistenceKey: 'table-v2:secrets',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"
         headerTitle={<Space><span>Secrets</span><ToAddPageBtn label="Add Secret" to="/secrets/add" /></Space>}
         pagination={pagination}
         cardProps={{ bodyStyle: { padding: 0 } }}
+        scroll={{ x: 'max-content' }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        onSaved={async () => { await refetch(); }}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
       />
     </AntdConfigProvider>
   );

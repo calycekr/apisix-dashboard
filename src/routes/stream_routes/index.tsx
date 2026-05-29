@@ -22,8 +22,10 @@ import { useMemo, useState } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
 import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
@@ -36,7 +38,7 @@ import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
+import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
@@ -56,7 +58,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
     defaultParams
   );
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
-  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
@@ -71,7 +73,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
       },
       {
         dataIndex: ['value', 'server_addr'],
-        title: 'Server Addr',
+        title: 'Server Address',
         key: 'server_addr',
         valueType: 'text',
         render: (_, record) => {
@@ -91,7 +93,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
       },
       {
         dataIndex: ['value', 'remote_addr'],
-        title: 'Remote Addr',
+        title: 'Remote Address',
         key: 'remote_addr',
         valueType: 'text',
         render: (_, record) => {
@@ -118,6 +120,20 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
           const v = record.value as APISIXType['StreamRoute'];
           return v.upstream_id || (v.upstream ? 'Inline' : '-');
         },
+      },
+      {
+        dataIndex: ['value', 'plugins'],
+        title: 'Plugins',
+        key: 'plugins',
+        width: 96,
+        render: (_, record) => renderPluginCount(record.value.plugins),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        hideInTable: true,
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
         dataIndex: ['value', 'status'],
@@ -163,7 +179,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
             key="raw"
             size="small"
             type="link"
-            onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}` })}
+            onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}`, data: record.value as Record<string, unknown> })}
           >
             Raw
           </Button>,
@@ -203,6 +219,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         }}
         toolBarRender={() => [
           <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
@@ -212,6 +229,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
       />
     </AntdConfigProvider>
   );

@@ -151,6 +151,7 @@ export const ConsumerExpandedRow = ({ consumer }: { consumer: APISIXType['Consum
       )}
     </Section>
     <PluginsSection plugins={consumer.plugins} />
+    <LabelsSection labels={consumer.labels} />
   </Grid>
 );
 
@@ -195,6 +196,7 @@ export const StreamRouteExpandedRow = ({ route }: { route: APISIXType['StreamRou
         </Field>
       )}
     </Section>
+    <LabelsSection labels={route.labels} />
     <PluginsSection plugins={route.plugins} />
   </Grid>
 );

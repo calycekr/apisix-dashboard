@@ -42,7 +42,7 @@ import { useBulkActions } from '@/utils/useBulkActions';
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useServiceList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
-  const [rawTarget, setRawTarget] = useState<{ api: string; title: string } | null>(null);
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -126,7 +126,7 @@ const ServiceList = () => {
             key="raw"
             size="small"
             type="link"
-            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}` })}
+            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
           >
             Raw
           </Button>,
@@ -175,6 +175,7 @@ const ServiceList = () => {
         onSaved={async () => { await refetch(); }}
         api={rawTarget?.api ?? ''}
         title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
       />
     </AntdConfigProvider>
   );

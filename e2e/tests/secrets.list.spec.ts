@@ -37,8 +37,8 @@ test('should navigate to secrets page', async ({ page }) => {
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('Secret Manager', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('Manager', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 
@@ -76,7 +76,9 @@ test.describe('page and page_size should work correctly', () => {
 
   test.afterAll(async () => {
     await Promise.all(
-      secrets.map((d) => e2eReq.delete(`${API_SECRETS}/${d.manager}/${d.id}`))
+      secrets.map((d) =>
+        e2eReq.delete(`${API_SECRETS}/${d.manager}/${d.id}`).catch(() => {})
+      )
     );
   });
 

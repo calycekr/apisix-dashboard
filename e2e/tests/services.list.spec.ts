@@ -41,7 +41,7 @@ test('should navigate to services page', async ({ page }) => {
     await expect(table).toBeVisible();
     await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(table.getByText('Name', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
   });
 });
 

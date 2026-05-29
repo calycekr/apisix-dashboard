@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
-import { Alert, Button, Drawer, message, Radio, Space, Tooltip, Typography } from 'antd';
+import { Alert, Button, Drawer, message, Modal, Radio, Space, Tooltip, Typography } from 'antd';
 import type { editor } from 'monaco-editor';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -43,6 +43,55 @@ type RawDrawerProps = {
   initialData?: Record<string, unknown>;
 };
 
+const PATCH_READONLY_FIELDS = ['id', 'manager', 'username', 'create_time', 'update_time'] as const;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  !!value && typeof value === 'object' && !Array.isArray(value);
+
+const normalizeJson = (data: Record<string, unknown>) =>
+  JSON.stringify(data, null, 2);
+
+const toPatchPayload = (
+  current: Record<string, unknown>,
+  previous: Record<string, unknown>
+): Record<string, unknown> => {
+  const patch: Record<string, unknown> = {};
+  const keys = new Set([...Object.keys(current), ...Object.keys(previous)]);
+
+  for (const key of keys) {
+    if (PATCH_READONLY_FIELDS.includes(key as (typeof PATCH_READONLY_FIELDS)[number])) {
+      continue;
+    }
+
+    if (!(key in current)) {
+      patch[key] = null;
+      continue;
+    }
+
+    if (!(key in previous)) {
+      patch[key] = current[key];
+      continue;
+    }
+
+    const currentValue = current[key];
+    const previousValue = previous[key];
+
+    if (isRecord(currentValue) && isRecord(previousValue)) {
+      const nestedPatch = toPatchPayload(currentValue, previousValue);
+      if (Object.keys(nestedPatch).length > 0) {
+        patch[key] = nestedPatch;
+      }
+      continue;
+    }
+
+    if (JSON.stringify(currentValue) !== JSON.stringify(previousValue)) {
+      patch[key] = currentValue;
+    }
+  }
+
+  return patch;
+};
+
 export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: RawDrawerProps) => {
   const { mode } = useThemeMode();
   const [value, setValue] = useState('');
@@ -50,10 +99,11 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
   const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [saveFeedback, setSaveFeedback] = useState<{ type: 'success' | 'error'; message: string; at: string } | null>(null);
-  const [saveMode, setSaveMode] = useState<'patch' | 'put'>('patch');
+  const [saveFeedback, setSaveFeedback] = useState<{ type: 'success' | 'error' | 'warning'; message: string; at: string } | null>(null);
+  const [saveMode, setSaveMode] = useState<'patch' | 'put'>('put');
   const patchRisky = isPatchRiskyForApi(api);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
+  const userEditedRef = useRef(false);
 
   useEffect(() => {
     if (!open || !api) return;
@@ -63,6 +113,8 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       const json = JSON.stringify(copy, null, 2);
       setValue(json);
       setOriginal(json);
+      setError(null);
+      userEditedRef.current = false;
     };
 
     if (initialData) {
@@ -73,16 +125,36 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
     }
     setError(null);
     setSaveFeedback(null);
+    let cancelled = false;
     req
       .get(api)
       .then((res) => {
+        if (cancelled) return;
         const data = res.data?.value;
-        if (data) loadData(data);
+        if (!data) return;
+
+        if (userEditedRef.current) {
+          setSaveFeedback({
+            type: 'warning',
+            message: 'Latest API data arrived after editing started, so the editor was not overwritten.',
+            at: new Date().toLocaleTimeString(),
+          });
+          return;
+        }
+
+        loadData(data);
       })
       .catch(() => {
+        if (cancelled) return;
         if (!initialData) setError('Failed to load resource');
       })
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [open, api, initialData]);
 
 
@@ -91,15 +163,35 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
     setError(null);
     setSaveFeedback(null);
     let parsed: unknown;
+    let previous: unknown;
     try {
       parsed = JSON.parse(value);
+      previous = JSON.parse(original || '{}');
     } catch (e) {
       setError('Invalid JSON: ' + String(e));
       return;
     }
 
-    if (typeof parsed !== 'object' || parsed === null || Array.isArray(parsed)) {
+    if (!isRecord(parsed)) {
       setError('Invalid payload: top-level JSON must be an object');
+      return;
+    }
+
+    if (!isRecord(previous)) {
+      setError('Cannot compare against the original resource. Close and reopen this drawer.');
+      return;
+    }
+
+    const payload =
+      saveMode === 'patch'
+        ? toPatchPayload(parsed, previous)
+        : stripSystemReadonlyFields(parsed);
+
+    if (Object.keys(payload).length === 0) {
+      const normalized = normalizeJson(stripSystemReadonlyFields(parsed));
+      setOriginal(normalized);
+      setValue(normalized);
+      message.info('No changes to save');
       return;
     }
 
@@ -110,7 +202,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
         return JSON.stringify(copy, null, 2);
       };
 
-      const requestBody = stripSystemReadonlyFields(parsed as Record<string, unknown>);
+      const requestBody = payload;
       const saveWithPut = async () => req.put(api, { ...requestBody });
       const saveLabel = saveMode.toUpperCase();
 
@@ -135,16 +227,31 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
         await saveWithPut();
       }
 
-      const latest = await req.get(api);
-      const latestData = latest.data?.value as Record<string, unknown> | undefined;
-      if (latestData) {
-        const latestJson = normalizeRaw(latestData);
-        setValue(latestJson);
-        setOriginal(latestJson);
+      let reloaded = false;
+      let nextValue = normalizeRaw(parsed);
+      try {
+        const latest = await req.get(api);
+        const latestData = latest.data?.value as Record<string, unknown> | undefined;
+        if (latestData) {
+          nextValue = normalizeRaw(latestData);
+          reloaded = true;
+        }
+      } catch {
+        reloaded = false;
       }
+
+      setValue(nextValue);
+      setOriginal(nextValue);
+      userEditedRef.current = false;
       const successMsg = `Saved successfully with ${saveLabel}`;
       showNotification({ message: successMsg, type: 'success' });
-      setSaveFeedback({ type: 'success', message: successMsg, at: new Date().toLocaleTimeString() });
+      setSaveFeedback({
+        type: reloaded ? 'success' : 'warning',
+        message: reloaded
+          ? successMsg
+          : `${successMsg}. Latest state could not be reloaded, so the editor kept your saved JSON.`,
+        at: new Date().toLocaleTimeString(),
+      });
       await queryClient.invalidateQueries();
       await onSaved?.();
     } catch (e) {
@@ -154,7 +261,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
     } finally {
       setSaving(false);
     }
-  }, [api, value, saveMode, saving, onSaved]);
+  }, [api, value, original, saveMode, saving, onSaved]);
 
   const handleCopy = useCallback(async () => {
     try {
@@ -190,11 +297,31 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
   );
 
   const isDirty = value !== original;
+  const closeDrawer = useCallback(() => {
+    if (saving) {
+      message.info('Save is still in progress');
+      return;
+    }
+
+    if (!isDirty) {
+      onClose();
+      return;
+    }
+
+    Modal.confirm({
+      title: 'Discard unsaved changes?',
+      content: 'Your RAW edits have not been saved.',
+      okText: 'Discard',
+      okButtonProps: { danger: true },
+      cancelText: 'Keep editing',
+      onOk: onClose,
+    });
+  }, [isDirty, onClose, saving]);
 
   return (
     <Drawer
       open={open}
-      onClose={onClose}
+      onClose={closeDrawer}
       title={
         <div>
           <div>{title}</div>
@@ -210,7 +337,14 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
           <Tooltip title="Copy JSON">
             <Button size="small" onClick={handleCopy}>Copy</Button>
           </Tooltip>
-          <Button size="small" onClick={() => setValue(original)} disabled={!isDirty}>
+          <Button
+            size="small"
+            onClick={() => {
+              userEditedRef.current = false;
+              setValue(original);
+            }}
+            disabled={!isDirty}
+          >
             Reset
           </Button>
           <Radio.Group
@@ -223,25 +357,36 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
             <Tooltip
               title={
                 patchRisky
-                  ? 'PATCH may be unsupported for this resource in APISIX. If save fails, switch to PUT.'
-                  : 'Only send changed fields — other fields untouched'
+                  ? 'PATCH may be unsupported for this resource in APISIX. It sends only changed fields.'
+                  : 'Send only fields that differ from the loaded resource'
               }
             >
               <Radio.Button value="patch">PATCH</Radio.Button>
             </Tooltip>
-            <Tooltip title="Replace entire resource — omitted fields removed">
+            <Tooltip title="Replace the resource with the JSON shown below">
               <Radio.Button value="put">PUT</Radio.Button>
             </Tooltip>
           </Radio.Group>
-          <Button
-            size="small"
-            type="primary"
-            loading={saving}
-            onClick={handleSave}
-            disabled={!isDirty}
-          >
-            Save
-          </Button>
+        </Space>
+      }
+      footer={
+        <Space style={{ width: '100%', justifyContent: 'space-between' }}>
+          <Typography.Text type={isDirty ? 'warning' : 'secondary'}>
+            {isDirty
+              ? `Unsaved changes. Ctrl+S saves with ${saveMode.toUpperCase()}.`
+              : 'Saved'}
+          </Typography.Text>
+          <Space>
+            <Button onClick={closeDrawer}>Close</Button>
+            <Button
+              type="primary"
+              loading={saving}
+              onClick={handleSave}
+              disabled={!isDirty || loading}
+            >
+              Save
+            </Button>
+          </Space>
         </Space>
       }
     >
@@ -259,21 +404,16 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
           onClose={() => setSaveFeedback(null)}
         />
       )}
-      {isDirty && (
-        <Typography.Text type="warning" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-          Unsaved changes · Ctrl+S to save · {saveMode === 'patch' ? 'PATCH mode (partial update)' : 'PUT mode (full replace)'}
-        </Typography.Text>
-      )}
-      {saveMode === 'patch' && patchRisky && (
-        <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-          This resource may reject PATCH in APISIX. If that happens, switch to PUT manually.
-        </Typography.Text>
-      )}
-      {saveFeedback?.type === 'success' && (
-        <Typography.Text type="success" style={{ fontSize: 12, display: 'block', marginBottom: 8 }}>
-          Last successful save: {saveFeedback.at}
-        </Typography.Text>
-      )}
+      <Alert
+        type={saveMode === 'put' ? 'info' : 'warning'}
+        showIcon
+        message={
+          saveMode === 'put'
+            ? 'PUT saves the JSON below as the resource body. Read-only fields are removed before sending.'
+            : 'PATCH sends only fields changed from the loaded resource. Removed fields are sent as null.'
+        }
+        style={{ marginBottom: 12 }}
+      />
       {loading ? (
         <div style={{ textAlign: 'center', padding: 40 }}>Loading...</div>
       ) : (
@@ -283,7 +423,11 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
             language="json"
             theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
             value={value}
-            onChange={(v) => { setValue(v ?? ''); setSaveFeedback(null); }}
+            onChange={(v) => {
+              userEditedRef.current = true;
+              setValue(v ?? '');
+              setSaveFeedback(null);
+            }}
             onMount={handleEditorMount}
             beforeMount={(monaco) => {
               monaco.languages.json.jsonDefaults.setDiagnosticsOptions({

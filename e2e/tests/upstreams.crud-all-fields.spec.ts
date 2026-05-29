@@ -91,7 +91,7 @@ test('should CRUD upstream with all fields', async ({ page }) => {
     await expect(row).toBeVisible();
 
     // Click to view details
-    await row.getByRole('button', { name: 'View' }).click();
+    await row.getByRole('link', { name: upstreamNameWithAllFields, exact: true }).click();
 
     // Verify entered detail page
     await upstreamsPom.isDetailPage(page);

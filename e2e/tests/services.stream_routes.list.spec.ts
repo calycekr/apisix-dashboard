@@ -119,7 +119,7 @@ test('should only show stream routes with current service_id', async ({
 
     await page
       .getByRole('row', { name: serviceName })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: serviceName, exact: true })
       .click();
     await servicesPom.isDetailPage(page);
 
@@ -173,7 +173,7 @@ test('should display stream routes list under service', async ({ page }) => {
   // Click on the service to go to detail page
   await page
     .getByRole('row', { name: serviceName })
-    .getByRole('button', { name: 'View' })
+    .getByRole('link', { name: serviceName, exact: true })
     .click();
   await servicesPom.isDetailPage(page);
 
@@ -201,16 +201,14 @@ test('should display stream routes list under service', async ({ page }) => {
     await expect(
       page.getByRole('columnheader', { name: 'Server Port' })
     ).toBeVisible();
-    await expect(
-      page.getByRole('columnheader', { name: 'Actions' })
-    ).toBeVisible();
+    await expect(page.getByRole('columnheader', { name: 'RAW' })).toBeVisible();
   });
 
   await test.step('should be able to navigate to stream route detail', async () => {
     // Click on the first stream route's View button
     await page
       .getByRole('row', { name: streamRoutes[0].server_addr })
-      .getByRole('button', { name: 'View' })
+      .getByRole('link', { name: createdStreamRoutes[0], exact: true })
       .click();
 
     await servicesPom.isServiceStreamRouteDetailPage(page);

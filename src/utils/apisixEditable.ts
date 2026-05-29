@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const SYSTEM_READONLY_KEYS = ['id', 'create_time', 'update_time'] as const;
+export const SYSTEM_READONLY_KEYS = ['id', 'manager', 'create_time', 'update_time'] as const;
 
 export const stripSystemReadonlyFields = <T extends Record<string, unknown>>(data: T): T => {
   const copy = { ...data };
