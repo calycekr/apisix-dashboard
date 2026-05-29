@@ -17,7 +17,7 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Button, Space, Typography } from 'antd';
+import { Button, Space } from 'antd';
 import { useMemo, useState } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
@@ -70,9 +70,7 @@ function ConsumersList() {
           const id = record.value.group_id;
           if (!id) return '-';
           return (
-            <Typography.Link>
-              <Link to="/consumer_groups/detail/$id" params={{ id }}>{id}</Link>
-            </Typography.Link>
+            <Link to="/consumer_groups/detail/$id" params={{ id }}>{id}</Link>
           );
         },
       },

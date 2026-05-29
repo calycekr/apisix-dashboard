@@ -207,11 +207,9 @@ export const RouteList = (props: RouteListProps) => {
           const id = record.value.service_id;
           if (!id) return '-';
           return (
-            <Typography.Link>
-              <Link to="/services/detail/$id" params={{ id }}>
-                {id}
-              </Link>
-            </Typography.Link>
+            <Link to="/services/detail/$id" params={{ id }}>
+              {id}
+            </Link>
           );
         },
       },
@@ -223,11 +221,9 @@ export const RouteList = (props: RouteListProps) => {
           const id = record.value.upstream_id;
           if (!id) return '-';
           return (
-            <Typography.Link>
-              <Link to="/upstreams/detail/$id" params={{ id }}>
-                {id}
-              </Link>
-            </Typography.Link>
+            <Link to="/upstreams/detail/$id" params={{ id }}>
+              {id}
+            </Link>
           );
         },
       },

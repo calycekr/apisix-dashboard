@@ -79,9 +79,7 @@ const ServiceList = () => {
           const id = record.value.upstream_id;
           if (!id) return record.value.upstream?.nodes ? 'Inline' : '-';
           return (
-            <Typography.Link>
-              <Link to="/upstreams/detail/$id" params={{ id }}>{id}</Link>
-            </Typography.Link>
+            <Link to="/upstreams/detail/$id" params={{ id }}>{id}</Link>
           );
         },
       },
