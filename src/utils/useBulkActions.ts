@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import type React from 'react';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 export type BulkActionsReturn = {
   selectedRowKeys: React.Key[];
@@ -32,8 +32,21 @@ export type BulkActionsReturn = {
   };
 };
 
-export const useBulkActions = (refetch: () => void): BulkActionsReturn => {
+export const useBulkActions = (
+  refetch: () => void,
+  visibleRowKeys?: React.Key[]
+): BulkActionsReturn => {
   const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  useEffect(() => {
+    if (!visibleRowKeys) return;
+
+    const visible = new Set(visibleRowKeys.map(String));
+    setSelectedRowKeys((prev) => {
+      const next = prev.filter((key) => visible.has(String(key)));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [visibleRowKeys]);
 
   const onComplete = useCallback(() => {
     setSelectedRowKeys([]);

@@ -41,7 +41,10 @@ import { useBulkActions } from '@/utils/useBulkActions';
 
 function ConsumerGroupsList() {
   const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useConsumerGroupList();
-  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const { rowSelection, bulkBarProps } = useBulkActions(
+    refetch,
+    data?.list?.map((record) => record.value.id)
+  );
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
   const pluginFilterOptions = useMemo(
     () => getPluginFilterOptions(data?.list),

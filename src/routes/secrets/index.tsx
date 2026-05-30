@@ -38,7 +38,10 @@ import { useBulkActions } from '@/utils/useBulkActions';
 
 function SecretList() {
   const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useSecretList();
-  const { rowSelection, bulkBarProps } = useBulkActions(refetch);
+  const { rowSelection, bulkBarProps } = useBulkActions(
+    refetch,
+    data?.list?.map((record) => `${record.value.manager}/${record.value.id}`)
+  );
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
   const columns = useMemo<
