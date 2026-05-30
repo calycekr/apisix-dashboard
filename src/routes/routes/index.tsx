@@ -145,7 +145,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 
 export const RouteList = (props: RouteListProps) => {
   const { routeKey, detailLink, defaultParams, tablePersistenceKey = 'table-v2:routes' } = props;
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useRouteList(
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useRouteList(
     routeKey,
     defaultParams
   );
@@ -344,8 +344,8 @@ export const RouteList = (props: RouteListProps) => {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
-          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.name ?? params.uri ?? ''} placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
+          <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />

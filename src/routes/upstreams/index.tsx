@@ -40,7 +40,7 @@ import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useUpstreamList();
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useUpstreamList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -202,8 +202,8 @@ function RouteComponent() {
             rowExpandable: () => true,
           }}
           toolBarRender={() => [
-            <SearchInput key="search" placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
-            <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+            <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search upstreams..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
             <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
           ]}
         />

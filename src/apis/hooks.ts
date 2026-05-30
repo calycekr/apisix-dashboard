@@ -154,7 +154,7 @@ export const genUseList = <
 
     const opts = { data: sortedData, setParams, params };
     const pagination = useTablePagination(opts);
-    return { data: sortedData, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort };
+    return { data: sortedData, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort };
 
   };
 };

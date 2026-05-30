@@ -37,7 +37,7 @@ import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function SecretList() {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useSecretList();
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useSecretList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -139,7 +139,7 @@ function SecretList() {
         cardProps={{ bodyStyle: { padding: 0 } }}
         scroll={{ x: 'max-content' }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search secrets..." onSearch={(name) => setParams({ name, page: 1 })} />,
           <ResourceSortSelect
             key="sort"
             sortBy={sortBy}

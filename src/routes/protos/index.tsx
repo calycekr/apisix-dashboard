@@ -37,7 +37,7 @@ import { renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function RouteComponent() {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useProtoList();
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useProtoList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
@@ -141,7 +141,7 @@ function RouteComponent() {
           cardProps={{ bodyStyle: { padding: 0 } }}
           scroll={{ x: 'max-content' }}
           toolBarRender={() => [
-            <SearchInput key="search" placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
             <ResourceSortSelect
               key="sort"
               sortBy={sortBy}

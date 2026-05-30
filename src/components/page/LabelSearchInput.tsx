@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Input, Tooltip } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import IconLabel from '~icons/material-symbols/label';
 
@@ -29,6 +29,10 @@ export const LabelSearchInput = ({
   defaultValue = '',
 }: LabelSearchInputProps) => {
   const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   const handleSearch = useCallback(
     (val: string) => {

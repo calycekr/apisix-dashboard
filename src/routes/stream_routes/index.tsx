@@ -54,7 +54,7 @@ export type StreamRouteListProps = {
 
 export const StreamRouteList = (props: StreamRouteListProps) => {
   const { routeKey, detailLink, defaultParams } = props;
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useStreamRouteList(
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useStreamRouteList(
     routeKey,
     defaultParams
   );
@@ -229,8 +229,8 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search stream routes..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect
             key="sort"
             sortBy={sortBy}

@@ -40,7 +40,7 @@ import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDat
 import { useBulkActions } from '@/utils/useBulkActions';
 
 function ConsumerGroupsList() {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useConsumerGroupList();
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useConsumerGroupList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
   const pluginFilterOptions = useMemo(
@@ -156,8 +156,8 @@ function ConsumerGroupsList() {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search consumer groups..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search consumer groups..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect
             key="sort"
             sortBy={sortBy}

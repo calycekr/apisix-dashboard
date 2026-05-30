@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Input } from 'antd';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 
 import IconSearch from '~icons/material-symbols/search';
 
@@ -31,6 +31,10 @@ export const SearchInput = ({
   defaultValue = '',
 }: SearchInputProps) => {
   const [value, setValue] = useState(defaultValue);
+
+  useEffect(() => {
+    setValue(defaultValue);
+  }, [defaultValue]);
 
   const handleSearch = useCallback(
     (val: string) => {

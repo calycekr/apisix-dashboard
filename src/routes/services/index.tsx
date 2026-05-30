@@ -40,7 +40,7 @@ import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDat
 import { useBulkActions } from '@/utils/useBulkActions';
 
 const ServiceList = () => {
-  const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useServiceList();
+  const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useServiceList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
   const pluginFilterOptions = useMemo(
@@ -168,8 +168,8 @@ const ServiceList = () => {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
-          <LabelSearchInput key="label" onSearch={(label) => setParams({ label, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search services..." onSearch={(name) => setParams({ name, page: 1 })} />,
+          <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}
       />
