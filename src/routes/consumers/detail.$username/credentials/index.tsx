@@ -33,12 +33,17 @@ import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_CREDENTIALS } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
+import { getPluginFilterOptions, hasPluginName, renderPluginCount } from '@/utils/columns';
 
 function CredentialsList() {
   const { username } = useParams({
     from: '/consumers/detail/$username/credentials/',
   });
   const { data, isLoading, refetch } = useCredentialsList(username);
+  const pluginFilterOptions = useMemo(
+    () => getPluginFilterOptions(data?.list),
+    [data?.list]
+  );
 
   const columns = useMemo<
     ProColumns<APISIXType['RespCredentialItem']>[]
@@ -74,12 +79,9 @@ function CredentialsList() {
         dataIndex: ['value', 'plugins'],
         title: 'Plugin Type',
         key: 'plugins',
-        render: (_, record) => {
-          const plugins = record.value.plugins;
-          if (!plugins) return '-';
-          const keys = Object.keys(plugins);
-          return keys.length > 0 ? keys.join(', ') : '-';
-        },
+        filters: pluginFilterOptions,
+        onFilter: (value, record) => hasPluginName(record.value.plugins, value),
+        render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
         dataIndex: ['value', 'update_time'],
@@ -110,7 +112,7 @@ function CredentialsList() {
         ],
       },
     ];
-  }, [refetch, username]);
+  }, [pluginFilterOptions, refetch, username]);
 
   return (
     <AntdConfigProvider>
