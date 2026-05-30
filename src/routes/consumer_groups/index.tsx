@@ -17,10 +17,11 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Button, Space, Typography } from 'antd';
+import { Button, Space } from 'antd';
 import { useMemo, useState } from 'react';
 
 import { getConsumerGroupListQueryOptions, useConsumerGroupList } from '@/apis/hooks';
+import { CopyableIDLink } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { ConsumerGroupExpandedRow } from '@/components/page/ExpandedRowComponents';
@@ -53,9 +54,15 @@ function ConsumerGroupsList() {
         key: 'id',
         width: 120,
         render: (_, record) => (
-          <Link to="/consumer_groups/detail/$id" params={{ id: record.value.id }}>
-            <Typography.Text strong>{record.value.id}</Typography.Text>
-          </Link>
+          <CopyableIDLink id={record.value.id}>
+            <Link
+              to="/consumer_groups/detail/$id"
+              params={{ id: record.value.id }}
+              style={{ fontFamily: 'monospace', fontSize: 12 }}
+            >
+              {record.value.id}
+            </Link>
+          </CopyableIDLink>
         ),
       },
       {

@@ -17,11 +17,12 @@
 import type { ProColumns } from '@ant-design/pro-components';
 import { ProTable } from '@ant-design/pro-components';
 import { createFileRoute, Link } from '@tanstack/react-router';
-import { Button, Space, Typography } from 'antd';
+import { Button, Space } from 'antd';
 import { useMemo, useState } from 'react';
 
 import { getStreamRouteListQueryOptions, useStreamRouteList } from '@/apis/hooks';
 import type { WithServiceIdFilter } from '@/apis/routes';
+import { CopyableIDLink } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { StreamRouteExpandedRow } from '@/components/page/ExpandedRowComponents';
@@ -69,7 +70,11 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         title: 'ID',
         key: 'id',
         width: 120,
-        render: (_, record) => detailLink(record),
+        render: (_, record) => (
+          <CopyableIDLink id={record.value.id}>
+            {detailLink(record)}
+          </CopyableIDLink>
+        ),
       },
       {
         dataIndex: ['value', 'server_addr'],
@@ -254,8 +259,12 @@ function StreamRouteComponent() {
       <StreamRouteList
         routeKey="/stream_routes/"
         detailLink={(record) => (
-          <Link to="/stream_routes/detail/$id" params={{ id: record.value.id }}>
-            <Typography.Text strong>{record.value.id}</Typography.Text>
+          <Link
+            to="/stream_routes/detail/$id"
+            params={{ id: record.value.id }}
+            style={{ fontFamily: 'monospace', fontSize: 12 }}
+          >
+            {record.value.id}
           </Link>
         )}
       />
