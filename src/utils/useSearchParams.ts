@@ -37,7 +37,17 @@ export const useSearchParams = <T extends RouteTreeIds, P extends object>(
     (props: Partial<P>) => {
       return navigate({
         to: '.',
-        search: (prev) => ({ ...prev, ...props }),
+        search: (prev) => {
+          const next = { ...prev, ...props } as Record<string, unknown>;
+
+          for (const [key, value] of Object.entries(next)) {
+            if (value === undefined || value === null || value === '') {
+              delete next[key];
+            }
+          }
+
+          return next;
+        },
       });
     },
     [navigate]

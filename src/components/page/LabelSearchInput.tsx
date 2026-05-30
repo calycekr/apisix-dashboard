@@ -51,7 +51,10 @@ export const LabelSearchInput = ({
         onPressEnter={() => handleSearch(value)}
         onBlur={() => handleSearch(value)}
         allowClear
-        onClear={() => handleSearch('')}
+        onClear={() => {
+          setValue('');
+          handleSearch('');
+        }}
         style={{ width: 160 }}
       />
     </Tooltip>
