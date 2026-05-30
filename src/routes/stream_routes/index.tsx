@@ -33,7 +33,6 @@ import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
 import { SearchInput } from '@/components/page/SearchInput';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
-import { StatusSwitch } from '@/components/StatusTag';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
@@ -147,22 +146,6 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
       },
       {
-        dataIndex: ['value', 'status'],
-        title: 'Status',
-        key: 'status',
-        filters: [
-          { text: 'Enabled', value: 1 },
-          { text: 'Disabled', value: 0 },
-        ],
-        onFilter: (value, record) => record.value.status === value,
-        render: (_, record) => (
-          <StatusSwitch
-            status={record.value.status}
-            api={`${API_STREAM_ROUTES}/${record.value.id}`}
-          />
-        ),
-      },
-      {
         dataIndex: ['value', 'create_time'],
         title: 'Created At',
         key: 'create_time',
@@ -205,7 +188,6 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         {...bulkBarProps}
         resourceName="Stream Route"
         apiBase={API_STREAM_ROUTES}
-        showStatusActions
       />
       <ProTable
         columns={columns}
