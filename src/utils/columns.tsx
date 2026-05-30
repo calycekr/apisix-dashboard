@@ -34,6 +34,7 @@ export const getPluginFilterOptions = <T extends PluginListItem>(list?: T[]) => 
     }
   }
 
+  if (names.size === 0) return undefined;
   return Array.from(names).sort().map((name) => ({ text: name, value: name }));
 };
 

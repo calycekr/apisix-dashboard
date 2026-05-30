@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { createFileRoute, Link, useParams } from '@tanstack/react-router';
-import { Typography } from 'antd';
 
 import { getStreamRouteListQueryOptions } from '@/apis/hooks';
 import PageHeader from '@/components/page/PageHeader';
@@ -32,8 +31,12 @@ function StreamRouteComponent() {
       <StreamRouteList
         routeKey="/services/detail/$id/stream_routes/"
         detailLink={(record) => (
-          <Link to="/services/detail/$id/stream_routes/detail/$routeId" params={{ id, routeId: record.value.id }}>
-            <Typography.Text strong>{record.value.id}</Typography.Text>
+          <Link
+            to="/services/detail/$id/stream_routes/detail/$routeId"
+            params={{ id, routeId: record.value.id }}
+            style={{ fontFamily: 'monospace', fontSize: 12 }}
+          >
+            {record.value.id}
           </Link>
         )}
         defaultParams={{
