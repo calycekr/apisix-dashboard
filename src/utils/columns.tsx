@@ -19,6 +19,29 @@ import dayjs from 'dayjs';
 
 const MAX_VISIBLE = 2;
 
+type PluginListItem = {
+  value?: {
+    plugins?: Record<string, unknown>;
+  };
+};
+
+export const getPluginFilterOptions = <T extends PluginListItem>(list?: T[]) => {
+  const names = new Set<string>();
+
+  for (const item of list ?? []) {
+    for (const name of Object.keys(item.value?.plugins ?? {})) {
+      names.add(name);
+    }
+  }
+
+  return Array.from(names).sort().map((name) => ({ text: name, value: name }));
+};
+
+export const hasPluginName = (
+  plugins: Record<string, unknown> | undefined,
+  value: unknown
+) => !!plugins && Object.prototype.hasOwnProperty.call(plugins, String(value));
+
 export const renderPluginCount = (
   plugins: Record<string, unknown> | undefined
 ) => {

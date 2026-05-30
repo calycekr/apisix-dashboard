@@ -36,13 +36,17 @@ import { API_SERVICES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
+import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 
 const ServiceList = () => {
   const { data, isLoading, refetch, pagination, setParams, sortBy, sortOrder, setSort } = useServiceList();
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
+  const pluginFilterOptions = useMemo(
+    () => getPluginFilterOptions(data?.list),
+    [data?.list]
+  );
 
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
@@ -87,6 +91,8 @@ const ServiceList = () => {
         dataIndex: ['value', 'plugins'],
         title: 'Plugins',
         key: 'plugins',
+        filters: pluginFilterOptions,
+        onFilter: (value, record) => hasPluginName(record.value.plugins, value),
         render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
@@ -131,7 +137,7 @@ const ServiceList = () => {
         ],
       },
     ];
-  }, []);
+  }, [pluginFilterOptions]);
 
   return (
     <AntdConfigProvider>

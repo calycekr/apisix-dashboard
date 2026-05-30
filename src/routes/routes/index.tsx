@@ -37,7 +37,7 @@ import { API_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
+import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
@@ -152,18 +152,10 @@ export const RouteList = (props: RouteListProps) => {
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
 
-  // Collect all unique plugin names from current page for filter dropdown
-  const pluginFilterOptions = useMemo(() => {
-    const names = new Set<string>();
-    for (const item of data?.list ?? []) {
-      if (item.value.plugins) {
-        for (const name of Object.keys(item.value.plugins)) {
-          names.add(name);
-        }
-      }
-    }
-    return Array.from(names).sort().map((n) => ({ text: n, value: n }));
-  }, [data?.list]);
+  const pluginFilterOptions = useMemo(
+    () => getPluginFilterOptions(data?.list),
+    [data?.list]
+  );
 
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
@@ -246,8 +238,7 @@ export const RouteList = (props: RouteListProps) => {
         title: 'Plugins',
         key: 'plugins',
         filters: pluginFilterOptions,
-        onFilter: (value, record) =>
-          !!record.value.plugins && Object.keys(record.value.plugins).includes(String(value)),
+        onFilter: (value, record) => hasPluginName(record.value.plugins, value),
         render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {

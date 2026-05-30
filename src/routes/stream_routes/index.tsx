@@ -39,7 +39,7 @@ import { API_STREAM_ROUTES } from '@/config/constant';
 import { queryClient } from '@/config/global';
 import type { APISIXType } from '@/types/schema/apisix';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
-import { renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
+import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
 import { useBulkActions } from '@/utils/useBulkActions';
 import type { ListPageKeys } from '@/utils/useTablePagination';
 
@@ -60,6 +60,10 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
   );
   const { rowSelection, bulkBarProps } = useBulkActions(refetch);
   const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
+  const pluginFilterOptions = useMemo(
+    () => getPluginFilterOptions(data?.list),
+    [data?.list]
+  );
 
   const columns = useMemo<
     ProColumns<APISIXType['RespStreamRouteItem']>[]
@@ -131,6 +135,8 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         title: 'Plugins',
         key: 'plugins',
         width: 96,
+        filters: pluginFilterOptions,
+        onFilter: (value, record) => hasPluginName(record.value.plugins, value),
         render: (_, record) => renderPluginCount(record.value.plugins),
       },
       {
@@ -191,7 +197,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         ],
       },
     ];
-  }, [detailLink]);
+  }, [detailLink, pluginFilterOptions]);
 
   return (
     <AntdConfigProvider>
