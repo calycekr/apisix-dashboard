@@ -25,6 +25,7 @@ import {
   getCredentialListQueryOptions,
   useCredentialsList,
 } from '@/apis/hooks';
+import { CopyableIDLink } from '@/components/CopyableID';
 import { DeleteResourceBtn } from '@/components/page/DeleteResourceBtn';
 import PageHeader from '@/components/page/PageHeader';
 import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
@@ -49,15 +50,18 @@ function CredentialsList() {
         key: 'id',
         valueType: 'text',
         render: (_, record) => (
-          <Link
-            to="/consumers/detail/$username/credentials/detail/$id"
-            params={{
-              username: username as string,
-              id: record.value.id,
-            }}
-          >
-            {record.value.id}
-          </Link>
+          <CopyableIDLink id={record.value.id}>
+            <Link
+              to="/consumers/detail/$username/credentials/detail/$id"
+              params={{
+                username: username as string,
+                id: record.value.id,
+              }}
+              style={{ fontFamily: 'monospace', fontSize: 12 }}
+            >
+              {record.value.id}
+            </Link>
+          </CopyableIDLink>
         ),
       },
       {

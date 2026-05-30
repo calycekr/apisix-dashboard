@@ -14,7 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Typography } from 'antd';
+import { Button, message, Space, Tooltip, Typography } from 'antd';
+import type React from 'react';
+
+import IconContentCopy from '~icons/material-symbols/content-copy';
 
 export const CopyableID = ({ id }: { id: string }) => (
   <Typography.Text
@@ -24,4 +27,43 @@ export const CopyableID = ({ id }: { id: string }) => (
   >
     {id}
   </Typography.Text>
+);
+
+export const CopyIDButton = ({ id }: { id: string }) => {
+  const handleCopy = async (event: React.MouseEvent<HTMLElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+
+    try {
+      await navigator.clipboard.writeText(id);
+      message.success('Copied ID');
+    } catch {
+      message.error('Failed to copy ID');
+    }
+  };
+
+  return (
+    <Tooltip title="Copy ID">
+      <Button
+        aria-label={`Copy ID ${id}`}
+        icon={<IconContentCopy />}
+        onClick={handleCopy}
+        size="small"
+        type="text"
+      />
+    </Tooltip>
+  );
+};
+
+export const CopyableIDLink = ({
+  children,
+  id,
+}: {
+  children: React.ReactNode;
+  id: string;
+}) => (
+  <Space size={2} wrap={false}>
+    {children}
+    <CopyIDButton id={id} />
+  </Space>
 );

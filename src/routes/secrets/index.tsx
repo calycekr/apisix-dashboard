@@ -21,7 +21,7 @@ import { Button, Space, Typography } from 'antd';
 import { useMemo, useState } from 'react';
 
 import { getSecretListQueryOptions, useSecretList } from '@/apis/hooks';
-import { CopyableID } from '@/components/CopyableID';
+import { CopyableIDLink } from '@/components/CopyableID';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import PageHeader from '@/components/page/PageHeader';
 import { RawDrawer } from '@/components/page/RawDrawer';
@@ -63,15 +63,18 @@ function SecretList() {
         key: 'id',
         width: 150,
         render: (_, record) => (
-          <Link
-            to="/secrets/detail/$manager/$id"
-            params={{
-              manager: record.value.manager,
-              id: record.value.id,
-            }}
-          >
-            <CopyableID id={record.value.id} />
-          </Link>
+          <CopyableIDLink id={record.value.id}>
+            <Link
+              to="/secrets/detail/$manager/$id"
+              params={{
+                manager: record.value.manager,
+                id: record.value.id,
+              }}
+              style={{ fontFamily: 'monospace', fontSize: 12 }}
+            >
+              {record.value.id}
+            </Link>
+          </CopyableIDLink>
         ),
       },
       {

@@ -21,7 +21,7 @@ import { Button, Space } from 'antd';
 import { useMemo, useState } from 'react';
 
 import { getConsumerListQueryOptions, useConsumerList } from '@/apis/hooks';
-import { CopyableID } from '@/components/CopyableID';
+import { CopyableIDLink } from '@/components/CopyableID';
 import { LabelsDisplay } from '@/components/LabelsDisplay';
 import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
 import { ConsumerExpandedRow } from '@/components/page/ExpandedRowComponents';
@@ -51,9 +51,15 @@ function ConsumersList() {
         title: 'Username',
         key: 'username',
         render: (_, record) => (
-          <Link to="/consumers/detail/$username" params={{ username: record.value.username }}>
-            <CopyableID id={record.value.username} />
-          </Link>
+          <CopyableIDLink id={record.value.username}>
+            <Link
+              to="/consumers/detail/$username"
+              params={{ username: record.value.username }}
+              style={{ fontFamily: 'monospace', fontSize: 12 }}
+            >
+              {record.value.username}
+            </Link>
+          </CopyableIDLink>
         ),
       },
       {
