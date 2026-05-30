@@ -125,6 +125,20 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
           </div>
         </div>
       )}
+      {route.labels && Object.keys(route.labels).length > 0 && (
+        <div style={{ gridColumn: '1 / -1' }}>
+          <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
+            Labels
+          </Typography.Text>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            {Object.entries(route.labels).map(([key, value]) => (
+              <Tag key={key} style={{ fontSize: 11 }}>
+                {key}={value}
+              </Tag>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

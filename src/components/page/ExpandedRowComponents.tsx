@@ -20,7 +20,7 @@ import { Tag, Typography } from 'antd';
 import type { APISIXType } from '@/types/schema/apisix';
 
 const Section = ({ title, children }: { title: string; children: React.ReactNode }) => (
-  <div>
+  <div style={{ minWidth: 0 }}>
     <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>
       {title}
     </Typography.Text>
@@ -31,7 +31,7 @@ const Section = ({ title, children }: { title: string; children: React.ReactNode
 );
 
 const Field = ({ label, children }: { label: string; children: React.ReactNode }) => (
-  <Typography.Text style={{ fontSize: 13 }}>
+  <Typography.Text style={{ fontSize: 13, overflowWrap: 'anywhere' }}>
     <strong>{label}:</strong> {children}
   </Typography.Text>
 );
@@ -83,7 +83,14 @@ const LabelsSection = ({ labels }: { labels?: Record<string, string> }) => {
 };
 
 const Grid = ({ children }: { children: React.ReactNode }) => (
-  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16, padding: '8px 0' }}>
+  <div
+    style={{
+      display: 'grid',
+      gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+      gap: 16,
+      padding: '8px 0',
+    }}
+  >
     {children}
   </div>
 );
