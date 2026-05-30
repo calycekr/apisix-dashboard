@@ -144,6 +144,8 @@ export const BulkDeleteBar = ({
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: 8,
         padding: '8px 16px',
         marginBottom: 12,
         background: token.colorPrimaryBg,
@@ -154,8 +156,8 @@ export const BulkDeleteBar = ({
       <Typography.Text>
         <Typography.Text strong>{selectedCount}</Typography.Text> item(s) selected
       </Typography.Text>
-      <Space>
-        <Button size="small" onClick={onClear}>
+      <Space wrap>
+        <Button size="small" disabled={loading} onClick={onClear}>
           Clear
         </Button>
         {showStatusActions && (
