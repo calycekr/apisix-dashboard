@@ -29,7 +29,7 @@ function RouteComponent() {
       <PageHeader title="Routes" />
       <RouteList
         routeKey="/services/detail/$id/routes/"
-        tablePersistenceKey="table-v2:service-routes"
+        tablePersistenceKey="table-v3:service-routes"
         defaultParams={{
           filter: {
             service_id: id,

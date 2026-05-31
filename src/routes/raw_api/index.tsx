@@ -17,6 +17,7 @@
 import { Editor } from '@monaco-editor/react';
 import { createFileRoute } from '@tanstack/react-router';
 import {
+  Alert,
   AutoComplete,
   Button,
   Card,
@@ -39,6 +40,8 @@ import {
   API_CONSUMERS,
   API_GLOBAL_RULES,
   API_PLUGIN_CONFIGS,
+  API_PLUGIN_METADATA,
+  API_PLUGINS,
   API_PROTOS,
   API_ROUTES,
   API_SECRETS,
@@ -60,6 +63,8 @@ const RESOURCE_OPTIONS = [
   { label: 'Stream Routes', value: API_STREAM_ROUTES },
   { label: 'Global Rules', value: API_GLOBAL_RULES },
   { label: 'Plugin Configs', value: API_PLUGIN_CONFIGS },
+  { label: 'Plugin Metadata', value: API_PLUGIN_METADATA },
+  { label: 'Plugins', value: API_PLUGINS },
   { label: 'Protos', value: API_PROTOS },
   { label: 'Secrets', value: API_SECRETS },
 ];
@@ -75,11 +80,11 @@ const METHOD_COLORS: Record<string, string> = {
 };
 
 const METHOD_HINTS: Record<string, string> = {
-  GET: 'Read resource',
-  PUT: 'Full replace — omitted fields removed',
-  PATCH: 'Partial update — only changed fields',
-  POST: 'Create with auto-generated ID',
-  DELETE: 'Delete permanently',
+  GET: 'Read collection, resource, or subpath',
+  PUT: 'Send body as full replace/update',
+  PATCH: 'Send body as partial update',
+  POST: 'Send body to collection or subpath',
+  DELETE: 'Delete the target path',
 };
 
 const DEFAULT_BODY = `{
@@ -87,7 +92,48 @@ const DEFAULT_BODY = `{
   "desc": ""
 }`;
 
-type ExistingResource = { id: string; name?: string };
+type ExistingResource = { path: string; name?: string };
+
+const getResourcePath = (value: Record<string, unknown>, resource: string) => {
+  if (resource === API_SECRETS) {
+    const manager = value.manager ? String(value.manager) : '';
+    const id = value.id ? String(value.id) : '';
+    return manager && id ? `${manager}/${id}` : id;
+  }
+
+  return String(value.id || value.username || '');
+};
+
+const stringifyResponseData = (data: unknown) => {
+  if (data === undefined) return '';
+  if (typeof data === 'string') return data;
+  try {
+    return JSON.stringify(data, null, 2);
+  } catch {
+    return String(data);
+  }
+};
+
+const getErrorResponse = (error: unknown, elapsed: number) => {
+  const response = (error as { response?: { status?: number; data?: unknown } }).response;
+  if (response) {
+    return {
+      status: response.status ?? 0,
+      data: stringifyResponseData(response.data),
+      error: typeof response.data === 'string'
+        ? response.data
+        : error instanceof Error ? error.message : String(error),
+      time: elapsed,
+    };
+  }
+
+  return {
+    status: 0,
+    data: '',
+    error: error instanceof Error ? error.message : String(error),
+    time: elapsed,
+  };
+};
 
 function useExistingResources(resource: string) {
   const [items, setItems] = useState<ExistingResource[]>([]);
@@ -103,10 +149,12 @@ function useExistingResources(resource: string) {
         const list = res.data?.list;
         if (!Array.isArray(list)) { setItems([]); return; }
         setItems(
-          list.map((item: { value: Record<string, unknown> }) => ({
-            id: String(item.value.id || item.value.username || ''),
-            name: String(item.value.name || item.value.desc || ''),
-          }))
+          list
+            .map((item: { value: Record<string, unknown> }) => ({
+              path: getResourcePath(item.value, resource),
+              name: String(item.value.name || item.value.desc || ''),
+            }))
+            .filter((item) => item.path)
         );
       })
       .catch(() => { if (!cancelled) setItems([]); })
@@ -121,8 +169,8 @@ function RawApiPage() {
   const { mode: themeMode } = useThemeMode();
   const adminKey = useAtomValue(adminKeyAtom);
   const [resource, setResource] = useState(API_ROUTES);
-  const [method, setMethod] = useState<string>('PUT');
-  const [resourceId, setResourceId] = useState('');
+  const [method, setMethod] = useState<string>('GET');
+  const [pathSuffix, setPathSuffix] = useState('');
   const [body, setBody] = useState(DEFAULT_BODY);
   const [loading, setLoading] = useState(false);
   const [loadingExisting, setLoadingExisting] = useState(false);
@@ -131,29 +179,35 @@ function RawApiPage() {
 
   const { items: existingResources, loading: resourcesLoading } = useExistingResources(resource);
 
-  const needsId = method !== 'POST';
   const needsBody = method !== 'GET' && method !== 'DELETE';
-  const endpoint = needsId && resourceId ? `${resource}/${resourceId}` : resource;
+  const normalizedPathSuffix = pathSuffix.trim().replace(/^\/+|\/+$/g, '');
+  const endpoint = normalizedPathSuffix ? `${resource}/${normalizedPathSuffix}` : resource;
 
   const handleLoadExisting = useCallback(async () => {
-    if (!resourceId) { message.warning('Enter an ID to load'); return; }
+    if (!normalizedPathSuffix) { message.warning('Enter a path suffix to load'); return; }
     setLoadingExisting(true);
+    setResponse(null);
+    setResponseError(null);
+    const start = performance.now();
     try {
-      const res = await req.get(`${resource}/${resourceId}`);
-      const value = res.data?.value;
-      if (value) {
-        const copy = { ...(value as Record<string, unknown>) };
-        delete copy.create_time;
-        delete copy.update_time;
-        setBody(JSON.stringify(copy, null, 2));
-        message.success(`Loaded ${resourceId}`);
-      }
-    } catch {
-      message.error(`Failed to load ${resourceId}`);
+      const res = await req.get(endpoint);
+      const value = res.data?.value ?? res.data;
+      setBody(JSON.stringify(value, null, 2));
+      setResponse({
+        status: res.status,
+        data: stringifyResponseData(res.data),
+        time: Math.round(performance.now() - start),
+      });
+      message.success(`Loaded ${normalizedPathSuffix}`);
+    } catch (e) {
+      const failure = getErrorResponse(e, Math.round(performance.now() - start));
+      setResponseError(failure.error);
+      setResponse({ status: failure.status, data: failure.data, time: failure.time });
+      message.error(`Failed to load ${normalizedPathSuffix}`);
     } finally {
       setLoadingExisting(false);
     }
-  }, [resource, resourceId]);
+  }, [endpoint, normalizedPathSuffix]);
 
   const doExecute = useCallback(async () => {
     let parsedBody: unknown = undefined;
@@ -173,19 +227,19 @@ function RawApiPage() {
       const res = await req.request({ method: method.toLowerCase(), url: endpoint, data: parsedBody });
       setResponse({
         status: res.status,
-        data: JSON.stringify(res.data, null, 2),
+        data: stringifyResponseData(res.data),
         time: Math.round(performance.now() - start),
       });
     } catch (e) {
-      setResponseError(e instanceof Error ? e.message : String(e));
-      setResponse({ status: 0, data: '', time: Math.round(performance.now() - start) });
+      const failure = getErrorResponse(e, Math.round(performance.now() - start));
+      setResponseError(failure.error);
+      setResponse({ status: failure.status, data: failure.data, time: failure.time });
     } finally {
       setLoading(false);
     }
   }, [method, endpoint, body, needsBody]);
 
   const handleExecute = useCallback(() => {
-    if (needsId && !resourceId) { message.warning('Please enter a resource ID'); return; }
     if (method === 'DELETE') {
       Modal.confirm({
         centered: true, okButtonProps: { danger: true },
@@ -193,7 +247,7 @@ function RawApiPage() {
         content: 'This will permanently delete the resource.',
         okText: 'Delete', onOk: doExecute,
       });
-    } else if (method === 'PUT' && resourceId) {
+    } else if (method === 'PUT') {
       Modal.confirm({
         centered: true, title: `PUT ${endpoint}`,
         content: 'PUT replaces the entire resource. Omitted fields will be removed.',
@@ -202,7 +256,7 @@ function RawApiPage() {
     } else {
       doExecute();
     }
-  }, [method, endpoint, needsId, resourceId, doExecute]);
+  }, [method, endpoint, doExecute]);
 
   const handleCopyCurl = useCallback(async () => {
     if (!adminKey?.trim()) { message.warning('Admin Key required'); return; }
@@ -226,9 +280,16 @@ function RawApiPage() {
 
   return (
     <>
-      <PageHeader title="Raw API" desc="Execute APISIX Admin API requests directly" />
+      <PageHeader title="API Console" desc="Advanced APISIX Admin API console for direct HTTP requests" />
 
-      {/* URL Bar */}
+      <Alert
+        type="warning"
+        showIcon
+        message="Advanced console"
+        description="This page sends the selected method and JSON body as-is to the Admin API path. For guided resource JSON editing, use the RAW button in resource tables."
+        style={{ marginBottom: 12 }}
+      />
+
       <Card size="small" style={{ marginBottom: 12 }}>
         <Row gutter={8} align="middle">
           <Col>
@@ -247,7 +308,7 @@ function RawApiPage() {
           <Col flex="180px">
             <Select
               value={resource}
-              onChange={(v) => { setResource(v); setResourceId(''); setResponse(null); setResponseError(null); }}
+              onChange={(v) => { setResource(v); setPathSuffix(''); setResponse(null); setResponseError(null); }}
               options={RESOURCE_OPTIONS}
               style={{ width: '100%' }}
               showSearch
@@ -259,21 +320,20 @@ function RawApiPage() {
           </Col>
           <Col flex="auto">
             <AutoComplete
-              value={resourceId}
-              onChange={setResourceId}
+              value={pathSuffix}
+              onChange={setPathSuffix}
               options={existingResources.map((r) => ({
-                value: r.id,
-                label: <span><Typography.Text code style={{ fontSize: 12 }}>{r.id}</Typography.Text>{r.name && <Typography.Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>{r.name}</Typography.Text>}</span>,
+                value: r.path,
+                label: <span><Typography.Text code style={{ fontSize: 12 }}>{r.path}</Typography.Text>{r.name && <Typography.Text type="secondary" style={{ marginLeft: 6, fontSize: 12 }}>{r.name}</Typography.Text>}</span>,
               }))}
-              placeholder={needsId ? 'ID (type or select)' : 'auto-generated'}
-              disabled={!needsId}
+              placeholder="Optional path suffix, e.g. id or manager/id"
               style={{ width: '100%', fontFamily: 'monospace' }}
               filterOption={(input, option) => !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())}
               notFoundContent={resourcesLoading ? <Spin size="small" /> : null}
             />
           </Col>
           <Col>
-            <Button loading={loadingExisting} disabled={!resourceId} onClick={handleLoadExisting}>
+            <Button loading={loadingExisting} disabled={!normalizedPathSuffix} onClick={handleLoadExisting}>
               Load
             </Button>
           </Col>
@@ -288,7 +348,7 @@ function RawApiPage() {
             </Button>
           </Col>
         </Row>
-        <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div style={{ marginTop: 8, display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
           <Space size={8}>
             <Typography.Text type="secondary" style={{ fontFamily: 'monospace', fontSize: 12 }}>
               {method} /apisix/admin{endpoint}
@@ -303,14 +363,12 @@ function RawApiPage() {
         </div>
       </Card>
 
-      {/* Request + Response side by side */}
       <Row gutter={12} style={{ height: editorHeight }}>
-        {/* Request */}
         <Col span={needsBody ? 12 : 0} style={{ height: '100%' }}>
           {needsBody && (
             <Card
               size="small"
-              title="Request"
+              title="Request Body"
               style={{ height: '100%', display: 'flex', flexDirection: 'column' }}
               styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
             >
@@ -339,7 +397,6 @@ function RawApiPage() {
           )}
         </Col>
 
-        {/* Response */}
         <Col span={needsBody ? 12 : 24} style={{ height: '100%' }}>
           <Card
             size="small"

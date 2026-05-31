@@ -53,6 +53,22 @@ function GlobalRulesList() {
   >(() => {
     return [
       {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
@@ -94,23 +110,6 @@ function GlobalRulesList() {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_GLOBAL_RULES}/${record.value.id}`, title: `Global Rule: ${record.value.id}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [pluginFilterOptions]);
 
@@ -130,7 +129,7 @@ function GlobalRulesList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table-v2:global-rules',
+          persistenceKey: 'table-v3:global-rules',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"

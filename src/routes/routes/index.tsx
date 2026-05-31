@@ -144,7 +144,7 @@ const RouteExpandedRow = ({ route }: { route: APISIXType['Route'] }) => {
 };
 
 export const RouteList = (props: RouteListProps) => {
-  const { routeKey, detailLink, defaultParams, tablePersistenceKey = 'table-v2:routes' } = props;
+  const { routeKey, detailLink, defaultParams, tablePersistenceKey = 'table-v3:routes' } = props;
   const { data, isLoading, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useRouteList(
     routeKey,
     defaultParams
@@ -162,6 +162,22 @@ export const RouteList = (props: RouteListProps) => {
 
   const columns = useMemo<ProColumns<APISIXType['RespRouteItem']>[]>(() => {
     return [
+      {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
       {
         dataIndex: ['value', 'id'],
         title: 'ID',
@@ -292,23 +308,6 @@ export const RouteList = (props: RouteListProps) => {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_ROUTES}/${record.value.id}`, title: `Route: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [detailLink, pluginFilterOptions]);
 
@@ -370,7 +369,7 @@ function RouteComponent() {
       <PageHeader title="Routes" />
       <RouteList
         routeKey="/routes/"
-        tablePersistenceKey="table-v2:routes"
+        tablePersistenceKey="table-v3:routes"
         detailLink={(id) => ({ to: '/routes/detail/$id', params: { id } })}
       />
     </>

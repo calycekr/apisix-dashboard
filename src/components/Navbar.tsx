@@ -261,7 +261,7 @@ export const Navbar = () => {
               {
                 key: '/raw_api',
                 icon: <IconTerminal />,
-                label: 'Raw API',
+                label: 'API Console',
                 onClick: () => navigate({ to: '/raw_api' as Parameters<typeof navigate>[0]['to'] }),
               },
             ],

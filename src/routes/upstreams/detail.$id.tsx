@@ -105,7 +105,7 @@ const UpstreamDetailForm = (
           submitLabel="Save"
           disabled={readOnly}
           rawData={upstreamData}
-          patchApi={`${API_UPSTREAMS}/${id}`}
+          adminApi={`${API_UPSTREAMS}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartUpstream />

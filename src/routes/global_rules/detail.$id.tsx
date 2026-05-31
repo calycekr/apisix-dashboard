@@ -83,6 +83,7 @@ const GlobalRuleDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={detailReq.data?.value}
+        adminApi={`${API_GLOBAL_RULES}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartGlobalRules />

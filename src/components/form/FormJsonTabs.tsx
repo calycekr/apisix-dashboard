@@ -20,11 +20,10 @@ import { Alert, Button, Modal, Space, Tabs } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 
+import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { queryClient } from '@/config/global';
-import { req } from '@/config/req';
 import { useThemeMode } from '@/stores/global';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
-import { showNotification } from '@/utils/notification';
 
 import { FormSubmitBtn } from './Btn';
 
@@ -84,10 +83,10 @@ type FormJsonTabsProps = {
   onSubmit: (data: any) => unknown;
   submitLabel?: string;
   disabled?: boolean;
-  /** Raw API response data — shown as read-only "Raw" tab so users can see actual APISIX state */
+  /** Raw API response data — shown as the Admin API JSON tab so users can see actual APISIX state */
   rawData?: unknown;
-  /** API endpoint for PATCH operations (e.g., '/routes/123'). Enables PATCH button on Raw tab. */
-  patchApi?: string;
+  /** Admin API endpoint for direct JSON editing, e.g. '/routes/123'. */
+  adminApi?: string;
 };
 
 const monacoOptions: import('@monaco-editor/react').EditorProps['options'] = {
@@ -100,104 +99,8 @@ const monacoOptions: import('@monaco-editor/react').EditorProps['options'] = {
   lineDecorationsWidth: 0,
 };
 
-const RawTabContent = ({
-  rawData,
-  patchApi,
-  themeMode,
-  disabled,
-}: {
-  rawData: unknown;
-  patchApi?: string;
-  themeMode: string;
-  disabled: boolean;
-}) => {
-  const [rawEditValue, setRawEditValue] = useState(JSON.stringify(rawData, null, 2));
-  const [patchLoading, setPatchLoading] = useState(false);
-  const [patchError, setPatchError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setRawEditValue(JSON.stringify(rawData, null, 2));
-  }, [rawData]);
-
-  const handlePatch = async () => {
-    if (!patchApi) return;
-    let parsed: unknown;
-    try {
-      parsed = JSON.parse(rawEditValue);
-    } catch (e) {
-      setPatchError('Invalid JSON: ' + String(e));
-      return;
-    }
-    setPatchLoading(true);
-    setPatchError(null);
-    try {
-      await req.patch(patchApi, parsed);
-      await queryClient.invalidateQueries();
-      const latest = await req.get(patchApi);
-      const latestValue = latest.data?.value;
-      if (latestValue !== undefined) {
-        setRawEditValue(JSON.stringify(latestValue, null, 2));
-      }
-      showNotification({ message: 'PATCH applied successfully', type: 'success' });
-    } catch (e) {
-      setPatchError(`PATCH failed: ${e instanceof Error ? e.message : String(e)}`);
-    } finally {
-      setPatchLoading(false);
-    }
-  };
-
-  const canPatch = patchApi && !disabled;
-
-  return (
-    <div>
-      <Alert
-        type="info"
-        showIcon
-        message={canPatch
-          ? 'Edit the JSON below and use PATCH to apply partial updates — only the fields you include will be changed.'
-          : 'This is the actual JSON stored in APISIX — unmodified by the dashboard form.'}
-        style={{ marginBottom: 12 }}
-      />
-      <div
-        style={{
-          border: '1px solid var(--ant-color-border)',
-          borderRadius: 6,
-          overflow: 'hidden',
-        }}
-      >
-        <Editor
-          height="500px"
-          language="json"
-          theme={themeMode === 'dark' ? 'vs-dark' : 'vs-light'}
-          value={rawEditValue}
-          onChange={(val) => { if (canPatch) setRawEditValue(val ?? ''); }}
-          options={{ ...monacoOptions, readOnly: !canPatch }}
-        />
-      </div>
-      {patchError && (
-        <Alert type="error" showIcon message={patchError} style={{ marginTop: 8 }} />
-      )}
-      {canPatch && (
-        <Space style={{ marginTop: 12 }}>
-          <Button
-            type="primary"
-            loading={patchLoading}
-            onClick={handlePatch}
-            style={{ background: '#52c41a' }}
-          >
-            PATCH (Partial Update)
-          </Button>
-          <Button onClick={() => setRawEditValue(JSON.stringify(rawData, null, 2))}>
-            Reset
-          </Button>
-        </Space>
-      )}
-    </div>
-  );
-};
-
 export const FormJsonTabs = (props: FormJsonTabsProps) => {
-  const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, patchApi } = props;
+  const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, adminApi } = props;
   const { mode } = useThemeMode();
   const router = useRouter();
   const [activeTab, setActiveTab] = useState<string>('form');
@@ -207,9 +110,16 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [isSaving, setIsSaving] = useState(false);
   const [apiError, setApiError] = useState<string | null>(null);
   const [diffModalOpen, setDiffModalOpen] = useState(false);
+  const [jsonTabDirty, setJsonTabDirty] = useState(false);
+  const [rawTabDirty, setRawTabDirty] = useState(false);
+  const [rawTabSaving, setRawTabSaving] = useState(false);
   const pendingSubmitRef = useRef<unknown>(null);
 
-  const isDirty = hasAnyDirtyField(form.formState.dirtyFields) && !disabled && !isSaving;
+  const hasUnsavedChanges =
+    (hasAnyDirtyField(form.formState.dirtyFields) || jsonTabDirty || rawTabDirty) &&
+    !disabled &&
+    !isSaving &&
+    !rawTabSaving;
 
   const doSubmit = useCallback(
     async (data: unknown) => {
@@ -217,6 +127,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       setIsSaving(true);
       try {
         await onSubmit(data);
+        form.reset(data, { keepDefaultValues: false });
+        setJsonTabDirty(false);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
         setApiError(`Save failed: ${msg}`);
@@ -224,7 +136,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         setIsSaving(false);
       }
     },
-    [onSubmit]
+    [form, onSubmit]
   );
 
   // Show diff modal before saving when rawData is available (edit mode)
@@ -250,8 +162,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   // Block in-app navigation and browser close when form has unsaved changes
   const blocker = useBlocker({
-    shouldBlockFn: () => isDirty,
-    enableBeforeUnload: () => isDirty,
+    shouldBlockFn: () => hasUnsavedChanges,
+    enableBeforeUnload: () => hasUnsavedChanges,
     withResolver: true,
   });
 
@@ -275,16 +187,19 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         const values = form.getValues() as Record<string, unknown>;
         const sanitizedValues = rawData ? stripSystemReadonlyFields(values) : values;
         setJsonStr(JSON.stringify(sanitizedValues, null, 2));
+        setJsonTabDirty(false);
         setJsonError(null);
       } else if (key === 'form' && activeTab === 'json') {
         // Parse JSON editor back into form
         try {
           const parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
           const sanitizedParsed = rawData ? stripSystemReadonlyFields(parsed) : parsed;
-          form.reset(sanitizedParsed);
+          form.reset(sanitizedParsed, { keepDefaultValues: true });
+          setJsonTabDirty(false);
           setJsonError(null);
-        } catch {
-          // Keep current form state if JSON is invalid
+        } catch (e) {
+          setJsonError('Invalid JSON: ' + String(e));
+          return;
         }
       }
       setActiveTab(key);
@@ -305,7 +220,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       return;
     }
     // Reset form with parsed values then trigger Zod validation via handleSubmit
-    form.reset(parsed);
+    form.reset(parsed, { keepDefaultValues: true });
+    setJsonTabDirty(false);
     setIsSubmitting(true);
     try {
       await form.handleSubmit(
@@ -325,7 +241,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   }, [jsonStr, form, safeSubmit, rawData]);
 
   const handleCancel = useCallback(() => {
-    if (form.formState.isDirty) {
+    if (hasUnsavedChanges) {
       Modal.confirm({
         title: 'Discard changes?',
         content: 'You have unsaved changes. Are you sure you want to leave?',
@@ -336,7 +252,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     } else {
       router.history.back();
     }
-  }, [form.formState.isDirty, router]);
+  }, [hasUnsavedChanges, router]);
 
   const tabItems = [
     {
@@ -360,11 +276,20 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         </form>
       ),
     },
-    {
+  ];
+
+  if (rawData === undefined) {
+    tabItems.push({
       key: 'json',
       label: 'JSON',
       children: (
         <div>
+          <Alert
+            type="info"
+            showIcon
+            message="Create this resource by editing the same payload that the form will validate and submit."
+            style={{ marginBottom: 12 }}
+          />
           <div
             style={{
               border: jsonError ? '1px solid var(--ant-color-error)' : '1px solid var(--ant-color-border)',
@@ -380,6 +305,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               value={jsonStr}
               onChange={(val) => {
                 setJsonStr(val ?? '');
+                setJsonTabDirty(true);
                 setJsonError(null);
               }}
               options={{ ...monacoOptions, readOnly: disabled }}
@@ -411,19 +337,22 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           )}
         </div>
       ),
-    },
-  ];
-
-  if (rawData !== undefined) {
+    });
+  } else {
     tabItems.push({
       key: 'raw',
-      label: 'Raw (API)',
+      label: 'Admin API JSON',
       children: (
-        <RawTabContent
-          rawData={rawData}
-          patchApi={patchApi}
-          themeMode={mode}
-          disabled={disabled}
+        <AdminApiJsonEditor
+          api={adminApi ?? ''}
+          disabled={disabled || !adminApi}
+          height="500px"
+          initialData={rawData as Record<string, unknown>}
+          onDirtyChange={setRawTabDirty}
+          onSaved={async () => {
+            await queryClient.invalidateQueries();
+          }}
+          onSavingChange={setRawTabSaving}
         />
       ),
     });

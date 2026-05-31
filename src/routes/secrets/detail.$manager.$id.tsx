@@ -96,6 +96,7 @@ const SecretDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={secretData?.value}
+        adminApi={`${API_SECRETS}/${manager}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartSecret readOnlyManager />

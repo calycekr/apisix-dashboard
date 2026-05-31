@@ -56,6 +56,22 @@ function PluginConfigsList() {
   >(() => {
     return [
       {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_PLUGIN_CONFIGS}/${record.value.id}`, title: `Plugin Config: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
@@ -110,23 +126,6 @@ function PluginConfigsList() {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_PLUGIN_CONFIGS}/${record.value.id}`, title: `Plugin Config: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [pluginFilterOptions]);
 
@@ -146,7 +145,7 @@ function PluginConfigsList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table-v2:plugin-configs',
+          persistenceKey: 'table-v3:plugin-configs',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"

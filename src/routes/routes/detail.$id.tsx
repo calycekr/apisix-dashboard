@@ -158,7 +158,7 @@ const RouteDetailForm = (props: Props) => {
           onSubmit={(d) => putRoute.mutateAsync(d)}
           submitLabel="Save"
           rawData={routeData?.value}
-          patchApi={`${API_ROUTES}/${id}`}
+          adminApi={`${API_ROUTES}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartRoute />

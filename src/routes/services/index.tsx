@@ -54,6 +54,22 @@ const ServiceList = () => {
   const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
     return [
       {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
@@ -122,23 +138,6 @@ const ServiceList = () => {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [pluginFilterOptions]);
 
@@ -158,7 +157,7 @@ const ServiceList = () => {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table-v2:services',
+          persistenceKey: 'table-v3:services',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"

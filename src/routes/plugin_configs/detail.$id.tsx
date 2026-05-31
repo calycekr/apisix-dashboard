@@ -88,6 +88,7 @@ const PluginConfigDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={data?.value}
+        adminApi={`${API_PLUGIN_CONFIGS}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig />

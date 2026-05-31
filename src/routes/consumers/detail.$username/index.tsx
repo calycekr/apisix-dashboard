@@ -89,6 +89,7 @@ const ConsumerDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={consumerData?.value}
+        adminApi={`${API_CONSUMERS}/${username}`}
       >
         <FormSectionGeneral showID={false} readOnly />
         <FormPartConsumer />

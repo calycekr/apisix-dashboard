@@ -87,7 +87,7 @@ const ServiceDetailForm = () => {
         onSubmit={(d) => putService.mutateAsync(d)}
         submitLabel="Save"
         rawData={serviceData?.value}
-        patchApi={`${API_SERVICES}/${id}`}
+        adminApi={`${API_SERVICES}/${id}`}
       >
         <FormSectionGeneral />
         <FormPartService />

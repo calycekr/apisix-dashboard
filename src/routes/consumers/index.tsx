@@ -54,6 +54,22 @@ function ConsumersList() {
   const columns = useMemo<ProColumns<APISIXType['RespConsumerItem']>[]>(() => {
     return [
       {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_CONSUMERS}/${record.value.username}`, title: `Consumer: ${record.value.username}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
         dataIndex: ['value', 'username'],
         title: 'Username',
         key: 'username',
@@ -119,23 +135,6 @@ function ConsumersList() {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_CONSUMERS}/${record.value.username}`, title: `Consumer: ${record.value.username}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [pluginFilterOptions]);
 
@@ -155,7 +154,7 @@ function ConsumersList() {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table-v2:consumers',
+          persistenceKey: 'table-v3:consumers',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"

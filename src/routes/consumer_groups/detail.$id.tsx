@@ -86,6 +86,7 @@ const ConsumerGroupDetailForm = (props: Props) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={data?.value}
+        adminApi={`${API_CONSUMER_GROUPS}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartPluginConfig basicProps={{ showName: false }} />

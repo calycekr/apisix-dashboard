@@ -72,6 +72,22 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
   >(() => {
     return [
       {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
         dataIndex: ['value', 'id'],
         title: 'ID',
         key: 'id',
@@ -165,23 +181,6 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         sorter: unixFieldSorter('update_time'),
         renderText: renderUnixDateTime,
       },
-      {
-        title: 'RAW',
-        valueType: 'option',
-        key: 'option',
-        width: 72,
-        fixed: 'right',
-        render: (_, record) => [
-          <Button
-            key="raw"
-            size="small"
-            type="link"
-            onClick={() => setRawTarget({ api: `${API_STREAM_ROUTES}/${record.value.id}`, title: `Stream Route: ${record.value.id}`, data: record.value as Record<string, unknown> })}
-          >
-            Raw
-          </Button>,
-        ],
-      },
     ];
   }, [detailLink, pluginFilterOptions]);
 
@@ -201,7 +200,7 @@ export const StreamRouteList = (props: StreamRouteListProps) => {
         rowSelection={rowSelection}
         options={{ density: true, fullScreen: false, reload: true, setting: true }}
         columnsState={{
-          persistenceKey: 'table-v2:stream-routes',
+          persistenceKey: 'table-v3:stream-routes',
           persistenceType: 'localStorage',
         }}
         dateFormatter="string"

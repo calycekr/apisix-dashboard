@@ -87,7 +87,7 @@ const SSLDetailForm = (props: { id: string }) => {
           onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
           submitLabel="Save"
           rawData={sslData}
-          patchApi={`${API_SSLS}/${id}`}
+          adminApi={`${API_SSLS}/${id}`}
         >
           <FormSectionGeneral readOnly />
           <FormPartSSL />

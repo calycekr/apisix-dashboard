@@ -90,6 +90,7 @@ const ProtoDetailForm = ({ id, readOnly }: ProtoFormProps) => {
         submitLabel="Save"
         disabled={readOnly}
         rawData={protoData?.value}
+        adminApi={`${API_PROTOS}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartProto allowUpload={!readOnly} />
