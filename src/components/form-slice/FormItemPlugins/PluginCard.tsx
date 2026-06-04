@@ -67,6 +67,7 @@ export const PluginCard = (props: PluginCardProps) => {
             <Button
               size="small"
               type="text"
+              data-testid={`plugin-${name}-view`}
               onClick={() => onView?.(name)}
             >
               View
@@ -77,6 +78,7 @@ export const PluginCard = (props: PluginCardProps) => {
               <Button
                 size="small"
                 type="text"
+                data-testid={`plugin-${name}-edit`}
                 onClick={() => onEdit?.(name)}
               >
                 Edit

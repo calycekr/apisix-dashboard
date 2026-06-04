@@ -58,6 +58,51 @@ function escapeAttributeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
+function formatErrorPath(path: string): string {
+  if (path.startsWith('plugins.')) {
+    const parts = path.split('.');
+    const pluginName = parts[1];
+    const fieldName = parts.slice(2).join(' > ');
+    return `Plugin: ${pluginName} > ${fieldName || 'Config'}`;
+  }
+
+  let readable = path;
+  readable = readable.replace(/\.(\d+)\./g, (_match, p1) => ` #${Number(p1) + 1} > `);
+  readable = readable.replace(/\.(\d+)$/g, (_match, p1) => ` #${Number(p1) + 1}`);
+
+  const labelMap: Record<string, string> = {
+    uri: 'Request Path (URI)',
+    uris: 'Request Paths (URIs)',
+    name: 'Name',
+    desc: 'Description',
+    host: 'Host',
+    hosts: 'Hosts',
+    port: 'Port',
+    weight: 'Weight',
+    priority: 'Priority',
+    upstream: 'Upstream',
+    nodes: 'Target Nodes',
+    timeout: 'Timeout',
+    connect: 'Connect Timeout',
+    send: 'Send Timeout',
+    read: 'Read Timeout',
+    type: 'Type',
+    username: 'Username',
+    plugins: 'Plugins',
+    pass_host: 'Pass Host',
+    upstream_id: 'Upstream ID',
+    service_id: 'Service ID',
+  };
+
+  const segments = readable.split('.');
+  const formattedSegments = segments.map((seg) => {
+    const trimmed = seg.trim();
+    return labelMap[trimmed] || trimmed;
+  });
+
+  return formattedSegments.join(' > ');
+}
+
 const FormErrorSummary = ({
   errors,
   onFocusError,
@@ -81,7 +126,7 @@ const FormErrorSummary = ({
                 className={classes.errorLink}
                 onClick={() => onFocusError(e.path)}
               >
-                <strong className={classes.errorPath}>{e.path}</strong>
+                <strong className={classes.errorPath}>{formatErrorPath(e.path)}</strong>
                 <span>{e.message}</span>
               </button>
             </li>
@@ -191,8 +236,33 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         const target = document.querySelector<HTMLElement>(
           `[data-form-field="${escapeAttributeValue(path)}"]`
         );
-        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        form.setFocus(path, { shouldSelect: true });
+        if (target) {
+          target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          form.setFocus(path, { shouldSelect: true });
+          return;
+        }
+
+        if (path.startsWith('plugins.')) {
+          const parts = path.split('.');
+          const pluginName = parts[1];
+          if (pluginName) {
+            const editBtn = document.querySelector<HTMLButtonElement>(
+              `[data-testid="plugin-${pluginName}-edit"], [data-testid="plugin-${pluginName}-view"]`
+            );
+            if (editBtn) {
+              editBtn.click();
+              setTimeout(() => {
+                const subTarget = document.querySelector<HTMLElement>(
+                  `[data-form-field="${escapeAttributeValue(path)}"]`
+                );
+                if (subTarget) {
+                  subTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  form.setFocus(path, { shouldSelect: true });
+                }
+              }, 150);
+            }
+          }
+        }
       });
     },
     [form]
