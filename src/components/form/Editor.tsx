@@ -129,6 +129,7 @@ export const FormItemEditor = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
       required={required}
     >
       <div id={id ?? '#editor-wrapper'} style={{ height: 200 }}>

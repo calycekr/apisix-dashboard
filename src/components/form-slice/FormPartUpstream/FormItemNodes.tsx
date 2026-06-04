@@ -15,12 +15,12 @@
  * limitations under the License.
  */
 import { EditableProTable, type ProColumns } from '@ant-design/pro-components';
-import { Button } from 'antd';
+import { Alert, Button, Typography } from 'antd';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { nanoid } from 'nanoid';
 import { equals, isNil } from 'rambdax';
-import { useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo } from 'react';
 import {
   type FieldValues,
   useController,
@@ -123,6 +123,14 @@ export const FormItemNodes = <T extends FieldValues>(
     field: { value, onChange: fOnChange, name: fName, disabled },
     fieldState,
   } = useController<T>(controllerProps);
+  const syncFormValue = useCallback(
+    (data: DataSource[]) => {
+      const vals = parseToUpstreamNodes(data);
+      fOnChange?.(vals);
+      restProps.onChange?.(vals);
+    },
+    [fOnChange, restProps]
+  );
   const columns = useMemo<ProColumns<DataSource>[]>(
     () => [
       {
@@ -204,20 +212,35 @@ export const FormItemNodes = <T extends FieldValues>(
   }, [disabled, ob]);
 
   const ref = useClickOutside<HTMLDivElement>(() => {
-    const vals = parseToUpstreamNodes(toJS(ob.values));
-    fOnChange?.(vals);
-    restProps.onChange?.(vals);
+    syncFormValue(toJS(ob.values));
   });
+  const nodeCount = ob.values.length;
+  const totalWeight = ob.values.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
 
   return (
     <InputWrapper
       error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
       label={label}
       required={required}
       withAsterisk={withAsterisk}
       ref={ref}
     >
       <input name={fName} type="hidden" />
+      <div style={{ marginBottom: 8 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+          {nodeCount} backend node{nodeCount === 1 ? '' : 's'} configured. Total weight: {totalWeight}.
+        </Typography.Text>
+      </div>
+      {nodeCount === 0 && (
+        <Alert
+          type="warning"
+          showIcon
+          message="No backend nodes are configured."
+          description="Add at least one node here, or configure Service Discovery below."
+          style={{ marginBottom: 12 }}
+        />
+      )}
       <AntdConfigProvider>
         <EditableProTable<DataSource>
           defaultSize="small"
@@ -232,6 +255,7 @@ export const FormItemNodes = <T extends FieldValues>(
             editableKeys: ob.editableKeys,
             onValuesChange(_, dataSource) {
               ob.setValues(dataSource);
+              syncFormValue(dataSource);
             },
             actionRender: (row) => {
               return [
@@ -240,7 +264,11 @@ export const FormItemNodes = <T extends FieldValues>(
                   type="text"
                   size="small"
                   style={{ padding: 0 }}
-                  onClick={() => ob.remove(row.id)}
+                  onClick={() => {
+                    const next = toJS(ob.values).filter((item) => item.id !== row.id);
+                    ob.setValues(next);
+                    syncFormValue(next);
+                  }}
                 >
                   Delete
                 </Button>,
@@ -252,7 +280,11 @@ export const FormItemNodes = <T extends FieldValues>(
       <Button
         style={{ marginTop: 8, width: '100%', borderColor: 'whitesmoke', ...(disabled && { display: 'none' }) }}
         size="small"
-        onClick={() => ob.append(genRecord())}
+        onClick={() => {
+          const next = [...toJS(ob.values), genRecord()];
+          ob.setValues(next);
+          syncFormValue(next);
+        }}
       >
         Add a Node
       </Button>

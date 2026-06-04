@@ -79,7 +79,7 @@ export type PluginCardListProps = Omit<OptionProps, 'name'> & {
 };
 
 export const PluginCardList = (props: PluginCardListProps) => {
-  const { search = '', cols = 3, h, mah, plugins, descriptions, configs } = props;
+  const { search = '', cols, h, mah, plugins, descriptions, configs } = props;
   const { mode, onAdd, onEdit, onDelete, onView } = props;
 
   const optionsOb = useLocalObservable(() => ({
@@ -117,12 +117,20 @@ export const PluginCardList = (props: PluginCardListProps) => {
     <div style={{ marginTop: '1em' }}>
       <div style={scrollStyle}>
         {!optionsOb.list.length ? (
-          <Empty description="No Data" />
+          <Empty
+            description={
+              plugins.length === 0
+                ? 'No plugins selected'
+                : 'No plugins match your search'
+            }
+          />
         ) : (
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: `repeat(${cols}, 1fr)`,
+              gridTemplateColumns: cols
+                ? `repeat(${cols}, minmax(0, 1fr))`
+                : 'repeat(auto-fit, minmax(220px, 1fr))',
               gap: 8,
             }}
           >

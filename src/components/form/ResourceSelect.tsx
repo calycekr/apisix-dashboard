@@ -133,6 +133,7 @@ export const ResourceSelect = <T extends FieldValues>(
       label={label ?? `${resourceLabel} ID`}
       description={description ?? `Select an existing ${resourceLabel} or type an ID`}
       error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
     >
       <Select
         {...restField}

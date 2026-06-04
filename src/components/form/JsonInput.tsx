@@ -84,6 +84,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
       required={!!controllerProps.rules?.required}
     >
       <Input.TextArea

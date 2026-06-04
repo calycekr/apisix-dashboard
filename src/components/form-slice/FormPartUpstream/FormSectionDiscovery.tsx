@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useFormContext } from 'react-hook-form';
+import { Alert } from 'antd';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import { FormItemJsonInput } from '@/components/form/JsonInput';
 import { FormItemSelect } from '@/components/form/Select';
@@ -37,12 +38,49 @@ const DISCOVERY_TYPES = [
 export const FormSectionDiscovery = () => {
   const { control } = useFormContext<FormPartUpstreamType>();
   const np = useNamePrefix();
+  const serviceName = useWatch({ control, name: np('service_name') });
+  const discoveryType = useWatch({ control, name: np('discovery_type') });
+  const discoveryArgs = useWatch({ control, name: np('discovery_args') });
+  const hasServiceName = typeof serviceName === 'string' && serviceName.trim().length > 0;
+  const hasDiscoveryType = typeof discoveryType === 'string' && discoveryType.trim().length > 0;
+  const hasDiscoveryArgs =
+    !!discoveryArgs &&
+    typeof discoveryArgs === 'object' &&
+    Object.keys(discoveryArgs).length > 0;
+
   return (
     <FormSection legend="Service Discovery">
+      <Alert
+        type="info"
+        showIcon
+        message="Use Service Discovery instead of static nodes when APISIX should resolve backend targets dynamically."
+        description="Service Name and Discovery Type should be set together. Discovery Args are optional provider-specific settings."
+        style={{ marginBottom: 12 }}
+      />
+      {hasServiceName && !hasDiscoveryType && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Discovery Type is missing."
+          description="Select the discovery provider that should resolve this service name."
+          style={{ marginBottom: 12 }}
+        />
+      )}
+      {!hasServiceName && hasDiscoveryArgs && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Discovery Args are set without a Service Name."
+          description="Add a Service Name or clear Discovery Args so the discovery configuration has an active target."
+          style={{ marginBottom: 12 }}
+        />
+      )}
       <FormItemTextInput
         name={np('service_name')}
         label="Service Name"
         control={control}
+        required={hasDiscoveryType}
+        description="Name resolved by the selected discovery provider."
       />
       <FormItemSelect
         name={np('discovery_type')}
@@ -51,12 +89,14 @@ export const FormSectionDiscovery = () => {
         data={DISCOVERY_TYPES}
         clearable
         searchable
+        description="Provider used to resolve Service Name."
       />
       <FormItemJsonInput
         name={np('discovery_args')}
         label="Discovery Args"
         control={control}
         toObject
+        description="Optional JSON object passed to the selected discovery provider."
       />
     </FormSection>
   );

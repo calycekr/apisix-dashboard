@@ -26,6 +26,7 @@ import { useThemeMode } from '@/stores/global';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { FormSubmitBtn } from './Btn';
+import classes from './FormJsonTabs.module.css';
 
 function flattenErrors(
   errors: Record<string, unknown>,
@@ -52,23 +53,39 @@ function hasAnyDirtyField(dirtyFields: unknown): boolean {
   });
 }
 
-const FormErrorSummary = ({ errors }: { errors: Record<string, unknown> }) => {
-  const flat = flattenErrors(errors);
-  if (flat.length === 0) return null;
+function escapeAttributeValue(value: string): string {
+  return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+const FormErrorSummary = ({
+  errors,
+  onFocusError,
+}: {
+  errors: Array<{ path: string; message: string }>;
+  onFocusError: (path: string) => void;
+}) => {
+  if (errors.length === 0) return null;
   return (
     <Alert
       type="error"
       showIcon
       style={{ marginBottom: 16 }}
-      message={`${flat.length} validation error(s)`}
+      message={`${errors.length} validation error(s)`}
       description={
-        <ul style={{ margin: '4px 0 0', paddingLeft: 20 }}>
-          {flat.slice(0, 10).map((e) => (
-            <li key={e.path}>
-              <strong>{e.path}</strong>: {e.message}
+        <ul className={classes.errorList}>
+          {errors.slice(0, 10).map((e) => (
+            <li key={e.path} className={classes.errorItem}>
+              <button
+                type="button"
+                className={classes.errorLink}
+                onClick={() => onFocusError(e.path)}
+              >
+                <strong className={classes.errorPath}>{e.path}</strong>
+                <span>{e.message}</span>
+              </button>
             </li>
           ))}
-          {flat.length > 10 && <li>...and {flat.length - 10} more</li>}
+          {errors.length > 10 && <li>...and {errors.length - 10} more</li>}
         </ul>
       }
     />
@@ -99,6 +116,38 @@ const monacoOptions: import('@monaco-editor/react').EditorProps['options'] = {
   lineDecorationsWidth: 0,
 };
 
+const FormActionBar = ({
+  children,
+  errorCount,
+  hasUnsavedChanges,
+  onFocusFirstError,
+}: {
+  children: React.ReactNode;
+  errorCount: number;
+  hasUnsavedChanges: boolean;
+  onFocusFirstError: () => void;
+}) => (
+  <div className={classes.actionBar}>
+    <div className={classes.actionPanel}>
+      <span className={classes.actionStatus} aria-live="polite">
+        {errorCount > 0
+          ? `${errorCount} validation error${errorCount === 1 ? '' : 's'}`
+          : hasUnsavedChanges
+            ? 'Unsaved changes'
+            : 'No pending changes'}
+      </span>
+      <Space wrap>
+        {errorCount > 0 && (
+          <Button danger size="middle" onClick={onFocusFirstError}>
+            Review first error
+          </Button>
+        )}
+        {children}
+      </Space>
+    </div>
+  </div>
+);
+
 export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, adminApi } = props;
   const { mode } = useThemeMode();
@@ -120,6 +169,28 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     !disabled &&
     !isSaving &&
     !rawTabSaving;
+  const validationErrors = flattenErrors(form.formState.errors);
+
+  const focusFormError = useCallback(
+    (path: string) => {
+      setActiveTab('form');
+      window.requestAnimationFrame(() => {
+        const target = document.querySelector<HTMLElement>(
+          `[data-form-field="${escapeAttributeValue(path)}"]`
+        );
+        target?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        form.setFocus(path, { shouldSelect: true });
+      });
+    },
+    [form]
+  );
+
+  const focusFirstFormError = useCallback(() => {
+    const firstError = flattenErrors(form.formState.errors)[0];
+    if (firstError) {
+      focusFormError(firstError.path);
+    }
+  }, [focusFormError, form.formState.errors]);
 
   const doSubmit = useCallback(
     async (data: unknown) => {
@@ -259,19 +330,30 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       key: 'form',
       label: 'Form',
       children: (
-        <form onSubmit={form.handleSubmit(safeSubmit)}>
+        <form
+          onSubmit={form.handleSubmit(safeSubmit, (errors) => {
+            const firstError = flattenErrors(errors)[0];
+            if (firstError) {
+              focusFormError(firstError.path);
+            }
+          })}
+        >
           {apiError && (
             <Alert type="error" showIcon closable message={apiError} onClose={() => setApiError(null)} style={{ marginBottom: 16 }} />
           )}
-          <FormErrorSummary errors={form.formState.errors} />
+          <FormErrorSummary errors={validationErrors} onFocusError={focusFormError} />
           {children}
           {!disabled && (
-            <Space style={{ marginTop: 16 }}>
+            <FormActionBar
+              errorCount={validationErrors.length}
+              hasUnsavedChanges={hasUnsavedChanges}
+              onFocusFirstError={focusFirstFormError}
+            >
               <FormSubmitBtn>{submitLabel}</FormSubmitBtn>
               <Button size="middle" onClick={handleCancel}>
                 Cancel
               </Button>
-            </Space>
+            </FormActionBar>
           )}
         </form>
       ),
@@ -320,7 +402,11 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
             />
           )}
           {!disabled && (
-            <Space style={{ marginTop: 16 }}>
+            <FormActionBar
+              errorCount={validationErrors.length}
+              hasUnsavedChanges={hasUnsavedChanges}
+              onFocusFirstError={focusFirstFormError}
+            >
               <Button
                 type="primary"
                 size="middle"
@@ -333,7 +419,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               <Button size="middle" onClick={handleCancel}>
                 Cancel
               </Button>
-            </Space>
+            </FormActionBar>
           )}
         </div>
       ),

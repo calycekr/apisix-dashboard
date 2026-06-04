@@ -79,6 +79,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
       required={!!controllerProps.rules?.required}
     >
       <Select

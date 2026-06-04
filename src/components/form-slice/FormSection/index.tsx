@@ -20,8 +20,11 @@ import {
   createContext,
   type PropsWithChildren,
   type ReactNode,
+  useCallback,
   useContext,
+  useEffect,
   useMemo,
+  useRef,
   useState,
 } from 'react';
 
@@ -44,6 +47,26 @@ const FormTOCCtx = createContext<{
 }>({
   refreshTOC: () => {},
 });
+
+type TOCItem = {
+  id: string;
+  label: string;
+  depth: number;
+};
+
+function toSectionId(label: string, index: number): string {
+  return `form-section-${label.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') || 'item'}-${index}`;
+}
+
+function isSameTOCItems(a: TOCItem[], b: TOCItem[]): boolean {
+  return (
+    a.length === b.length &&
+    a.every((item, index) => {
+      const target = b[index];
+      return item.id === target.id && item.label === target.label && item.depth === target.depth;
+    })
+  );
+}
 
 export type FormSectionProps = PropsWithChildren & {
   legend?: ReactNode;
@@ -89,6 +112,10 @@ export const FormSection = (props: FormSectionProps) => {
 
   // refresh TOC when children changes
   useShallowEffect(refreshTOC, [children]);
+
+  useEffect(() => {
+    refreshTOC();
+  }, [open, refreshTOC]);
 
   if (depth === 1) {
     return (
@@ -146,10 +173,101 @@ export type FormTOCBoxProps = PropsWithChildren;
 
 export const FormTOCBox = (props: FormTOCBoxProps) => {
   const { children } = props;
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [items, setItems] = useState<TOCItem[]>([]);
+  const [activeId, setActiveId] = useState<string>();
+
+  const refreshTOC = useCallback(() => {
+    window.requestAnimationFrame(() => {
+      const container = containerRef.current;
+      if (!container) return;
+
+      const nodes = Array.from(
+        container.querySelectorAll<HTMLElement>(`.${tocSelector}[${tocValue}]`)
+      );
+      const nextItems = nodes
+        .map((node, index) => {
+          const label = node.getAttribute(tocValue);
+          if (!label) return null;
+
+          if (!node.id) {
+            node.id = toSectionId(label, index);
+          }
+
+          return {
+            id: node.id,
+            label,
+            depth: Number(node.getAttribute(tocDepth) ?? 1),
+          };
+        })
+        .filter((item): item is TOCItem => item !== null);
+
+      setItems((prev) => (isSameTOCItems(prev, nextItems) ? prev : nextItems));
+      setActiveId((prev) => prev ?? nextItems[0]?.id);
+    });
+  }, []);
+
+  useEffect(() => {
+    refreshTOC();
+  }, [refreshTOC, children]);
+
+  useEffect(() => {
+    const updateActiveSection = () => {
+      const positionedItems = items
+        .map((item) => {
+          const node = document.getElementById(item.id);
+          return node ? { id: item.id, top: node.getBoundingClientRect().top } : null;
+        })
+        .filter((item): item is { id: string; top: number } => item !== null);
+
+      if (positionedItems.length === 0) return;
+
+      const current =
+        [...positionedItems].reverse().find((item) => item.top <= 120) ?? positionedItems[0];
+      setActiveId(current.id);
+    };
+
+    updateActiveSection();
+    window.addEventListener('scroll', updateActiveSection, { passive: true });
+    window.addEventListener('resize', updateActiveSection);
+    return () => {
+      window.removeEventListener('scroll', updateActiveSection);
+      window.removeEventListener('resize', updateActiveSection);
+    };
+  }, [items]);
+
+  const handleTOCClick = useCallback((id: string) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    setActiveId(id);
+  }, []);
+
+  const showTOC = items.length > 1;
+
   return (
-    <FormTOCCtx.Provider value={{ refreshTOC: () => {} }}>
-      <div style={{ maxWidth: 900, margin: '0 auto' }}>
-        {children}
+    <FormTOCCtx.Provider value={{ refreshTOC }}>
+      <div
+        ref={containerRef}
+        className={clsx(classes.tocLayout, !showTOC && classes.tocLayoutWithoutNav)}
+      >
+        <div className={classes.tocContent}>{children}</div>
+        {showTOC && (
+          <nav className={classes.tocNav} aria-label="Form sections">
+            <div className={classes.tocTitle}>Sections</div>
+            <div className={classes.tocList}>
+              {items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={clsx(classes.tocItem, activeId === item.id && classes.tocItemActive)}
+                  style={{ paddingInlineStart: 10 + Math.max(item.depth - 1, 0) * 12 }}
+                  onClick={() => handleTOCClick(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </nav>
+        )}
       </div>
     </FormTOCCtx.Provider>
   );

@@ -1,0 +1,71 @@
+.actionBar {
+  position: sticky;
+  bottom: 0;
+  z-index: 4;
+  margin-top: 16px;
+  padding-top: 12px;
+  background: linear-gradient(
+    to bottom,
+    transparent,
+    var(--ant-color-bg-container) 38%,
+    var(--ant-color-bg-container)
+  );
+}
+
+.actionPanel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 8px;
+  background: var(--ant-color-bg-container);
+  box-shadow: var(--ant-box-shadow-secondary);
+}
+
+.actionStatus {
+  color: var(--ant-color-text-secondary);
+  font-size: 13px;
+  line-height: 1.4;
+}
+
+.errorList {
+  margin: 4px 0 0;
+  padding-left: 18px;
+}
+
+.errorItem {
+  margin-top: 4px;
+}
+
+.errorLink {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  max-width: 100%;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.errorLink:hover .errorPath {
+  text-decoration: underline;
+}
+
+.errorPath {
+  color: var(--ant-color-error);
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 640px) {
+  .actionPanel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}

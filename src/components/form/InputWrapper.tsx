@@ -25,12 +25,17 @@ import type { InputWrapperProps } from '@/types/input-wrapper';
  */
 export const InputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
   (props, ref) => {
-    const { label, description, error, required, withAsterisk, children, className, style } =
+    const { label, description, error, required, withAsterisk, children, className, fieldPath, style } =
       props;
     const showAsterisk = required || withAsterisk;
     const { token } = theme.useToken();
     return (
-      <div ref={ref} className={className} style={{ marginBottom: 16, ...style }}>
+      <div
+        ref={ref}
+        className={className}
+        data-form-field={fieldPath}
+        style={{ marginBottom: 16, ...style }}
+      >
         {label && (
           <div style={{ marginBottom: 4, fontWeight: 500 }}>
             {showAsterisk && (

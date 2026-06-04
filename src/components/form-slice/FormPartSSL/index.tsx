@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Descriptions, theme,Typography } from 'antd';
+import { Alert, Descriptions, theme, Typography } from 'antd';
 import dayjs from 'dayjs';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -94,6 +94,45 @@ const FormSSLValidity = () => {
   );
 };
 
+const FormSectionServerNames = () => {
+  const { control } = useFormContext<SSLPostType>();
+  const sni = useWatch({ control, name: 'sni' });
+  const snis = useWatch({ control, name: 'snis' });
+  const hasSni = typeof sni === 'string' && sni.trim().length > 0;
+  const hasSnis = Array.isArray(snis) && snis.length > 0;
+
+  return (
+    <FormSection legend="Server Names" collapsible defaultOpen={true}>
+      {hasSni && hasSnis && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Both SNI and SNIs are set."
+          description="APISIX accepts a single SNI or multiple SNIs. Keep one input style active so the submitted certificate binding is unambiguous."
+          style={{ marginBottom: 12 }}
+        />
+      )}
+      <FormItemTextInput
+        control={control}
+        label="SNI"
+        name="sni"
+        placeholder="domain1.com"
+        required={!hasSnis}
+        disabled={hasSnis}
+        description={hasSnis ? 'Disabled because SNIs is set.' : 'Use this for one hostname.'}
+      />
+      <FormItemTagsInput
+        control={control}
+        label="SNIs"
+        name="snis"
+        placeholder="domain1.com, domain2.com"
+        disabled={hasSni}
+        description={hasSni ? 'Disabled because SNI is set.' : 'Use this for multiple hostnames.'}
+      />
+    </FormSection>
+  );
+};
+
 export const FormPartSSL = () => {
   const { control } = useFormContext<SSLPostType>();
   return (
@@ -113,19 +152,7 @@ export const FormPartSSL = () => {
         label="SSL Protocols"
         data={APISIX.SSLProtocols.options.map((v) => v.value.toString())}
       />
-      <FormItemTextInput
-        control={control}
-        label="SNI"
-        name="sni"
-        placeholder="domain1.com"
-        required
-      />
-      <FormItemTagsInput
-        control={control}
-        label="SNIs"
-        name="snis"
-        placeholder="domain1.com, domain2.com"
-      />
+      <FormSectionServerNames />
       <FormItemCertKeyList />
       <FormSectionClient />
     </>

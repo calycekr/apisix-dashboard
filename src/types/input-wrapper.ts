@@ -27,5 +27,6 @@ export type InputWrapperProps = {
   withAsterisk?: boolean;
   children?: ReactNode;
   className?: string;
+  fieldPath?: string;
   style?: React.CSSProperties;
 };

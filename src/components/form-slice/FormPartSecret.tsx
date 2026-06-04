@@ -14,8 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider } from 'antd';
-import { useFormContext } from 'react-hook-form';
+import { Alert, Divider } from 'antd';
+import { useFormContext, useWatch } from 'react-hook-form';
 
 import { InputWrapper } from '@/components/form/InputWrapper';
 import { FormItemPasswordInput } from '@/components/form/PasswordInput';
@@ -32,25 +32,39 @@ const VaultSecretForm = () => {
 
   return (
     <>
+      <Alert
+        type="info"
+        showIcon
+        message="Vault secrets are referenced as $secret://vault/{id}/{key} in APISIX resources."
+        description="URI, Prefix, and Token are required to connect APISIX to Vault. Namespace is optional for Vault Enterprise setups."
+        style={{ marginBottom: 12 }}
+      />
       <FormItemTextInput
         control={control}
         name="uri"
         label="URI"
+        required
+        description="Vault server URI, for example http://127.0.0.1:8200."
       />
       <FormItemTextInput
         control={control}
         name="prefix"
         label="Prefix"
+        required
+        description="Path prefix where APISIX reads secret entries."
       />
       <FormItemPasswordInput
         control={control}
         name="token"
         label="Token"
+        required
+        description="Vault token used by APISIX to read secrets."
       />
       <FormItemTextInput
         control={control}
         name="namespace"
         label="Namespace"
+        description="Optional Vault namespace."
       />
     </>
   );
@@ -61,31 +75,43 @@ const AWSSecretForm = () => {
 
   return (
     <>
+      <Alert
+        type="info"
+        showIcon
+        message="AWS Secrets Manager references use this credential set."
+        description="Access Key ID and Secret Access Key are required. Session Token is only needed for temporary credentials."
+        style={{ marginBottom: 12 }}
+      />
       <FormItemPasswordInput
         control={control}
         name="access_key_id"
         label="Access Key ID"
+        required
       />
       <FormItemPasswordInput
         control={control}
         name="secret_access_key"
         label="Secret Access Key"
+        required
       />
       <FormItemPasswordInput
         control={control}
         name="session_token"
         label="Session Token"
+        description="Optional STS session token."
       />
 
       <FormItemTextInput
         control={control}
         name="region"
         label="Region"
+        description="Optional AWS region. Leave empty to use the APISIX runtime default."
       />
       <FormItemTextInput
         control={control}
         name="endpoint_url"
         label="Endpoint URL"
+        description="Optional custom endpoint for local or compatible secret stores."
       />
     </>
   );
@@ -93,34 +119,64 @@ const AWSSecretForm = () => {
 
 const GCPSecretForm = () => {
   const { control } = useFormContext<APISIXType['Secret']>();
+  const authFile = useWatch({ control, name: 'auth_file' });
+  const authConfig = useWatch({ control, name: 'auth_config' });
+  const hasAuthFile = typeof authFile === 'string' && authFile.trim().length > 0;
+  const hasAuthConfig =
+    !!authConfig &&
+    typeof authConfig === 'object' &&
+    Object.values(authConfig).some((value) => {
+      if (Array.isArray(value)) return value.length > 0;
+      return typeof value === 'string' ? value.trim().length > 0 : !!value;
+    });
 
   return (
     <>
+      <Alert
+        type="info"
+        showIcon
+        message="GCP Secret Manager can authenticate with either an auth file path or inline auth configuration."
+        description="Use one authentication method for a predictable submitted payload."
+        style={{ marginBottom: 12 }}
+      />
+      {hasAuthFile && hasAuthConfig && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Both GCP authentication methods are filled."
+          description="Keep either Auth File or Auth Configuration active so APISIX uses the intended credential source."
+          style={{ marginBottom: 12 }}
+        />
+      )}
       <InputWrapper label="SSL Verify">
         <FormItemSwitch control={control} name="ssl_verify" />
       </InputWrapper>
-      <FormSection legend="Auth" collapsible defaultOpen={false}>
+      <FormSection legend="Auth" collapsible defaultOpen={true}>
         <FormItemTextInput
           control={control}
           name="auth_file"
           label="Auth File"
+          description="Path to a service account JSON file available to the APISIX runtime."
         />
         <Divider style={{ margin: '8px 0' }}>OR</Divider>
-        <FormSection legend="Auth Configuration" collapsible defaultOpen={false}>
+        <FormSection legend="Auth Configuration" collapsible defaultOpen={!hasAuthFile}>
           <FormItemTextInput
             control={control}
             name="auth_config.client_email"
             label="Client Email"
+            required={!hasAuthFile}
           />
           <FormItemPasswordInput
             control={control}
             name="auth_config.private_key"
             label="Private Key"
+            required={!hasAuthFile}
           />
           <FormItemTextInput
             control={control}
             name="auth_config.project_id"
             label="Project ID"
+            required={!hasAuthFile}
           />
           <FormItemTextInput
             control={control}
@@ -131,6 +187,7 @@ const GCPSecretForm = () => {
             control={control}
             name="auth_config.scope"
             label="Scope"
+            description="Optional OAuth scopes."
           />
           <FormItemTextInput
             control={control}

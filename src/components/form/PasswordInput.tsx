@@ -40,7 +40,7 @@ export const FormItemPasswordInput = <T extends FieldValues>(
   props: FormItemPasswordInputProps<T>
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, '');
-  const { label, description, ...inputProps } = restProps;
+  const { label, description, required, ...inputProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
@@ -50,7 +50,8 @@ export const FormItemPasswordInput = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
-      required={!!controllerProps.rules?.required}
+      fieldPath={controllerProps.name}
+      required={required || !!controllerProps.rules?.required}
     >
       <Input.Password
         value={value}

@@ -23,6 +23,22 @@ export const FormPartCredential = () => {
     <>
       <FormPartBasic showName={false} />
       <FormSection legend="Plugins" collapsible defaultOpen={true}>
+        <div
+          role="note"
+          style={{
+            background: 'var(--ant-color-info-bg)',
+            border: '1px solid var(--ant-color-info-border)',
+            borderRadius: 6,
+            color: 'var(--ant-color-text)',
+            marginBottom: 12,
+            padding: '8px 12px',
+          }}
+        >
+          <strong>Credential plugins store authentication material for this consumer.</strong>
+          <div style={{ marginTop: 4 }}>
+            Add one credential plugin such as key-auth, jwt-auth, basic-auth, or hmac-auth, then configure its consumer credential fields.
+          </div>
+        </div>
         <FormItemPlugins name="plugins" schema="consumer_schema" />
       </FormSection>
     </>

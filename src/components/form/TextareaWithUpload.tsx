@@ -96,6 +96,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message || fileError || undefined}
+      fieldPath={controllerProps.name}
       required={!!controllerProps.rules?.required}
     >
       <Input.TextArea

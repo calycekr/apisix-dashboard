@@ -46,10 +46,14 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
         keyboard={false}
         open={opened}
         onClose={() => setOpened(false)}
-        title="Select Plugins"
+        title={`Add Plugin (${plugins.length} available)`}
         extra={
           <div style={{ minHeight: 60 }}>
-            <PluginCardListSearch search={search} setSearch={setSearch} />
+            <PluginCardListSearch
+              placeholder="Search available plugins"
+              search={search}
+              setSearch={setSearch}
+            />
           </div>
         }
       >
@@ -64,8 +68,12 @@ export const SelectPluginsDrawer = (props: SelectPluginsDrawerProps) => {
         />
       </Drawer>
       {!disabled && (
-        <Button style={{ marginLeft: 8 }} onClick={() => setOpened(true)}>
-          Select Plugins
+        <Button
+          disabled={plugins.length === 0}
+          style={{ marginLeft: 8 }}
+          onClick={() => setOpened(true)}
+        >
+          {plugins.length === 0 ? 'All Plugins Added' : 'Add Plugin'}
         </Button>
       )}
     </>

@@ -6,3 +6,83 @@
     margin-bottom: 0;
   }
 }
+
+.tocLayout {
+  display: grid;
+  grid-template-columns: minmax(0, 900px) 180px;
+  align-items: start;
+  gap: 24px;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.tocLayoutWithoutNav {
+  grid-template-columns: minmax(0, 900px);
+  max-width: 900px;
+}
+
+.tocContent {
+  min-width: 0;
+}
+
+.tocNav {
+  position: sticky;
+  top: calc(var(--appshell-header-height, 60px) + 20px);
+  max-height: calc(100vh - var(--appshell-header-height, 60px) - 40px);
+  overflow: auto;
+  padding: 4px 0 4px 12px;
+  border-left: 1px solid var(--ant-color-border-secondary);
+}
+
+.tocTitle {
+  margin-bottom: 8px;
+  color: var(--ant-color-text-secondary);
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+.tocList {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tocItem {
+  width: 100%;
+  min-height: 30px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--ant-color-text-secondary);
+  cursor: pointer;
+  font: inherit;
+  font-size: 13px;
+  line-height: 1.35;
+  text-align: start;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+}
+
+.tocItem:hover,
+.tocItemActive {
+  background: var(--ant-color-fill-tertiary);
+  color: var(--ant-color-text);
+}
+
+.tocItemActive {
+  font-weight: 600;
+}
+
+@media (max-width: 1100px) {
+  .tocLayout {
+    grid-template-columns: minmax(0, 900px);
+    max-width: 900px;
+  }
+
+  .tocNav {
+    display: none;
+  }
+}

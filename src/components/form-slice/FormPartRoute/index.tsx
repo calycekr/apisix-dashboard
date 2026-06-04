@@ -136,6 +136,8 @@ const FormSectionMatchRules = () => {
 export const FormSectionUpstream = () => {
   const { control } = useFormContext<RoutePostType>();
   const serviceId = useWatch({ control, name: 'service_id' });
+  const upstreamId = useWatch({ control, name: 'upstream_id' });
+  const inlineDisabled = !!serviceId || !!upstreamId;
 
   return (
     <FormSection legend="Upstream" collapsible defaultOpen={false}>
@@ -143,7 +145,15 @@ export const FormSectionUpstream = () => {
         <Alert
           type="info"
           showIcon
-          message="Service ID is set — the service's upstream will be used. Upstream config here will be ignored unless Service ID is cleared."
+          message="Service ID is set. This resource will use the service upstream, so route-level Upstream ID and inline upstream settings are not submitted."
+          style={{ marginBottom: 12 }}
+        />
+      )}
+      {!serviceId && upstreamId && (
+        <Alert
+          type="info"
+          showIcon
+          message="Upstream ID is set. Inline upstream settings below are kept visible for reference, but they are not submitted unless Upstream ID is cleared."
           style={{ marginBottom: 12 }}
         />
       )}
@@ -153,12 +163,36 @@ export const FormSectionUpstream = () => {
         resourceApi={API_UPSTREAMS}
         resourceLabel="Upstream"
         disabled={!!serviceId}
-        description={serviceId ? 'Disabled because Service ID is set.' : undefined}
+        description={
+          serviceId
+            ? 'Disabled because Service ID is set.'
+            : 'Select a reusable Upstream, or leave empty to define an inline upstream below.'
+        }
       />
       <Divider style={{ margin: '8px 0' }}>OR</Divider>
-      <NamePrefixProvider value="upstream">
-        <FormPartUpstream />
-      </NamePrefixProvider>
+      <FormSection
+        legend="Inline Upstream"
+        disabled={inlineDisabled}
+        collapsible
+        defaultOpen={!inlineDisabled}
+      >
+        {inlineDisabled && (
+          <Alert
+            type="warning"
+            showIcon
+            message="Inline upstream is inactive for the current selection."
+            description={
+              serviceId
+                ? 'Clear Service ID to configure routing directly on this resource.'
+                : 'Clear Upstream ID to submit these inline upstream settings.'
+            }
+            style={{ marginBottom: 12 }}
+          />
+        )}
+        <NamePrefixProvider value="upstream">
+          <FormPartUpstream />
+        </NamePrefixProvider>
+      </FormSection>
     </FormSection>
   );
 };

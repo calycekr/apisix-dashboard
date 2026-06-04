@@ -25,9 +25,25 @@ import { FormItemPlugins } from './FormItemPlugins';
 import { FormPartBasic } from './FormPartBasic';
 import { FormSection } from './FormSection';
 
-export const FormSectionPluginsOnly = () => {
+export const FormSectionPluginsOnly = (props: { help?: string } = {}) => {
+  const { help } = props;
   return (
     <FormSection legend="Plugins" collapsible defaultOpen={true}>
+      {help && (
+        <div
+          role="note"
+          style={{
+            background: 'var(--ant-color-info-bg)',
+            border: '1px solid var(--ant-color-info-border)',
+            borderRadius: 6,
+            color: 'var(--ant-color-text)',
+            marginBottom: 12,
+            padding: '8px 12px',
+          }}
+        >
+          {help}
+        </div>
+      )}
       <FormItemPlugins name="plugins" />
     </FormSection>
   );
@@ -46,6 +62,7 @@ export const FormPartConsumer = () => {
             name="username"
             label="Username"
             required
+            description="Unique consumer identity. Use letters, numbers, underscores, or hyphens."
           />
         }
       />
@@ -54,8 +71,9 @@ export const FormPartConsumer = () => {
         name="group_id"
         resourceApi={API_CONSUMER_GROUPS}
         resourceLabel="Consumer Group"
+        description="Optional. Attach this consumer to a Consumer Group for shared policy."
       />
-      <FormSectionPluginsOnly />
+      <FormSectionPluginsOnly help="Consumer plugins apply to this consumer identity. Authentication credentials are managed separately in the Credentials tab." />
     </>
   );
 };

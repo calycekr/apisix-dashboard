@@ -153,12 +153,65 @@ export const FormItemPlugins = <T extends FieldValues>(
     return map;
   }, [pluginsOb.pluginSchemaObj, schema]);
 
+  const selectedPlugins = pluginsOb.selected;
+  const selectedCount = selectedPlugins.length;
+  const visibleSelectedCount = pluginsOb.search
+    ? selectedPlugins.filter((name) =>
+        name.toLowerCase().includes(pluginsOb.search.toLowerCase().trim())
+      ).length
+    : selectedCount;
+
   return (
-    <InputWrapper error={fieldState.error?.message} {...restProps}>
+    <InputWrapper
+      error={fieldState.error?.message}
+      fieldPath={controllerProps.name}
+      {...restProps}
+    >
       <input name={fName} type="hidden" />
       <>
-        <div style={{ display: 'flex', gap: 8 }}>
+        <div
+          style={{
+            alignItems: 'center',
+            display: 'flex',
+            flexWrap: 'wrap',
+            gap: 8,
+            justifyContent: 'space-between',
+          }}
+        >
+          <div style={{ alignItems: 'center', display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+            <span style={{ color: 'var(--ant-color-text-secondary)' }}>
+              Selected plugins
+            </span>
+            <span
+              style={{
+                background: selectedCount > 0
+                  ? 'var(--ant-blue-1)'
+                  : 'var(--ant-color-fill-secondary)',
+                border: '1px solid var(--ant-color-border-secondary)',
+                borderRadius: 4,
+                color: selectedCount > 0
+                  ? 'var(--ant-blue-7)'
+                  : 'var(--ant-color-text-secondary)',
+                fontSize: 12,
+                lineHeight: 1.4,
+                padding: '0 7px',
+              }}
+            >
+              {selectedCount}
+            </span>
+            {pluginsOb.search && (
+              <span style={{ color: 'var(--ant-color-text-secondary)' }}>
+                Showing {visibleSelectedCount} match{visibleSelectedCount === 1 ? '' : 'es'}
+              </span>
+            )}
+          </div>
+          <span style={{ color: 'var(--ant-color-text-secondary)', fontSize: 12 }}>
+            {pluginsOb.unSelected.length} available to add
+          </span>
+        </div>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 8 }}>
           <PluginCardListSearch
+            placeholder="Search selected plugins"
             search={pluginsOb.search}
             setSearch={pluginsOb.setSearch}
           />

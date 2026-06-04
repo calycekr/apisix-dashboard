@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, theme } from 'antd';
+import { Alert, Button, theme, Typography } from 'antd';
 import type { PropsWithChildren, ReactNode } from 'react';
 import { useFieldArray, useFormContext, useFormState } from 'react-hook-form';
 
@@ -25,13 +25,18 @@ import { FormSection } from '../FormSection';
 import type { SSLPostType } from './schema';
 
 const PairWrapper = (
-  props: PropsWithChildren & { legend?: ReactNode }
+  props: PropsWithChildren & { description?: ReactNode; legend?: ReactNode }
 ) => {
-  const { children, legend } = props;
+  const { children, description, legend } = props;
   const { token } = theme.useToken();
   return (
     <fieldset style={{ padding: 8, marginBottom: 5, border: `1px solid ${token.colorBorder}`, borderRadius: 4 }}>
       {legend && <legend>{legend}</legend>}
+      {description && (
+        <Typography.Text type="secondary" style={{ display: 'block', fontSize: 12, marginBottom: 8 }}>
+          {description}
+        </Typography.Text>
+      )}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
         {children}
       </div>
@@ -45,7 +50,7 @@ const SECRET_REF_HINT =
 const RequiredCertKey = () => {
   const { control } = useFormContext<SSLPostType>();
   return (
-    <PairWrapper>
+    <PairWrapper description="Required default certificate/key pair. Certificate 1 is submitted with Private Key 1.">
       <FormItemTextareaWithUpload
         control={control}
         label="Certificate 1"
@@ -71,11 +76,28 @@ const CertKeyPairList = () => {
   const keys = useFieldArray({
     name: 'keys',
   });
+  const pairCount = 1 + certs.fields.length;
+  const hasMismatchedPairs = certs.fields.length !== keys.fields.length;
   return (
     <>
+      <div style={{ marginBottom: 8 }}>
+        <Typography.Text type="secondary" style={{ fontSize: 13 }}>
+          {pairCount} certificate/key pair{pairCount === 1 ? '' : 's'} configured. Additional certificate and key arrays are matched by position.
+        </Typography.Text>
+      </div>
+      {hasMismatchedPairs && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Certificate and key arrays are out of sync."
+          description="Each additional certificate must have a private key at the same position. Remove and re-add pairs if the arrays no longer line up."
+          style={{ marginBottom: 12 }}
+        />
+      )}
       {certs.fields.map((cert, idx) => (
         <PairWrapper
           key={cert.id}
+          description={`Certificate ${idx + 2} is submitted with Private Key ${idx + 2}.`}
           legend={
             !certsState.disabled && (
               <Button
@@ -87,7 +109,7 @@ const CertKeyPairList = () => {
                   keys.remove(idx);
                 }}
               >
-                Delete the pair
+                Remove pair {idx + 2}
               </Button>
             )
           }
@@ -96,12 +118,16 @@ const CertKeyPairList = () => {
             key={cert.id}
             name={`certs.${idx}`}
             label={`Certificate ${idx + 2}`}
+            description={SECRET_REF_HINT}
           />
-          <FormItemTextareaWithUpload
-            key={keys.fields[idx].id}
-            name={`keys.${idx}`}
-            label={`Private Key ${idx + 2}`}
-          />
+          {keys.fields[idx] && (
+            <FormItemTextareaWithUpload
+              key={keys.fields[idx].id}
+              name={`keys.${idx}`}
+              label={`Private Key ${idx + 2}`}
+              description={SECRET_REF_HINT}
+            />
+          )}
         </PairWrapper>
       ))}
       {!certsState.disabled && (
@@ -113,7 +139,7 @@ const CertKeyPairList = () => {
             certs.append('');
           }}
         >
-          Add a pair
+          Add certificate/key pair
         </Button>
       )}
     </>
