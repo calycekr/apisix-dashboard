@@ -60,3 +60,26 @@
     transform: translateY(0);
   }
 }
+
+.rootError {
+  border-left-color: var(--ant-color-error) !important;
+}
+
+.rootSuccess {
+  border-left-color: var(--ant-color-success) !important;
+}
+
+.tooltipIcon {
+  margin-left: 6px;
+  color: var(--ant-color-text-quaternary);
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+  vertical-align: middle;
+}
+
+.tooltipIcon:hover {
+  color: var(--ant-color-text-secondary);
+}
+

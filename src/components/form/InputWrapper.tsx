@@ -14,12 +14,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import { Tooltip } from 'antd';
 import { clsx } from 'clsx';
 import { forwardRef } from 'react';
 
 import type { InputWrapperProps } from '@/types/input-wrapper';
+import IconInfo from '~icons/material-symbols/info-outline';
 
 import classes from './InputWrapper.module.css';
+
+const SuccessIcon = () => (
+  <svg
+    width="14"
+    height="14"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="3"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    style={{
+      color: 'var(--ant-color-success)',
+      marginLeft: 6,
+      display: 'inline-flex',
+      alignItems: 'center',
+      verticalAlign: 'middle',
+    }}
+  >
+    <polyline points="20 6 9 17 4 12" />
+  </svg>
+);
 
 /**
  * Replacement for @mantine/core InputWrapper.
@@ -27,13 +51,36 @@ import classes from './InputWrapper.module.css';
  */
 export const InputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
   (props, ref) => {
-    const { label, description, error, required, withAsterisk, children, className, fieldPath, style } =
-      props;
+    const {
+      label,
+      description,
+      tooltip,
+      status,
+      error,
+      required,
+      withAsterisk,
+      children,
+      className,
+      fieldPath,
+      style,
+    } = props;
     const showAsterisk = required || withAsterisk;
+
+    const isDescriptionLong = typeof description === 'string' && description.length > 60;
+    const activeTooltip = tooltip || (isDescriptionLong ? description : undefined);
+    const inlineDescription = isDescriptionLong ? undefined : description;
+
+    const activeStatus = error ? 'error' : status;
+
     return (
       <div
         ref={ref}
-        className={clsx(classes.root, className)}
+        className={clsx(
+          classes.root,
+          activeStatus === 'error' && classes.rootError,
+          activeStatus === 'success' && classes.rootSuccess,
+          className
+        )}
         data-form-field={fieldPath}
         style={style}
       >
@@ -43,11 +90,19 @@ export const InputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
               <span className={classes.asterisk}>*</span>
             )}
             <span>{label}</span>
+            {activeTooltip && (
+              <Tooltip title={activeTooltip}>
+                <span className={classes.tooltipIcon}>
+                  <IconInfo style={{ fontSize: 14 }} />
+                </span>
+              </Tooltip>
+            )}
+            {activeStatus === 'success' && <SuccessIcon />}
           </div>
         )}
-        {description && (
+        {inlineDescription && (
           <div className={classes.description}>
-            {description}
+            {inlineDescription}
           </div>
         )}
         {children}

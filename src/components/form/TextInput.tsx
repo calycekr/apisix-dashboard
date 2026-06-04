@@ -45,6 +45,7 @@ export const FormItemTextInput = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      status={fieldState.isDirty && !fieldState.error ? 'success' : undefined}
       fieldPath={controllerProps.name}
       required={required || !!controllerProps.rules?.required}
     >
