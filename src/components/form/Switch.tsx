@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Switch, type SwitchProps, theme, Typography } from 'antd';
+import { Switch, type SwitchProps } from 'antd';
 import type { ReactNode } from 'react';
 import {
   type FieldValues,
@@ -22,6 +22,7 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import classes from './Switch.module.css';
 import { genControllerProps } from './util';
 
 export type FormItemSwitchProps<T extends FieldValues> = Omit<
@@ -37,13 +38,12 @@ export const FormItemSwitch = <T extends FieldValues>(
 ) => {
   const { controllerProps, restProps } = genControllerProps(props, false);
   const { label, description, ...switchProps } = restProps;
-  const { token } = theme.useToken();
   const {
     field: { value, onChange: fOnChange, ...restField },
   } = useController<T>(controllerProps);
   return (
-    <div style={{ marginBottom: 16 }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+    <div className={classes.switchWrapper}>
+      <div className={classes.switchRow}>
         <Switch
           checked={value}
           onChange={(checked, e) => {
@@ -53,10 +53,10 @@ export const FormItemSwitch = <T extends FieldValues>(
           {...restField}
           {...switchProps}
         />
-        {label && <Typography.Text>{label}</Typography.Text>}
+        {label && <span className={classes.switchLabel}>{label}</span>}
       </div>
       {description && (
-        <div style={{ marginTop: 4, fontSize: 12, color: token.colorTextSecondary }}>
+        <div className={classes.switchDescription}>
           {description}
         </div>
       )}
