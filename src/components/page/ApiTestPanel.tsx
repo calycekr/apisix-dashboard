@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { Editor } from '@monaco-editor/react';
-import { Button, Card, Col, Input, Row, Select, Space, Tag, Typography } from 'antd';
+import { Button, Card, Col, Input, Row, Select, Space, Tag, Tooltip, Typography } from 'antd';
 import axios from 'axios';
 import { useCallback, useState } from 'react';
 
@@ -45,6 +45,13 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
     time: number;
   } | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [gatewayTarget] = useState<string>(() => {
+    try {
+      return localStorage.getItem('apisix-dashboard:curl-target-host') || 'localhost:9080';
+    } catch {
+      return 'localhost:9080';
+    }
+  });
 
   const handleSend = useCallback(async () => {
     setLoading(true);
@@ -112,7 +119,11 @@ export const ApiTestPanel = ({ defaultUri = '/', defaultHost, defaultMethod = 'G
           </Col>
           <Col flex="auto">
             <Input
-              addonBefore="Gateway"
+              addonBefore={
+                <Tooltip title={`Requests are proxied via Vite dev server to http://${gatewayTarget}`}>
+                  Gateway ℹ️
+                </Tooltip>
+              }
               value={uri}
               onChange={(e) => setUri(e.target.value)}
               placeholder="/api/endpoint"
