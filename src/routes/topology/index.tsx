@@ -28,10 +28,11 @@ import {
   ReactFlowProvider,
   useEdgesState,
   useNodesState,
+  useReactFlow,
 } from '@xyflow/react';
-import { Spin, Tag, theme, Typography } from 'antd';
+import { Button, Divider,Drawer, List, Spin, Tag, theme, Typography } from 'antd';
 import dagre from 'dagre';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import { getTopologyData, type TopologyData } from '@/apis/topology';
 import PageHeader from '@/components/page/PageHeader';
@@ -261,6 +262,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
   const { token } = theme.useToken();
   const { mode } = useThemeMode();
   const navigate = useNavigate();
+  const { fitView } = useReactFlow();
   const nodeColors = mode === 'dark' ? NODE_COLORS_DARK : NODE_COLORS_LIGHT;
 
   const { nodes: initialNodes, edges: initialEdges } = useMemo(
@@ -270,6 +272,10 @@ function TopologyGraph({ data }: { data: TopologyData }) {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
+  
+  const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
+  const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
+  const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
   useEffect(() => {
     setNodes(initialNodes);
@@ -278,9 +284,81 @@ function TopologyGraph({ data }: { data: TopologyData }) {
 
   const isEmpty = nodes.length === 0;
 
-  const onInit = useCallback((reactFlowInstance: { fitView: () => void }) => {
-    reactFlowInstance.fitView();
-  }, []);
+  const onInit = useCallback(() => {
+    fitView({ padding: 0.15, duration: 400 });
+  }, [fitView]);
+
+  const renderedEdges = useMemo(() => {
+    return edges.map((edge) => {
+      const isDirectlyHovered = edge.id === hoveredEdgeId;
+      const isConnectedToHoveredNode = hoveredNodeId && (edge.source === hoveredNodeId || edge.target === hoveredNodeId);
+      const active = isDirectlyHovered || isConnectedToHoveredNode;
+      return {
+        ...edge,
+        animated: !!(edge.animated || active),
+        style: {
+          ...edge.style,
+          strokeWidth: active ? 3.5 : 2,
+          stroke: active ? 'var(--ant-color-primary)' : edge.style?.stroke,
+          transition: 'stroke 0.2s, stroke-width 0.2s',
+        },
+        className: active ? 'dashed-flow-edge-hovered' : undefined,
+      };
+    });
+  }, [edges, hoveredEdgeId, hoveredNodeId]);
+
+  const renderedNodes = useMemo(() => {
+    return nodes.map((node) => {
+      const isHovered = node.id === hoveredNodeId;
+      const isSelected = node.id === selectedNodeId;
+      const isConnectedToHoveredEdge = hoveredEdgeId && (
+        edges.find(e => e.id === hoveredEdgeId)?.source === node.id ||
+        edges.find(e => e.id === hoveredEdgeId)?.target === node.id
+      );
+      const highlight = isHovered || isConnectedToHoveredEdge || isSelected;
+      return {
+        ...node,
+        style: {
+          ...node.style,
+          transition: 'all 0.2s ease-in-out',
+          boxShadow: highlight ? '0 0 12px var(--ant-color-primary)' : 'none',
+          borderColor: highlight ? 'var(--ant-color-primary)' : node.style?.borderColor,
+          transform: highlight ? 'scale(1.02)' : 'none',
+          cursor: 'pointer',
+        },
+      };
+    });
+  }, [nodes, hoveredNodeId, hoveredEdgeId, selectedNodeId, edges]);
+
+  const selectedResource = useMemo(() => {
+    if (!selectedNodeId) return null;
+    const id = selectedNodeId;
+    if (id.startsWith('route-')) {
+      const targetId = id.slice(6);
+      const res = data.routes.find((r) => r.id === targetId);
+      return res ? { type: 'Route', data: res, edit: () => { navigate({ to: '/routes/detail/$id', params: { id: targetId } }); } } : null;
+    }
+    if (id.startsWith('service-')) {
+      const targetId = id.slice(8);
+      const res = data.services.find((s) => s.id === targetId);
+      return res ? { type: 'Service', data: res, edit: () => { navigate({ to: '/services/detail/$id', params: { id: targetId } }); } } : null;
+    }
+    if (id.startsWith('upstream-')) {
+      const targetId = id.slice(9);
+      const res = data.upstreams.find((u) => u.id === targetId);
+      return res ? { type: 'Upstream', data: res, edit: () => { navigate({ to: '/upstreams/detail/$id', params: { id: targetId } }); } } : null;
+    }
+    if (id.startsWith('stream-route-')) {
+      const targetId = id.slice(13);
+      const res = data.streamRoutes.find((r) => r.id === targetId);
+      return res ? { type: 'Stream Route', data: res, edit: () => { navigate({ to: '/stream_routes/detail/$id', params: { id: targetId } }); } } : null;
+    }
+    return null;
+  }, [selectedNodeId, data, navigate]);
+
+  const routeData = selectedResource?.type === 'Route' ? selectedResource.data as TopologyData['routes'][number] : null;
+  const serviceData = selectedResource?.type === 'Service' ? selectedResource.data as TopologyData['services'][number] : null;
+  const upstreamData = selectedResource?.type === 'Upstream' ? selectedResource.data as TopologyData['upstreams'][number] : null;
 
   if (isEmpty) {
     return (
@@ -300,15 +378,34 @@ function TopologyGraph({ data }: { data: TopologyData }) {
   }
 
   return (
-    <div style={{ height: 'calc(100vh - 200px)', border: `1px solid ${token.colorBorderSecondary}`, borderRadius: 8 }}>
+    <div style={{ height: 'calc(100vh - 200px)', border: `1px solid ${token.colorBorderSecondary}`, borderRadius: 8, position: 'relative', overflow: 'hidden' }}>
       <ReactFlow
-        nodes={nodes}
-        edges={edges}
+        nodes={renderedNodes}
+        edges={renderedEdges}
         onNodesChange={onNodesChange}
         onEdgesChange={onEdgesChange}
         onInit={onInit}
+        onNodeClick={(_, node) => {
+          setSelectedNodeId(node.id);
+          // Center the viewport on the clicked node with smooth animation
+          fitView({ nodes: [{ id: node.id }], duration: 400, padding: 0.5, maxZoom: 1.5 });
+        }}
+        onPaneClick={() => {
+          setSelectedNodeId(null);
+        }}
+        onNodeMouseEnter={(_, node) => {
+          setHoveredNodeId(node.id);
+        }}
+        onNodeMouseLeave={() => {
+          setHoveredNodeId(null);
+        }}
+        onEdgeMouseEnter={(_, edge) => {
+          setHoveredEdgeId(edge.id);
+        }}
+        onEdgeMouseLeave={() => {
+          setHoveredEdgeId(null);
+        }}
         onNodeDoubleClick={(_, node) => {
-          // node.id format: "route-123", "service-456", "upstream-789", "stream-route-123"
           const id = node.id;
           if (id.startsWith('route-')) navigate({ to: '/routes/detail/$id', params: { id: id.slice(6) } });
           else if (id.startsWith('service-')) navigate({ to: '/services/detail/$id', params: { id: id.slice(8) } });
@@ -337,10 +434,138 @@ function TopologyGraph({ data }: { data: TopologyData }) {
             <Tag color="purple">Upstream ({data.upstreams.length})</Tag>
           </div>
           <Typography.Text type="secondary" style={{ fontSize: 11, marginTop: 4, display: 'block' }}>
-            Double-click a node to open its detail page
+            Click a node to open quick view. Double-click to open its detail page.
           </Typography.Text>
         </Panel>
       </ReactFlow>
+
+      <Drawer
+        title={
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Tag color={
+              selectedResource?.type === 'Route' ? 'blue' :
+              selectedResource?.type === 'Stream Route' ? 'cyan' :
+              selectedResource?.type === 'Service' ? 'green' : 'purple'
+            }>
+              {selectedResource?.type}
+            </Tag>
+            <Typography.Text strong style={{ fontSize: 14 }}>
+              {selectedResource?.data?.name || selectedResource?.data?.id}
+            </Typography.Text>
+          </div>
+        }
+        open={!!selectedNodeId}
+        onClose={() => setSelectedNodeId(null)}
+        width={350}
+        mask={false}
+        getContainer={false}
+        style={{
+          position: 'absolute',
+          boxShadow: '-10px 0 30px rgba(0, 0, 0, 0.08)',
+          borderLeft: `1px solid ${token.colorBorderSecondary}`,
+        }}
+      >
+        {selectedResource && (
+          <div style={{ display: 'flex', flexDirection: 'column', height: '100%', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <div>
+                <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>ID</Typography.Text>
+                <Typography.Text code style={{ fontSize: 12 }}>{selectedResource.data.id}</Typography.Text>
+              </div>
+
+              {selectedResource.data.name && (
+                <div>
+                  <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>Name</Typography.Text>
+                  <Typography.Text strong style={{ fontSize: 13 }}>{selectedResource.data.name}</Typography.Text>
+                </div>
+              )}
+
+              {routeData && (
+                <>
+                  <div>
+                    <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>URI Path</Typography.Text>
+                    <Typography.Text code style={{ fontSize: 12 }}>{routeData.uri || '/'}</Typography.Text>
+                  </div>
+                  
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Typography.Text strong style={{ fontSize: 12, display: 'block' }}>Connected Resources</Typography.Text>
+                  
+                  {routeData.service_id && (
+                    <div style={{ marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Service Link</Typography.Text>
+                      <Button type="link" size="small" style={{ padding: 0, height: 'auto', fontSize: 12 }} onClick={() => setSelectedNodeId(`service-${routeData.service_id}`)}>
+                        service-{routeData.service_id}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {routeData.upstream_id && (
+                    <div style={{ marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Upstream Link</Typography.Text>
+                      <Button type="link" size="small" style={{ padding: 0, height: 'auto', fontSize: 12 }} onClick={() => setSelectedNodeId(`upstream-${routeData.upstream_id}`)}>
+                        upstream-{routeData.upstream_id}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {routeData.hasInlineUpstream && (
+                    <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
+                  )}
+                </>
+              )}
+
+              {serviceData && (
+                <>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Typography.Text strong style={{ fontSize: 12, display: 'block' }}>Connected Resources</Typography.Text>
+                  
+                  {serviceData.upstream_id && (
+                    <div style={{ marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Upstream Link</Typography.Text>
+                      <Button type="link" size="small" style={{ padding: 0, height: 'auto', fontSize: 12 }} onClick={() => setSelectedNodeId(`upstream-${serviceData.upstream_id}`)}>
+                        upstream-{serviceData.upstream_id}
+                      </Button>
+                    </div>
+                  )}
+                  
+                  {serviceData.hasInlineUpstream && (
+                    <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
+                  )}
+                </>
+              )}
+
+              {upstreamData && (
+                <>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Typography.Text strong style={{ fontSize: 12, display: 'block', marginBottom: 4 }}>Target Nodes</Typography.Text>
+                  {(upstreamData.nodes || []).length > 0 ? (
+                    <List
+                      size="small"
+                      dataSource={upstreamData.nodes}
+                      renderItem={(item: string) => (
+                        <List.Item style={{ padding: '2px 0', border: 'none' }}>
+                          <Typography.Text code style={{ fontSize: 11 }}>{item}</Typography.Text>
+                        </List.Item>
+                      )}
+                    />
+                  ) : (
+                    <Typography.Text type="secondary" style={{ fontSize: 11 }}>No static target nodes specified</Typography.Text>
+                  )}
+                </>
+              )}
+            </div>
+
+            <div style={{ marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+              <Button type="primary" block onClick={selectedResource.edit}>
+                Edit Configuration
+              </Button>
+              <Button block onClick={() => setSelectedNodeId(null)}>
+                Close Quick View
+              </Button>
+            </div>
+          </div>
+        )}
+      </Drawer>
     </div>
   );
 }
