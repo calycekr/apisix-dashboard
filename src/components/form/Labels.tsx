@@ -24,22 +24,25 @@ import {
 
 import type { APISIXType } from '@/types/schema/apisix';
 
-import { FormError } from './FormError';
+import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
-export type FormItemLabels<T extends FieldValues> = UseControllerProps<T> &
+export type FormItemLabelsProps<T extends FieldValues> = UseControllerProps<T> &
   Omit<SelectProps, 'value' | 'onChange' | 'onBlur' | 'defaultValue' | 'mode'> & {
     onChange?: (value: APISIXType['Labels']) => void;
     defaultValue?: APISIXType['Labels'];
     label?: React.ReactNode;
     description?: React.ReactNode;
+    tooltip?: React.ReactNode;
   };
 
 export const FormItemLabels = <T extends FieldValues>(
-  props: FormItemLabels<T>
+  props: FormItemLabelsProps<T>
 ) => {
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { controllerProps, restProps: { onChange: propsOnChange, label: _label, description: _description, ...restProps } } = genControllerProps(props);
+  const {
+    controllerProps,
+    restProps: { onChange: propsOnChange, label, description, tooltip, ...restProps },
+  } = genControllerProps(props);
   const {
     field: { value, onChange: fOnChange, name: fName, onBlur: fOnBlur, ...restField },
     fieldState,
@@ -54,7 +57,6 @@ export const FormItemLabels = <T extends FieldValues>(
   const handleSearch = useCallback(
     (val: string) => {
       const tuple = val.split(':');
-      // when clear input, val can be ''
       if (val && tuple.length !== 2) {
         setInternalError('The format of label is wrong, it should be `key:value`');
         return;
@@ -83,7 +85,15 @@ export const FormItemLabels = <T extends FieldValues>(
   );
 
   return (
-    <>
+    <InputWrapper
+      label={label}
+      description={description}
+      tooltip={tooltip}
+      status={fieldState.isDirty && !fieldState.error && !internalError ? 'success' : undefined}
+      error={internalError || fieldState.error?.message}
+      fieldPath={controllerProps.name}
+      required={!!controllerProps.rules?.required}
+    >
       <input name={fName} type="hidden" />
       <Select
         mode="tags"
@@ -98,7 +108,6 @@ export const FormItemLabels = <T extends FieldValues>(
         {...restField}
         {...restProps}
       />
-      <FormError message={internalError || fieldState.error?.message} />
-    </>
+    </InputWrapper>
   );
 };
