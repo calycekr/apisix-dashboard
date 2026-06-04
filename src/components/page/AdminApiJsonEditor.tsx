@@ -22,8 +22,25 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
 import { useThemeMode } from '@/stores/global';
+import { APISIX } from '@/types/schema/apisix';
 import { buildPatchPayload, getChangedTopLevelReadonlyKeys, isRecord } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
+
+function getZodSchemaForApi(apiPath: string) {
+  const normalized = apiPath.toLowerCase();
+  if (normalized.includes('/routes')) return APISIX.Route;
+  if (normalized.includes('/services')) return APISIX.Service;
+  if (normalized.includes('/upstreams')) return APISIX.Upstream;
+  if (normalized.includes('/ssls')) return APISIX.SSL;
+  if (normalized.includes('/consumers')) return APISIX.Consumer;
+  if (normalized.includes('/consumer_groups')) return APISIX.ConsumerGroup;
+  if (normalized.includes('/global_rules')) return APISIX.GlobalRule;
+  if (normalized.includes('/plugin_configs')) return APISIX.PluginConfig;
+  if (normalized.includes('/plugin_metadata')) return APISIX.PluginMetadata;
+  if (normalized.includes('/secrets')) return APISIX.Secret;
+  if (normalized.includes('/protos')) return APISIX.Proto;
+  return null;
+}
 
 type SaveFeedback = {
   type: 'success' | 'error' | 'warning';
@@ -79,12 +96,11 @@ export const AdminApiJsonEditor = ({
   const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const userEditedRef = useRef(false);
+  
   const valueRef = useRef(value);
   const originalRef = useRef(original);
   const saveRef = useRef<() => Promise<void>>(async () => {});
-
-  valueRef.current = value;
-  originalRef.current = original;
+  const formatRef = useRef<() => void>(() => {});
 
   const isDirty = value !== original;
 
@@ -176,6 +192,19 @@ export const AdminApiJsonEditor = ({
       return;
     }
 
+    // Run schema validation if a Zod schema is available for this resource type
+    const schema = getZodSchemaForApi(api);
+    if (schema) {
+      const result = schema.safeParse(parsed);
+      if (!result.success) {
+        const errorDetails = result.error.errors
+          .map((err) => `  ${err.path.join('.') || 'Root'}: ${err.message}`)
+          .join('\n');
+        setError(`Schema validation failed:\n${errorDetails}`);
+        return;
+      }
+    }
+
     if (!isRecord(parsed)) {
       setError('Invalid payload: top-level JSON must be an object');
       return;
@@ -261,7 +290,29 @@ export const AdminApiJsonEditor = ({
     }
   }, [api, disabled, onSaved, original, saving, value]);
 
+
+
+  const handleFormat = useCallback(() => {
+    setError(null);
+    if (editorRef.current) {
+      // Use Monaco's built-in formatter which preserves key ordering exactly
+      editorRef.current.getAction('editor.action.formatDocument')?.run();
+      message.success('JSON formatted successfully');
+    } else {
+      try {
+        const parsed = JSON.parse(value);
+        setValue(toJson(parsed));
+        message.success('JSON formatted successfully');
+      } catch (e) {
+        setError('Format failed: invalid JSON syntax (' + String(e) + ')');
+      }
+    }
+  }, [value]);
+
+  valueRef.current = value;
+  originalRef.current = original;
   saveRef.current = handleSave;
+  formatRef.current = handleFormat;
 
   const handleCopy = useCallback(async () => {
     try {
@@ -276,8 +327,14 @@ export const AdminApiJsonEditor = ({
     editorRef.current = ed;
     window.__monacoEditor__ = ed;
 
+    // Ctrl+S / Cmd+S keybinding for Saving Changes
     ed.addCommand(2048 | 49, () => {
       if (valueRef.current !== originalRef.current) saveRef.current();
+    });
+
+    // Shift+Alt+F / Shift+Option+F keybinding for Formatting JSON
+    ed.addCommand(1024 | 512 | 36, () => {
+      formatRef.current();
     });
   }, []);
 
@@ -290,7 +347,14 @@ export const AdminApiJsonEditor = ({
   return (
     <div>
       {error && (
-        <Alert type="error" showIcon message={error} style={{ marginBottom: 12 }} closable onClose={() => setError(null)} />
+        <Alert
+          type="error"
+          showIcon
+          message={<div style={{ whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: 12 }}>{error}</div>}
+          style={{ marginBottom: 12 }}
+          closable
+          onClose={() => setError(null)}
+        />
       )}
       {saveFeedback && (
         <Alert
@@ -350,6 +414,9 @@ export const AdminApiJsonEditor = ({
             {isDirty ? 'Unsaved changes. Ctrl+S saves changed fields.' : 'Saved'}
           </Typography.Text>
           <Space>
+            <Tooltip title="Format JSON">
+              <Button size="small" onClick={handleFormat}>Format</Button>
+            </Tooltip>
             <Tooltip title="Copy JSON">
               <Button size="small" onClick={handleCopy}>Copy</Button>
             </Tooltip>
