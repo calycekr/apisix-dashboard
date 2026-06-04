@@ -133,16 +133,18 @@ export const FormSection = (props: FormSectionProps) => {
               />
             ) : undefined
           }
-          className={clsx(tocSelector, classes.root, className)}
+          className={clsx(tocSelector, classes.root, classes.premiumCard, className)}
           style={{ marginBottom: 16 }}
           {...dataAttrs}
           {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
         >
-          {open && (
-            <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
-              {children}
-            </fieldset>
-          )}
+          <div className={clsx(classes.collapsibleContainer, open && classes.collapsibleContainerOpen)}>
+            <div className={classes.collapsibleContent}>
+              <fieldset disabled={disabled} style={{ border: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: 0 }}>
+                {children}
+              </fieldset>
+            </div>
+          </div>
         </Card>
       </SectionDepthProvider>
     );
@@ -151,8 +153,7 @@ export const FormSection = (props: FormSectionProps) => {
   return (
     <SectionDepthProvider value={depth}>
       <div
-        className={clsx(tocSelector, classes.root, className)}
-        style={{ paddingInlineStart: 16, marginBottom: 16, borderTop: `1px solid ${token.colorBorderSecondary}`, paddingTop: 12 }}
+        className={clsx(tocSelector, classes.root, classes.subSection, className)}
         {...dataAttrs}
         {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
       >

@@ -17,6 +17,7 @@
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { useBlocker, useRouter } from '@tanstack/react-router';
 import { Alert, Button, Modal, Space, Tabs } from 'antd';
+import { clsx } from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { type UseFormReturn } from 'react-hook-form';
 
@@ -126,27 +127,39 @@ const FormActionBar = ({
   errorCount: number;
   hasUnsavedChanges: boolean;
   onFocusFirstError: () => void;
-}) => (
-  <div className={classes.actionBar}>
-    <div className={classes.actionPanel}>
-      <span className={classes.actionStatus} aria-live="polite">
-        {errorCount > 0
-          ? `${errorCount} validation error${errorCount === 1 ? '' : 's'}`
-          : hasUnsavedChanges
-            ? 'Unsaved changes'
-            : 'No pending changes'}
-      </span>
-      <Space wrap>
-        {errorCount > 0 && (
-          <Button danger size="middle" onClick={onFocusFirstError}>
-            Review first error
-          </Button>
-        )}
-        {children}
-      </Space>
+}) => {
+  let dotClass = classes.statusDotSuccess;
+  let statusText = 'No pending changes';
+
+  if (errorCount > 0) {
+    dotClass = classes.statusDotError;
+    statusText = `${errorCount} validation error${errorCount === 1 ? '' : 's'}`;
+  } else if (hasUnsavedChanges) {
+    dotClass = classes.statusDotWarning;
+    statusText = 'Unsaved changes';
+  }
+
+  return (
+    <div className={classes.actionBar}>
+      <div className={classes.actionPanel}>
+        <div className={classes.actionStatusWrapper}>
+          <span className={clsx(classes.statusDot, dotClass)} />
+          <span className={classes.actionStatus} aria-live="polite">
+            {statusText}
+          </span>
+        </div>
+        <Space wrap>
+          {errorCount > 0 && (
+            <Button danger size="middle" onClick={onFocusFirstError}>
+              Review first error
+            </Button>
+          )}
+          {children}
+        </Space>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, adminApi } = props;

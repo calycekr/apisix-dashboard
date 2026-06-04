@@ -14,10 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { theme,Typography } from 'antd';
+import { clsx } from 'clsx';
 import { forwardRef } from 'react';
 
 import type { InputWrapperProps } from '@/types/input-wrapper';
+
+import classes from './InputWrapper.module.css';
 
 /**
  * Replacement for @mantine/core InputWrapper.
@@ -28,33 +30,33 @@ export const InputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
     const { label, description, error, required, withAsterisk, children, className, fieldPath, style } =
       props;
     const showAsterisk = required || withAsterisk;
-    const { token } = theme.useToken();
     return (
       <div
         ref={ref}
-        className={className}
+        className={clsx(classes.root, className)}
         data-form-field={fieldPath}
-        style={{ marginBottom: 16, ...style }}
+        style={style}
       >
         {label && (
-          <div style={{ marginBottom: 4, fontWeight: 500 }}>
+          <div className={classes.labelRow}>
             {showAsterisk && (
-              <span style={{ color: token.colorError, marginRight: 4 }}>*</span>
+              <span className={classes.asterisk}>*</span>
             )}
-            <Typography.Text>{label}</Typography.Text>
+            <span>{label}</span>
           </div>
         )}
         {description && (
-          <div style={{ marginBottom: 4, fontSize: 12, color: token.colorTextSecondary }}>
+          <div className={classes.description}>
             {description}
           </div>
         )}
         {children}
         {error && (
-          <div style={{ marginTop: 2 }}>
-            <Typography.Text type="danger" style={{ fontSize: 12 }}>
+          <div className={classes.errorContainer}>
+            <span className={classes.errorText}>
+              <span style={{ display: 'inline-block', width: 6, height: 6, borderRadius: '50%', backgroundColor: 'var(--ant-color-error)' }} />
               {error}
-            </Typography.Text>
+            </span>
           </div>
         )}
       </div>

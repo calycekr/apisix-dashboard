@@ -1,14 +1,14 @@
 .actionBar {
   position: sticky;
   bottom: 0;
-  z-index: 4;
-  margin-top: 16px;
-  padding-top: 12px;
+  z-index: 100;
+  margin-top: 24px;
+  padding-top: 16px;
+  padding-bottom: 8px;
   background: linear-gradient(
     to bottom,
     transparent,
-    var(--ant-color-bg-container) 38%,
-    var(--ant-color-bg-container)
+    var(--ant-color-bg-container) 45%
   );
 }
 
@@ -16,50 +16,138 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 16px;
   width: 100%;
-  padding: 10px 12px;
+  padding: 12px 18px;
   border: 1px solid var(--ant-color-border-secondary);
-  border-radius: 8px;
-  background: var(--ant-color-bg-container);
-  box-shadow: var(--ant-box-shadow-secondary);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--ant-color-bg-container) 85%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.12), 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.actionStatusWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+
+.statusDot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  margin-right: 8px;
+  flex-shrink: 0;
+  transition: background-color 0.3s ease;
+}
+
+.statusDotError {
+  background-color: var(--ant-color-error);
+  box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.4);
+  animation: pulseError 2s infinite;
+}
+
+.statusDotWarning {
+  background-color: var(--ant-color-warning);
+  box-shadow: 0 0 0 0 rgba(250, 173, 20, 0.4);
+  animation: pulseWarning 2s infinite;
+}
+
+.statusDotSuccess {
+  background-color: var(--ant-color-success);
+  box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.4);
+}
+
+@keyframes pulseError {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(255, 77, 79, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+  }
+}
+
+@keyframes pulseWarning {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(250, 173, 20, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(250, 173, 20, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(250, 173, 20, 0);
+  }
 }
 
 .actionStatus {
   color: var(--ant-color-text-secondary);
   font-size: 13px;
+  font-weight: 500;
   line-height: 1.4;
 }
 
 .errorList {
-  margin: 4px 0 0;
-  padding-left: 18px;
+  margin: 8px 0 0;
+  padding-left: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
 }
 
 .errorItem {
-  margin-top: 4px;
+  margin: 0;
 }
 
 .errorLink {
   display: inline-flex;
-  align-items: baseline;
-  gap: 6px;
+  align-items: center;
+  gap: 8px;
   max-width: 100%;
-  border: 0;
-  background: transparent;
-  color: inherit;
+  border: 1px solid var(--ant-color-error-border-secondary);
+  background: var(--ant-color-error-bg-filled);
+  border-radius: 6px;
+  padding: 6px 12px;
+  color: var(--ant-color-text);
   cursor: pointer;
   font: inherit;
-  padding: 0;
+  font-size: 13px;
   text-align: left;
+  transition: all 0.2s ease;
 }
 
-.errorLink:hover .errorPath {
-  text-decoration: underline;
+.errorLink:hover {
+  background: var(--ant-color-error-bg-hover);
+  border-color: var(--ant-color-error-border);
+  transform: translateX(2px);
 }
 
 .errorPath {
   color: var(--ant-color-error);
+  font-weight: 600;
   overflow-wrap: anywhere;
 }
 
@@ -67,5 +155,7 @@
   .actionPanel {
     align-items: stretch;
     flex-direction: column;
+    padding: 14px;
   }
 }
+

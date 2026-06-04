@@ -1,24 +1,63 @@
 .root {
-  margin-block: 14px;
-  scroll-margin-top: calc(var(--appshell-header-height, 60px) + 20px);
+  margin-block: 20px;
+  scroll-margin-top: calc(var(--appshell-header-height, 60px) + 24px);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
 
-  & > fieldset {
-    margin-bottom: 0;
+.premiumCard {
+  border-radius: 12px !important;
+  border: 1px solid var(--ant-color-border-secondary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02), 0 8px 24px rgba(0, 0, 0, 0.04) !important;
+  transition: box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.3s ease !important;
+
+  &:hover {
+    border-color: var(--ant-color-primary-border-hover) !important;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04), 0 12px 32px rgba(0, 0, 0, 0.08) !important;
   }
+}
+
+.subSection {
+  padding-inline-start: 20px;
+  margin-bottom: 20px;
+  border-left: 2px solid var(--ant-color-border-secondary);
+  transition: border-color 0.3s ease;
+
+  &:focus-within {
+    border-left-color: var(--ant-color-primary);
+  }
+}
+
+.collapsibleContainer {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+}
+
+.collapsibleContainerOpen {
+  grid-template-rows: 1fr;
+}
+
+.collapsibleContent {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
 }
 
 .tocLayout {
   display: grid;
-  grid-template-columns: minmax(0, 900px) 180px;
+  grid-template-columns: minmax(0, 880px) 220px;
   align-items: start;
-  gap: 24px;
-  max-width: 1120px;
+  gap: 32px;
+  max-width: 1160px;
   margin: 0 auto;
+  padding-inline: 16px;
 }
 
 .tocLayoutWithoutNav {
   grid-template-columns: minmax(0, 900px);
   max-width: 900px;
+  padding-inline: 0;
 }
 
 .tocContent {
@@ -27,62 +66,90 @@
 
 .tocNav {
   position: sticky;
-  top: calc(var(--appshell-header-height, 60px) + 20px);
-  max-height: calc(100vh - var(--appshell-header-height, 60px) - 40px);
-  overflow: auto;
-  padding: 4px 0 4px 12px;
-  border-left: 1px solid var(--ant-color-border-secondary);
+  top: calc(var(--appshell-header-height, 60px) + 24px);
+  max-height: calc(100vh - var(--appshell-header-height, 60px) - 48px);
+  overflow-y: auto;
+  padding: 8px 0 8px 16px;
+  border-left: 1px dashed var(--ant-color-border-secondary);
 }
 
 .tocTitle {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   color: var(--ant-color-text-secondary);
-  font-size: 12px;
-  font-weight: 600;
-  line-height: 1.4;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.5;
   text-transform: uppercase;
+  letter-spacing: 0.1em;
 }
 
 .tocList {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 4px;
 }
 
 .tocItem {
+  position: relative;
   width: 100%;
-  min-height: 30px;
+  min-height: 32px;
   border: 0;
-  border-radius: 6px;
   background: transparent;
   color: var(--ant-color-text-secondary);
   cursor: pointer;
   font: inherit;
   font-size: 13px;
-  line-height: 1.35;
+  line-height: 1.4;
   text-align: start;
+  padding: 6px 12px;
+  border-radius: 6px;
   transition:
     background-color 0.2s ease,
-    color 0.2s ease;
+    color 0.2s ease,
+    padding-left 0.2s ease;
+
+  &::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%) scaleY(0.3);
+    width: 3px;
+    height: 16px;
+    background-color: var(--ant-color-primary);
+    border-radius: 2px;
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+  }
 }
 
-.tocItem:hover,
-.tocItemActive {
-  background: var(--ant-color-fill-tertiary);
+.tocItem:hover {
+  background: var(--ant-color-fill-quaternary);
   color: var(--ant-color-text);
+  padding-left: 14px;
 }
 
 .tocItemActive {
+  background: var(--ant-color-primary-bg) !important;
+  color: var(--ant-color-primary) !important;
   font-weight: 600;
+  padding-left: 16px;
+
+  &::before {
+    opacity: 1;
+    transform: translateY(-50%) scaleY(1);
+  }
 }
 
 @media (max-width: 1100px) {
   .tocLayout {
     grid-template-columns: minmax(0, 900px);
     max-width: 900px;
+    padding-inline: 0;
   }
 
   .tocNav {
     display: none;
   }
 }
+
