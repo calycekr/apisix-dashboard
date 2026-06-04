@@ -84,6 +84,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      status={fieldState.isDirty && !fieldState.error ? 'success' : undefined}
       fieldPath={controllerProps.name}
       required={!!controllerProps.rules?.required}
     >
@@ -127,7 +128,11 @@ export const FormItemJsonInput = <T extends FieldValues>(
           restProps.onBlur?.(e);
         }}
         autoSize
-        style={{ resize: 'vertical' }}
+        style={{
+          fontFamily: 'SFMono-Regular, Consolas, Monaco, Courier, monospace',
+          fontSize: 12.5,
+          resize: 'vertical',
+        }}
         {...restField}
         {...(omit(['objValue'], restProps) as TextAreaProps)}
       />
