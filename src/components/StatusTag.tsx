@@ -23,8 +23,22 @@ import { req } from '@/config/req';
 import { showNotification } from '@/utils/notification';
 
 export const StatusTag = ({ status }: { status?: 0 | 1 }) => {
-  if (status === 1) return <Tag color="success">Enabled</Tag>;
-  if (status === 0) return <Tag color="default">Disabled</Tag>;
+  if (status === 1) {
+    return (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span className="pulsing-dot-success" />
+        <Tag color="success">Enabled</Tag>
+      </div>
+    );
+  }
+  if (status === 0) {
+    return (
+      <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6 }}>
+        <span className="pulsing-dot-inactive" />
+        <Tag color="default">Disabled</Tag>
+      </div>
+    );
+  }
   return <Tag>Unknown</Tag>;
 };
 
@@ -67,13 +81,16 @@ export const StatusSwitch = ({ status: statusProp, api }: StatusSwitchProps) => 
   };
 
   return (
-    <Switch
-      checked={status === 1}
-      onChange={handleToggle}
-      loading={loading}
-      checkedChildren="On"
-      unCheckedChildren="Off"
-      size="small"
-    />
+    <div style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
+      <span className={status === 1 ? 'pulsing-dot-success' : 'pulsing-dot-inactive'} />
+      <Switch
+        checked={status === 1}
+        onChange={handleToggle}
+        loading={loading}
+        checkedChildren="On"
+        unCheckedChildren="Off"
+        size="small"
+      />
+    </div>
   );
 };

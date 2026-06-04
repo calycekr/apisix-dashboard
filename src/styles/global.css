@@ -85,3 +85,172 @@
     color: var(--ant-color-text-disabled) !important;
   }
 }
+
+/* 1. Pulsing Dot Styles for Status */
+.pulsing-dot-success,
+.pulsing-dot-inactive {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pulsing-dot-success {
+  background-color: var(--ant-color-success);
+  box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.4);
+  animation: statusPulseSuccess 2s infinite;
+}
+
+.pulsing-dot-inactive {
+  background-color: var(--ant-color-text-quaternary);
+}
+
+@keyframes statusPulseSuccess {
+  0% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0.7);
+  }
+  70% {
+    transform: scale(1);
+    box-shadow: 0 0 0 5px rgba(82, 196, 26, 0);
+  }
+  100% {
+    transform: scale(0.95);
+    box-shadow: 0 0 0 0 rgba(82, 196, 26, 0);
+  }
+}
+
+/* 2. Floating Bulk Actions Bar Styling */
+.bulk-delete-bar-floating {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 24px;
+  width: max-content;
+  min-width: 480px;
+  max-width: 90vw;
+  background: color-mix(in srgb, var(--ant-color-bg-container) 90%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--ant-color-border-secondary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  animation: slideUpBulk 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpBulk {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* 3. Smooth Table Row Hover & Transitions */
+.ant-table-row {
+  transition: background-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s ease !important;
+}
+
+.ant-table-expanded-row {
+  animation: expandFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 4. Plugin Card Hover Lift Styling */
+.premium-plugin-card {
+  border-radius: 10px !important;
+  border: 1px solid var(--ant-color-border-secondary) !important;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.premium-plugin-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08) !important;
+  border-color: var(--ant-color-primary-border-hover) !important;
+}
+
+/* 5. Modern Marketplace Tabs Styling */
+.marketplace-tabs .ant-tabs-nav {
+  margin-bottom: 16px !important;
+}
+
+.marketplace-tabs .ant-tabs-tab {
+  padding: 8px 16px !important;
+  border-radius: 8px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1) !important;
+}
+
+.marketplace-tabs .ant-tabs-tab:hover {
+  background-color: var(--ant-color-fill-quaternary) !important;
+}
+
+.marketplace-tabs .ant-tabs-tab-active {
+  background-color: var(--ant-color-primary-bg) !important;
+}
+
+.marketplace-tabs .ant-tabs-ink-bar {
+  height: 3px !important;
+  border-radius: 3px 3px 0 0;
+  background: linear-gradient(90deg, var(--ant-color-primary), var(--ant-color-primary-hover)) !important;
+}
+
+/* 6. Form Field Error Shake & Glow */
+@keyframes errorShakeGlow {
+  0%, 100% {
+    transform: translateX(0);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+  }
+  15%, 45%, 75% {
+    transform: translateX(-4px);
+    box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.3);
+  }
+  30%, 60%, 90% {
+    transform: translateX(4px);
+    box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.3);
+  }
+}
+
+.form-field-error-shake {
+  animation: errorShakeGlow 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  border-radius: 6px;
+}
+
+/* 7. React Flow Edge & Node Modernizations */
+.dashed-flow-edge-hovered path {
+  stroke-dasharray: 6 4;
+  animation: dash-flow 0.5s linear infinite;
+  filter: drop-shadow(0 0 3px var(--ant-color-primary));
+}
+
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
+
+
+
+

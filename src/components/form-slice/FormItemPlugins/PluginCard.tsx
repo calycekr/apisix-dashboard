@@ -16,6 +16,8 @@
  */
 import { Button, Card, Space, Tag, Typography } from 'antd';
 
+import { getPluginCategory } from './utils';
+
 export type PluginCardProps = {
   name: string;
   desc?: string;
@@ -25,6 +27,25 @@ export type PluginCardProps = {
   onEdit?: (name: string) => void;
   onDelete?: (name: string) => void;
   onView?: (name: string) => void;
+  search?: string;
+};
+
+const HighlightText = ({ text, highlight }: { text: string; highlight?: string }) => {
+  if (!highlight) return <>{text}</>;
+  const parts = text.split(new RegExp(`(${highlight.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.toLowerCase() === highlight.toLowerCase() ? (
+          <mark key={index} style={{ backgroundColor: '#ffe58f', padding: 0 }}>
+            {part}
+          </mark>
+        ) : (
+          part
+        )
+      )}
+    </>
+  );
 };
 
 function summarizeConfig(config?: object): string[] {
@@ -43,15 +64,21 @@ function summarizeConfig(config?: object): string[] {
 }
 
 export const PluginCard = (props: PluginCardProps) => {
-  const { name, desc, config, mode, onAdd, onEdit, onView, onDelete } = props;
+  const { name, desc, config, mode, onAdd, onEdit, onView, onDelete, search } = props;
   const summary = mode !== 'add' ? summarizeConfig(config) : [];
+  const category = getPluginCategory(name);
 
   return (
     <Card
       bordered
       size="small"
+      className="premium-plugin-card"
       data-testid={`plugin-${name}`}
-      title={<Typography.Text strong>{name}</Typography.Text>}
+      title={
+        <Typography.Text strong style={{ fontSize: 13 }}>
+          <HighlightText text={name} highlight={search} />
+        </Typography.Text>
+      }
       extra={
         <Space>
           {mode === 'add' && (
@@ -96,6 +123,12 @@ export const PluginCard = (props: PluginCardProps) => {
         </Space>
       }
     >
+      <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 6 }}>
+        <Tag color={category.color} style={{ margin: 0, fontSize: 11, display: 'flex', alignItems: 'center', gap: 4 }}>
+          <span>{category.icon}</span>
+          <span>{category.name}</span>
+        </Tag>
+      </div>
       {desc && (
         <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
           {desc}

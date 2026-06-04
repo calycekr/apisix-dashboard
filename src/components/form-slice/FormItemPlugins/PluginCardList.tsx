@@ -14,13 +14,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Empty, Input, theme } from 'antd';
-import { useLocalObservable } from 'mobx-react-lite';
+import { Empty, Input, Tabs, theme } from 'antd';
+import { observer, useLocalObservable } from 'mobx-react-lite';
 import { useEffect } from 'react';
 
 import IconClose from '~icons/material-symbols/cancel';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
+import { getPluginCategory } from './utils';
 
 type PluginCardListSearchProps = {
   placeholder?: string;
@@ -78,16 +79,20 @@ export type PluginCardListProps = Omit<OptionProps, 'name'> & {
   configs?: Map<string, object>;
 };
 
-export const PluginCardList = (props: PluginCardListProps) => {
+export const PluginCardList = observer((props: PluginCardListProps) => {
   const { search = '', cols, h, mah, plugins, descriptions, configs } = props;
   const { mode, onAdd, onEdit, onDelete, onView } = props;
 
   const optionsOb = useLocalObservable(() => ({
     search: '',
+    category: 'All',
     plugins: [] as string[],
     mode: 'add' as PluginCardProps['mode'],
     setSearch(search: string) {
       this.search = search.toLowerCase().trim();
+    },
+    setCategory(category: string) {
+      this.category = category;
     },
     setPlugins(plugins: string[]) {
       this.plugins = plugins;
@@ -96,9 +101,15 @@ export const PluginCardList = (props: PluginCardListProps) => {
       this.mode = mode;
     },
     get list() {
-      const arr = !this.search
+      let arr = !this.search
         ? this.plugins
         : this.plugins.filter((d) => d.toLowerCase().includes(this.search));
+      if (this.mode === 'add' && this.category !== 'All') {
+        arr = arr.filter((name) => {
+          const cat = getPluginCategory(name);
+          return cat.name === this.category;
+        });
+      }
       return arr;
     },
   }));
@@ -115,6 +126,23 @@ export const PluginCardList = (props: PluginCardListProps) => {
 
   return (
     <div style={{ marginTop: '1em' }}>
+      {mode === 'add' && (
+        <Tabs
+          activeKey={optionsOb.category}
+          onChange={(key) => optionsOb.setCategory(key)}
+          style={{ marginBottom: 12 }}
+          className="marketplace-tabs"
+          items={[
+            { key: 'All', label: 'All' },
+            { key: 'Authentication', label: '🔒 Auth' },
+            { key: 'Security', label: '🛡️ Security' },
+            { key: 'Traffic', label: '⚡ Traffic' },
+            { key: 'Observability', label: '📊 Observability' },
+            { key: 'Serverless', label: '☁️ Serverless' },
+            { key: 'Others', label: '📦 Others' },
+          ]}
+        />
+      )}
       <div style={scrollStyle}>
         {!optionsOb.list.length ? (
           <Empty
@@ -145,6 +173,7 @@ export const PluginCardList = (props: PluginCardListProps) => {
                 onEdit={() => onEdit?.(name)}
                 onDelete={() => onDelete?.(name)}
                 onView={() => onView?.(name)}
+                search={optionsOb.search}
               />
             ))}
           </div>
@@ -152,4 +181,4 @@ export const PluginCardList = (props: PluginCardListProps) => {
       </div>
     </div>
   );
-};
+});
