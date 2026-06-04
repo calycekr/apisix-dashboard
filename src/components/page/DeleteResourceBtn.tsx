@@ -19,6 +19,7 @@ import type { AxiosResponse } from 'axios';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
+import { checkDependencies } from '@/utils/checkDependencies';
 import { useCallbackRef } from '@/utils/hooks';
 import { showNotification } from '@/utils/notification';
 
@@ -44,24 +45,56 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
     mode = 'list',
     ...btnProps
   } = props;
-  const openModal = useCallbackRef(() => {
+  const openModal = useCallbackRef(async () => {
+    let warningContent: React.ReactNode = null;
+    if (name === 'Upstream' || name === 'Service') {
+      try {
+        const id = target;
+        if (id) {
+          const affected = await checkDependencies(name, id);
+          if (affected.length > 0) {
+            warningContent = (
+              <div style={{ marginTop: 8, padding: 8, background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4 }}>
+                <Typography.Text type="danger" strong style={{ display: 'block', marginBottom: 4 }}>
+                  ⚠️ Warning: This {name} is currently referenced by:
+                </Typography.Text>
+                <ul style={{ margin: 0, paddingLeft: 16, fontSize: 12 }}>
+                  {affected.map((item) => (
+                    <li key={item}>{item}</li>
+                  ))}
+                </ul>
+                <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginTop: 4 }}>
+                  Deleting this resource will break these dependent resources.
+                </Typography.Text>
+              </div>
+            );
+          }
+        }
+      } catch {
+        // Ignore error
+      }
+    }
+
     Modal.confirm({
       centered: true,
       okButtonProps: { danger: true },
       title: `Delete ${name}`,
       content: (
-        <Typography.Text>
-          {`Do you want to delete the ${name}`}
-          {target && (
-            <Typography.Text
-              strong
-              style={{ wordBreak: 'break-all', marginInline: '0.25em' }}
-            >
-              {target}
-            </Typography.Text>
-          )}
-          ?
-        </Typography.Text>
+        <div>
+          <Typography.Text>
+            {`Do you want to delete the ${name}`}
+            {target && (
+              <Typography.Text
+                strong
+                style={{ wordBreak: 'break-all', marginInline: '0.25em' }}
+              >
+                {target}
+              </Typography.Text>
+            )}
+            ?
+          </Typography.Text>
+          {warningContent}
+        </div>
       ),
       okText: 'Delete',
       cancelText: 'Cancel',

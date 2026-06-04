@@ -14,11 +14,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Modal, Space, theme, Typography } from 'antd';
+import { Button, Modal, Space, Typography } from 'antd';
 import { useState } from 'react';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
+import { checkDependencies } from '@/utils/checkDependencies';
 import { showNotification } from '@/utils/notification';
 
 type BulkDeleteBarProps = {
@@ -40,21 +41,55 @@ export const BulkDeleteBar = ({
   onClear,
   showStatusActions = false,
 }: BulkDeleteBarProps) => {
-  const { token } = theme.useToken();
   const [loading, setLoading] = useState(false);
 
   if (selectedCount === 0) return null;
 
-  const handleBulkDelete = () => {
+  const handleBulkDelete = async () => {
+    let warningContent: React.ReactNode = null;
+    if (resourceName === 'Upstream' || resourceName === 'Service') {
+      try {
+        const allAffected: Record<string, string[]> = {};
+        for (const id of selectedIds) {
+          const affected = await checkDependencies(resourceName, id);
+          if (affected.length > 0) {
+            allAffected[id] = affected;
+          }
+        }
+        if (Object.keys(allAffected).length > 0) {
+          warningContent = (
+            <div style={{ marginTop: 8, padding: 8, background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, maxHeight: 150, overflowY: 'auto' }}>
+              <Typography.Text type="danger" strong style={{ display: 'block', marginBottom: 4 }}>
+                ⚠️ Warning: Active references found:
+              </Typography.Text>
+              {Object.entries(allAffected).map(([id, list]) => (
+                <div key={id} style={{ marginBottom: 6 }}>
+                  <Typography.Text strong>{id}:</Typography.Text>
+                  <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11 }}>
+                    {list.map(item => <li key={item}>{item}</li>)}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          );
+        }
+      } catch {
+        // Ignore error
+      }
+    }
+
     Modal.confirm({
       centered: true,
       okButtonProps: { danger: true },
       title: `Delete ${selectedCount} ${resourceName}(s)`,
       content: (
-        <Typography.Text>
-          Are you sure you want to delete {selectedCount} selected {resourceName}(s)?
-          This action cannot be undone.
-        </Typography.Text>
+        <div>
+          <Typography.Text>
+            Are you sure you want to delete {selectedCount} selected {resourceName}(s)?
+            This action cannot be undone.
+          </Typography.Text>
+          {warningContent}
+        </div>
       ),
       okText: 'Delete All',
       cancelText: 'Cancel',
@@ -139,38 +174,25 @@ export const BulkDeleteBar = ({
   };
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        flexWrap: 'wrap',
-        gap: 8,
-        padding: '8px 16px',
-        marginBottom: 12,
-        background: token.colorPrimaryBg,
-        border: `1px solid ${token.colorPrimaryBorder}`,
-        borderRadius: token.borderRadius,
-      }}
-    >
+    <div className="bulk-delete-bar-floating">
       <Typography.Text>
-        <Typography.Text strong>{selectedCount}</Typography.Text> item(s) selected
+        Selected <Typography.Text strong style={{ color: 'var(--ant-color-primary)' }}>{selectedCount}</Typography.Text> item(s)
       </Typography.Text>
-      <Space wrap>
-        <Button size="small" disabled={loading} onClick={onClear}>
+      <Space size="middle">
+        <Button size="middle" disabled={loading} onClick={onClear}>
           Clear
         </Button>
         {showStatusActions && (
           <>
-            <Button size="small" loading={loading} onClick={() => handleBulkStatus(1)}>
+            <Button size="middle" loading={loading} onClick={() => handleBulkStatus(1)}>
               Enable
             </Button>
-            <Button size="small" loading={loading} onClick={() => handleBulkStatus(0)}>
+            <Button size="middle" loading={loading} onClick={() => handleBulkStatus(0)}>
               Disable
             </Button>
           </>
         )}
-        <Button size="small" danger type="primary" loading={loading} onClick={handleBulkDelete}>
+        <Button size="middle" danger type="primary" loading={loading} onClick={handleBulkDelete}>
           Delete
         </Button>
       </Space>
