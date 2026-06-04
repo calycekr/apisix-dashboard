@@ -65,6 +65,7 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
       label={label}
       description={description}
       error={fieldState.error?.message}
+      status={fieldState.isDirty && !fieldState.error ? 'success' : undefined}
       fieldPath={controllerProps.name}
       required={!!controllerProps.rules?.required}
     >
