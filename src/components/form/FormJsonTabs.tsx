@@ -167,11 +167,13 @@ const FormActionBar = ({
   errorCount,
   hasUnsavedChanges,
   onFocusFirstError,
+  onRevert,
 }: {
   children: React.ReactNode;
   errorCount: number;
   hasUnsavedChanges: boolean;
   onFocusFirstError: () => void;
+  onRevert?: () => void;
 }) => {
   let dotClass = classes.statusDotSuccess;
   let statusText = 'No pending changes';
@@ -197,6 +199,11 @@ const FormActionBar = ({
           {errorCount > 0 && (
             <Button danger size="middle" onClick={onFocusFirstError}>
               Review first error
+            </Button>
+          )}
+          {hasUnsavedChanges && onRevert && (
+            <Button size="middle" onClick={onRevert}>
+              Revert changes
             </Button>
           )}
           {children}
@@ -274,6 +281,27 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       focusFormError(firstError.path);
     }
   }, [focusFormError, form.formState.errors]);
+
+  const handleRevert = useCallback(() => {
+    Modal.confirm({
+      title: 'Discard all unsaved changes?',
+      content: 'Are you sure you want to revert all changes to the last saved state?',
+      okText: 'Revert',
+      cancelText: 'Cancel',
+      okButtonProps: { danger: true },
+      onOk: () => {
+        form.reset();
+        if (activeTab === 'json') {
+          const values = form.getValues() as Record<string, unknown>;
+          const sanitizedValues = rawData ? stripSystemReadonlyFields(values) : values;
+          setJsonStr(JSON.stringify(sanitizedValues, null, 2));
+          setJsonTabDirty(false);
+          setJsonError(null);
+        }
+        setRawTabDirty(false);
+      },
+    });
+  }, [form, activeTab, rawData]);
 
   const doSubmit = useCallback(
     async (data: unknown) => {
@@ -431,6 +459,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               errorCount={validationErrors.length}
               hasUnsavedChanges={hasUnsavedChanges}
               onFocusFirstError={focusFirstFormError}
+              onRevert={handleRevert}
             >
               <FormSubmitBtn>{submitLabel}</FormSubmitBtn>
               <Button size="middle" onClick={handleCancel}>
@@ -460,11 +489,14 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               border: jsonError ? '1px solid var(--ant-color-error)' : '1px solid var(--ant-color-border)',
               borderRadius: 6,
               overflow: 'hidden',
-              minHeight: 500,
+              resize: 'vertical',
+              height: 500,
+              minHeight: 300,
+              maxHeight: 1200,
             }}
           >
             <Editor
-              height="500px"
+              height="100%"
               language="json"
               theme={mode === 'dark' ? 'vs-dark' : 'vs-light'}
               value={jsonStr}
@@ -489,6 +521,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               errorCount={validationErrors.length}
               hasUnsavedChanges={hasUnsavedChanges}
               onFocusFirstError={focusFirstFormError}
+              onRevert={handleRevert}
             >
               <Button
                 type="primary"
