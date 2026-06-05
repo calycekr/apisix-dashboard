@@ -44,7 +44,7 @@ export const FormSectionPluginsOnly = (props: { help?: string } = {}) => {
           {help}
         </div>
       )}
-      <FormItemPlugins name="plugins" />
+      <FormItemPlugins name="plugins" subsystem="http" />
     </FormSection>
   );
 };

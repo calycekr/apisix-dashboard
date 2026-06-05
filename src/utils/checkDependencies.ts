@@ -19,6 +19,8 @@ import { getRouteListReq } from '@/apis/routes';
 import { getServiceListReq } from '@/apis/services';
 import type { APISIXType } from '@/types/schema/apisix';
 
+type DependencyResourceName = 'Upstream' | 'Service';
+
 /**
  * Checks all dependent resources that reference the given resource by ID.
  * Uses fetchAllResources to correctly paginate through all pages, avoiding
@@ -29,15 +31,26 @@ import type { APISIXType } from '@/types/schema/apisix';
  * @returns array of human-readable labels for affected dependent resources
  */
 export async function checkDependencies(resourceName: string, id: string): Promise<string[]> {
-  const affected: string[] = [];
+  if (resourceName !== 'Upstream' && resourceName !== 'Service') return [];
+  const affectedById = await checkDependenciesForIds(resourceName, [id]);
+  return affectedById[id] ?? [];
+}
 
+export async function checkDependenciesForIds(
+  resourceName: DependencyResourceName,
+  ids: string[]
+): Promise<Record<string, string[]>> {
+  const affectedById = Object.fromEntries(ids.map((id) => [id, [] as string[]]));
+  const idSet = new Set(ids);
+
+  if (idSet.size === 0) return affectedById;
   if (resourceName === 'Upstream') {
     // Check routes referencing this upstream
     try {
       const routes = await fetchAllResources<APISIXType['Route']>(getRouteListReq);
       for (const route of routes) {
-        if (route.upstream_id === id) {
-          affected.push(`Route: ${route.name || route.id}`);
+        if (route.upstream_id && idSet.has(route.upstream_id)) {
+          affectedById[route.upstream_id].push(`Route: ${route.name || route.id}`);
         }
       }
     } catch {
@@ -48,8 +61,8 @@ export async function checkDependencies(resourceName: string, id: string): Promi
     try {
       const services = await fetchAllResources<APISIXType['Service']>(getServiceListReq);
       for (const service of services) {
-        if (service.upstream_id === id) {
-          affected.push(`Service: ${service.name || service.id}`);
+        if (service.upstream_id && idSet.has(service.upstream_id)) {
+          affectedById[service.upstream_id].push(`Service: ${service.name || service.id}`);
         }
       }
     } catch {
@@ -60,8 +73,8 @@ export async function checkDependencies(resourceName: string, id: string): Promi
     try {
       const routes = await fetchAllResources<APISIXType['Route']>(getRouteListReq);
       for (const route of routes) {
-        if (route.service_id === id) {
-          affected.push(`Route: ${route.name || route.id}`);
+        if (route.service_id && idSet.has(route.service_id)) {
+          affectedById[route.service_id].push(`Route: ${route.name || route.id}`);
         }
       }
     } catch {
@@ -69,5 +82,5 @@ export async function checkDependencies(resourceName: string, id: string): Promi
     }
   }
 
-  return affected;
+  return affectedById;
 }

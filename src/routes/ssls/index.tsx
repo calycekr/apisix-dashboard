@@ -207,7 +207,7 @@ function RouteComponent() {
             rowExpandable: () => true,
           }}
           toolBarRender={() => [
-            <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search SSLs..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <SearchInput key="search" defaultValue={params.q ?? params.name ?? ''} placeholder="Search SSLs..." onSearch={(q) => setParams({ q, name: undefined, page: 1 })} />,
             <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
             <ResourceSortSelect
               key="sort"

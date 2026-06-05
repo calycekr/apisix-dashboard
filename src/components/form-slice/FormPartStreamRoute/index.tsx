@@ -128,7 +128,7 @@ export const FormPartStreamRoute = () => {
       <FormSectionStreamRouteBasic />
       <FormSectionService />
       <FormSectionUpstream />
-      <FormSectionPlugins />
+      <FormSectionPlugins showPluginConfig={false} subsystem="stream" />
       <FormSectionStreamRouteProtocol />
     </>
   );

@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_PLUGIN_CONFIGS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 export const getPluginConfigListReq = (req: AxiosInstance, params: PageSearchType) =>
   req
@@ -42,5 +43,5 @@ export const putPluginConfigReq = (
   return req.put<
     APISIXType['PluginConfigPut'],
     APISIXType['RespPluginConfigDetail']
-  >(`${API_PLUGIN_CONFIGS}/${id}`, rest);
+  >(`${API_PLUGIN_CONFIGS}/${id}`, stripSystemReadonlyFields(rest));
 };

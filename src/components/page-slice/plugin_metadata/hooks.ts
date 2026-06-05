@@ -23,6 +23,7 @@ import {
 } from '@/apis/plugins';
 import type { PluginConfig } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
 import { SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 import { useListState, useMap } from '@/utils/hooks';
 
 export type PluginInfo = PluginConfig & { schema: object };
@@ -61,7 +62,9 @@ export const usePluginMetadataList = () => {
       const req = metadataQueries[index];
       const info = {
         name: pluginName,
-        config: req.isSuccess ? req.data?.value : {},
+        config: req.isSuccess
+          ? stripSystemReadonlyFields(req.data?.value ?? {})
+          : {},
         schema: originObj[pluginName].metadata_schema as object,
       };
       pluginInfoMapOp.set(pluginName, info);

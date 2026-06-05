@@ -61,7 +61,7 @@ const VARIABLE_OPTIONS = [
   ]},
 ];
 
-type VarTuple = [string, string, string];
+type VarTuple = [string, string, unknown];
 
 const areVarsEqual = (a: VarTuple[], b: VarTuple[]) => {
   if (a.length !== b.length) return false;
@@ -91,6 +91,17 @@ const parseVarsString = (val: string | undefined): VarTuple[] => {
 const serializeVars = (vars: VarTuple[]): string => {
   if (vars.length === 0) return '';
   return JSON.stringify(vars);
+};
+
+const stringifyVarValue = (value: unknown): string => {
+  if (value === undefined || value === null) return '';
+  if (typeof value === 'string') return value;
+  if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
 };
 
 export const FormItemVars = () => {
@@ -146,6 +157,7 @@ export const FormItemVars = () => {
       label="Vars"
       description="Request matching conditions (variable, operator, value)"
       error={fieldState.error?.message}
+      fieldPath="vars"
     >
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
         {vars.map((v, i) => (
@@ -168,7 +180,7 @@ export const FormItemVars = () => {
             />
             <Input
               placeholder="Value"
-              value={v[2]}
+              value={stringifyVarValue(v[2])}
               onChange={(e) => updateCondition(i, 2, e.target.value)}
             />
             <Button

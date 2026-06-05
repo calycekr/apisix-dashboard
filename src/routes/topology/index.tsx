@@ -272,7 +272,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
 
   const [nodes, setNodes, onNodesChange] = useNodesState(initialNodes);
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
-  
+
   const [hoveredNodeId, setHoveredNodeId] = useState<string | null>(null);
   const [hoveredEdgeId, setHoveredEdgeId] = useState<string | null>(null);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
@@ -486,10 +486,10 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                     <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block', marginBottom: 2 }}>URI Path</Typography.Text>
                     <Typography.Text code style={{ fontSize: 12 }}>{routeData.uri || '/'}</Typography.Text>
                   </div>
-                  
+
                   <Divider style={{ margin: '8px 0' }} />
                   <Typography.Text strong style={{ fontSize: 12, display: 'block' }}>Connected Resources</Typography.Text>
-                  
+
                   {routeData.service_id && (
                     <div style={{ marginTop: 4 }}>
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Service Link</Typography.Text>
@@ -498,7 +498,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                       </Button>
                     </div>
                   )}
-                  
+
                   {routeData.upstream_id && (
                     <div style={{ marginTop: 4 }}>
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Upstream Link</Typography.Text>
@@ -507,7 +507,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                       </Button>
                     </div>
                   )}
-                  
+
                   {routeData.hasInlineUpstream && (
                     <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
                   )}
@@ -518,7 +518,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                 <>
                   <Divider style={{ margin: '8px 0' }} />
                   <Typography.Text strong style={{ fontSize: 12, display: 'block' }}>Connected Resources</Typography.Text>
-                  
+
                   {serviceData.upstream_id && (
                     <div style={{ marginTop: 4 }}>
                       <Typography.Text type="secondary" style={{ fontSize: 11, display: 'block' }}>Upstream Link</Typography.Text>
@@ -527,7 +527,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                       </Button>
                     </div>
                   )}
-                  
+
                   {serviceData.hasInlineUpstream && (
                     <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
                   )}

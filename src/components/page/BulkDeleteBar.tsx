@@ -19,7 +19,7 @@ import { useState } from 'react';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
-import { checkDependencies } from '@/utils/checkDependencies';
+import { checkDependenciesForIds } from '@/utils/checkDependencies';
 import { showNotification } from '@/utils/notification';
 
 type BulkDeleteBarProps = {
@@ -49,13 +49,10 @@ export const BulkDeleteBar = ({
     let warningContent: React.ReactNode = null;
     if (resourceName === 'Upstream' || resourceName === 'Service') {
       try {
-        const allAffected: Record<string, string[]> = {};
-        for (const id of selectedIds) {
-          const affected = await checkDependencies(resourceName, id);
-          if (affected.length > 0) {
-            allAffected[id] = affected;
-          }
-        }
+        const affectedById = await checkDependenciesForIds(resourceName, selectedIds);
+        const allAffected = Object.fromEntries(
+          Object.entries(affectedById).filter(([, affected]) => affected.length > 0)
+        );
         if (Object.keys(allAffected).length > 0) {
           warningContent = (
             <div style={{ marginTop: 8, padding: 8, background: '#fff2f0', border: '1px solid #ffccc7', borderRadius: 4, maxHeight: 150, overflowY: 'auto' }}>
@@ -66,7 +63,7 @@ export const BulkDeleteBar = ({
                 <div key={id} style={{ marginBottom: 6 }}>
                   <Typography.Text strong>{id}:</Typography.Text>
                   <ul style={{ margin: 0, paddingLeft: 16, fontSize: 11 }}>
-                    {list.map(item => <li key={item}>{item}</li>)}
+                    {list.map((item) => <li key={item}>{item}</li>)}
                   </ul>
                 </div>
               ))}

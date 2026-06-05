@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 
 import { API_GLOBAL_RULES } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 export const getGlobalRuleListReq = (req: AxiosInstance) =>
   req
@@ -40,5 +41,5 @@ export const putGlobalRuleReq = (
   return req.put<
     APISIXType['GlobalRulePut'],
     APISIXType['RespGlobalRuleDetail']
-  >(`${API_GLOBAL_RULES}/${id}`, rest);
+  >(`${API_GLOBAL_RULES}/${id}`, stripSystemReadonlyFields(rest));
 };

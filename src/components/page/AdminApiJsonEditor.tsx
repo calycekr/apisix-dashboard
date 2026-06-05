@@ -42,6 +42,18 @@ function getZodSchemaForApi(apiPath: string) {
   return null;
 }
 
+function normalizeApiResource(apiPath: string, data: Record<string, unknown>): Record<string, unknown> {
+  const secretMatch = apiPath.match(/^\/secrets\/([^/]+)\/(.+)$/);
+  if (!secretMatch) return data;
+
+  const [, manager, id] = secretMatch;
+  return {
+    ...data,
+    id: decodeURIComponent(id),
+    manager,
+  };
+}
+
 type SaveFeedback = {
   type: 'success' | 'error' | 'warning';
   message: string;
@@ -96,7 +108,7 @@ export const AdminApiJsonEditor = ({
   const [saveFeedback, setSaveFeedback] = useState<SaveFeedback | null>(null);
   const editorRef = useRef<editor.IStandaloneCodeEditor | null>(null);
   const userEditedRef = useRef(false);
-  
+
   const valueRef = useRef(value);
   const originalRef = useRef(original);
   const saveRef = useRef<() => Promise<void>>(async () => {});
@@ -133,7 +145,7 @@ export const AdminApiJsonEditor = ({
           at: new Date().toLocaleTimeString(),
         });
       } else {
-        loadData(initialData);
+        loadData(normalizeApiResource(api, initialData));
       }
     }
 
@@ -162,7 +174,7 @@ export const AdminApiJsonEditor = ({
           return;
         }
 
-        loadData(data);
+        loadData(normalizeApiResource(api, data));
       })
       .catch(() => {
         if (cancelled) return;
@@ -258,7 +270,7 @@ export const AdminApiJsonEditor = ({
         const latest = await req.get(api);
         const latestData = latest.data?.value as Record<string, unknown> | undefined;
         if (latestData) {
-          nextValue = toJson(latestData);
+          nextValue = toJson(normalizeApiResource(api, latestData));
           reloaded = true;
         }
       } catch {
@@ -289,8 +301,6 @@ export const AdminApiJsonEditor = ({
       setSaving(false);
     }
   }, [api, disabled, onSaved, original, saving, value]);
-
-
 
   const handleFormat = useCallback(() => {
     setError(null);

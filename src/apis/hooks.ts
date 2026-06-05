@@ -20,6 +20,7 @@ import { useMemo } from 'react';
 
 import { getRouteListReq, getRouteReq } from '@/apis/routes';
 import { getUpstreamListReq, getUpstreamReq } from '@/apis/upstreams';
+import { PAGE_SIZE_MAX } from '@/config/constant';
 import { req } from '@/config/req';
 import type {
   APISIXDetailResponse,
@@ -72,6 +73,94 @@ const saveSort = (key: string, next: { sort_by: string; sort_order: 'asc' | 'des
   }
 };
 
+const SEARCHABLE_LIST_FIELDS = [
+  'id',
+  'username',
+  'name',
+  'desc',
+  'sni',
+  'snis',
+  'uri',
+  'uris',
+  'host',
+  'hosts',
+  'service_id',
+  'upstream_id',
+  'plugin_config_id',
+  'manager',
+] as const;
+
+const normalizeSearch = (value: unknown) => String(value ?? '').trim().toLowerCase();
+
+const appendSearchValue = (values: string[], value: unknown) => {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendSearchValue(values, item));
+    return;
+  }
+  if (typeof value === 'object') {
+    Object.entries(value).forEach(([key, item]) => {
+      values.push(key);
+      appendSearchValue(values, item);
+    });
+    return;
+  }
+  values.push(String(value));
+};
+
+const listItemMatchesQuery = <R,>(item: R, query: string) => {
+  const record = item as { key?: unknown; value?: Record<string, unknown> };
+  const values: string[] = [];
+  appendSearchValue(values, record.key);
+
+  const resource = record.value ?? {};
+  SEARCHABLE_LIST_FIELDS.forEach((field) => appendSearchValue(values, resource[field]));
+  appendSearchValue(values, resource.labels);
+
+  const haystack = values.join(' ').toLowerCase();
+  return haystack.includes(query);
+};
+
+const stripClientListParams = <P extends PageSearchType>(props: P): P => {
+  const rest = { ...props };
+  delete rest.q;
+  return rest;
+};
+
+const fetchClientFilteredList = async <P extends PageSearchType, R>(
+  listReq: (req: AxiosInstance, props: P) => Promise<APISIXListResponse<R>>,
+  props: P,
+  query: string
+) => {
+  const baseParams = stripClientListParams(props);
+  const first = await listReq(req, {
+    ...baseParams,
+    page: 1,
+    page_size: PAGE_SIZE_MAX,
+  } as P);
+  const all = [...first.list];
+  const totalPages = Math.ceil((first.total ?? 0) / PAGE_SIZE_MAX);
+
+  if (totalPages > 1) {
+    const rest = await Promise.all(
+      Array.from({ length: totalPages - 1 }, (_, index) =>
+        listReq(req, {
+          ...baseParams,
+          page: index + 2,
+          page_size: PAGE_SIZE_MAX,
+        } as P)
+      )
+    );
+    rest.forEach((page) => all.push(...page.list));
+  }
+
+  const filtered = all.filter((item) => listItemMatchesQuery(item, query));
+  return {
+    ...first,
+    total: filtered.length,
+    list: filtered,
+  };
+};
 
 const genDetailQueryOptions =
   <T extends unknown[], R>(
@@ -96,7 +185,11 @@ const genListQueryOptions =
   (props: P) => {
     return queryOptions({
       queryKey: [key, props],
-      queryFn: () => listReq(req, props),
+      queryFn: () => {
+        const query = normalizeSearch(props.q);
+        if (query) return fetchClientFilteredList(listReq, props, query);
+        return listReq(req, stripClientListParams(props));
+      },
     });
   };
 

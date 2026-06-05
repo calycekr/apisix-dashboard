@@ -109,7 +109,7 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
             const normalizedOperator = normalizeString(operator);
             const normalizedValue = normalizeVarsValue(value);
 
-            if (!normalizedVariable || !normalizedOperator || !normalizedValue) {
+            if (!normalizedVariable || !normalizedOperator || normalizedValue === undefined) {
               return undefined;
             }
             if (!VALID_VARS_OPERATORS.has(normalizedOperator)) {

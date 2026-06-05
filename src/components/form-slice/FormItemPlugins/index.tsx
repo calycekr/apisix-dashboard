@@ -43,14 +43,15 @@ import { SelectPluginsDrawer } from './SelectPluginsDrawer';
 export type FormItemPluginsProps<T extends FieldValues> = InputWrapperProps &
   UseControllerProps<T> & {
     onChange?: (value: Record<string, unknown>) => void;
-  } & Partial<NeedPluginSchema>;
+  } & Partial<NeedPluginSchema> &
+  Partial<APISIXType['PluginsQuery']>;
 
 export const FormItemPlugins = <T extends FieldValues>(
   props: FormItemPluginsProps<T>
 ) => {
   const {
     controllerProps,
-    restProps: { schema = 'schema', ...restProps },
+    restProps: { schema = 'schema', subsystem, ...restProps },
   } = genControllerProps(props, {});
   const {
     field: { value: rawObject, onChange: fOnChange, name: fName, ...restField },
@@ -59,9 +60,9 @@ export const FormItemPlugins = <T extends FieldValues>(
   const isView = useMemo(() => restField.disabled, [restField.disabled]);
 
   const pluginsOb = useLocalObservable(() => ({
-    __map: new Map<string, object>(),
-    init(obj: Record<string, object>) {
-      this.__map = new Map(Object.entries(obj));
+    __map: new Map<string, Record<string, unknown>>(),
+    init(obj: Record<string, Record<string, unknown>> | undefined) {
+      this.__map = new Map(Object.entries(obj ?? {}));
     },
     delete(name: string) {
       this.__map.delete(name);
@@ -97,7 +98,7 @@ export const FormItemPlugins = <T extends FieldValues>(
     setCurPlugin(name: string) {
       this.curPlugin = {
         name,
-        config: this.__map.get(name),
+        config: this.__map.get(name) ?? {},
       } as PluginConfig;
       this.setEditorOpened(true);
     },
@@ -130,7 +131,7 @@ export const FormItemPlugins = <T extends FieldValues>(
   }));
 
   const pluginsListReq = useSuspenseQuery(
-    getPluginsListWithSchemaQueryOptions({ schema })
+    getPluginsListWithSchemaQueryOptions({ schema, subsystem })
   );
 
   // init the selected plugins

@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_CONSUMERS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllResources } from './utils';
 
@@ -42,7 +43,7 @@ export const putConsumerReq = (
 ) => {
   return req.put<APISIXType['ConsumerPut'], APISIXType['RespConsumerDetail']>(
     API_CONSUMERS,
-    data
+    stripSystemReadonlyFields(data)
   );
 };
 

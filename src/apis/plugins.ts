@@ -18,13 +18,10 @@ import { queryOptions, skipToken } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import type { PluginConfig } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
-import {
-  API_PLUGIN_METADATA,
-  API_PLUGINS,
-  API_PLUGINS_LIST,
-} from '@/config/constant';
+import { API_PLUGIN_METADATA, API_PLUGINS, API_PLUGINS_LIST } from '@/config/constant';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 
 export type NeedPluginSchema = {
@@ -88,7 +85,7 @@ export const putPluginMetadataReq = (props: PluginConfig) => {
   return req.put<
     APISIXType['PluginMetadataPut'],
     APISIXType['RespPluginMetadataDetail']
-  >(`${API_PLUGIN_METADATA}/${name}`, config);
+  >(`${API_PLUGIN_METADATA}/${name}`, stripSystemReadonlyFields(config));
 };
 
 export const deletePluginMetadataReq = (name: string) => {

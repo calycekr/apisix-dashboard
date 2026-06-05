@@ -20,6 +20,7 @@ import type { AxiosInstance } from 'axios';
 import type { StreamRoutePostType } from '@/components/form-slice/FormPartStreamRoute/schema';
 import { API_STREAM_ROUTES } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import type { WithServiceIdFilter } from './routes';
 import { deleteAllResources } from './utils';
@@ -49,7 +50,7 @@ export const putStreamRouteReq = (
   return req.put<
     APISIXType['StreamRoute'],
     APISIXType['RespStreamRouteDetail']
-  >(`${API_STREAM_ROUTES}/${id}`, rest);
+  >(`${API_STREAM_ROUTES}/${id}`, stripSystemReadonlyFields(rest));
 };
 
 export const postStreamRouteReq = (

@@ -19,7 +19,7 @@ import { useBlocker, useRouter } from '@tanstack/react-router';
 import { Alert, Button, Input, message, Modal, Space, Tabs, Typography } from 'antd';
 import { clsx } from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type UseFormReturn } from 'react-hook-form';
+import { type UseFormReturn, useWatch } from 'react-hook-form';
 
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { queryClient } from '@/config/global';
@@ -79,6 +79,27 @@ function hasAnyDirtyField(dirtyFields: unknown): boolean {
 
 function escapeAttributeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+}
+
+function mergeEditablePayload(
+  originalValue: unknown,
+  formValue: unknown
+): unknown {
+  if (!rawIsRecord(originalValue) || !rawIsRecord(formValue)) return formValue;
+
+  const merged: Record<string, unknown> = { ...originalValue };
+  for (const [key, value] of Object.entries(formValue)) {
+    if (value === undefined) continue;
+    const previous = merged[key];
+    merged[key] = rawIsRecord(previous) && rawIsRecord(value)
+      ? mergeEditablePayload(previous, value)
+      : value;
+  }
+  return merged;
+}
+
+function rawIsRecord(value: unknown): value is Record<string, unknown> {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function formatErrorPath(path: string): string {
@@ -240,7 +261,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, adminApi } = props;
   const { mode } = useThemeMode();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>('form');
+  const [activeTab, setActiveTab] = useState<string>(() => rawData === undefined ? 'form' : 'raw');
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -258,6 +279,9 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     }
   });
   const pendingSubmitRef = useRef<unknown>(null);
+  const allowNextNavigationRef = useRef(false);
+  const blockerModalOpenRef = useRef(false);
+  const watchedValues = useWatch({ control: form.control }) as CurlValues;
 
   const hasUnsavedChanges =
     (hasAnyDirtyField(form.formState.dirtyFields) || jsonTabDirty || rawTabDirty) &&
@@ -276,12 +300,12 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         if (target) {
           target.scrollIntoView({ behavior: 'smooth', block: 'center' });
           form.setFocus(path, { shouldSelect: true });
-          
+
           target.classList.add('form-field-error-shake');
           setTimeout(() => {
             target.classList.remove('form-field-error-shake');
           }, 600);
-          
+
           return;
         }
 
@@ -301,7 +325,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
                 if (subTarget) {
                   subTarget.scrollIntoView({ behavior: 'smooth', block: 'center' });
                   form.setFocus(path, { shouldSelect: true });
-                  
+
                   subTarget.classList.add('form-field-error-shake');
                   setTimeout(() => {
                     subTarget.classList.remove('form-field-error-shake');
@@ -346,11 +370,14 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   const doSubmit = useCallback(
     async (data: unknown) => {
+      const payload = rawData === undefined
+        ? data
+        : mergeEditablePayload(rawData, data);
       setApiError(null);
       setIsSaving(true);
       try {
-        await onSubmit(data);
-        form.reset(data, { keepDefaultValues: false });
+        await onSubmit(payload);
+        form.reset(payload, { keepDefaultValues: false });
         setJsonTabDirty(false);
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
@@ -359,14 +386,14 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         setIsSaving(false);
       }
     },
-    [form, onSubmit]
+    [form, onSubmit, rawData]
   );
 
   // Show diff modal before saving when rawData is available (edit mode)
   const safeSubmit = useCallback(
     async (data: unknown) => {
       if (rawData) {
-        pendingSubmitRef.current = data;
+        pendingSubmitRef.current = mergeEditablePayload(rawData, data);
         setDiffModalOpen(true);
       } else {
         await doSubmit(data);
@@ -383,25 +410,40 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     }
   }, [doSubmit]);
 
+  const leavePage = useCallback(() => {
+    allowNextNavigationRef.current = true;
+    router.history.back();
+    window.setTimeout(() => {
+      allowNextNavigationRef.current = false;
+    }, 0);
+  }, [router]);
+
   // Block in-app navigation and browser close when form has unsaved changes
   const blocker = useBlocker({
-    shouldBlockFn: () => hasUnsavedChanges,
+    shouldBlockFn: () => !allowNextNavigationRef.current && hasUnsavedChanges,
     enableBeforeUnload: () => hasUnsavedChanges,
     withResolver: true,
   });
 
   useEffect(() => {
-    if (blocker.status === 'blocked') {
+    if (blocker.status === 'blocked' && !blockerModalOpenRef.current) {
+      blockerModalOpenRef.current = true;
       Modal.confirm({
         title: 'Unsaved changes',
         content: 'You have unsaved changes. Are you sure you want to leave?',
         okText: 'Leave',
         cancelText: 'Stay',
-        onOk: () => blocker.proceed(),
-        onCancel: () => blocker.reset(),
+        onOk: () => {
+          blockerModalOpenRef.current = false;
+          blocker.proceed();
+        },
+        onCancel: () => {
+          blockerModalOpenRef.current = false;
+          blocker.reset();
+        },
       });
     }
-  }, [blocker]);
+  }, [blocker.status, blocker]);
 
   const handleTabChange = useCallback(
     (key: string) => {
@@ -470,12 +512,12 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         content: 'You have unsaved changes. Are you sure you want to leave?',
         okText: 'Discard',
         cancelText: 'Stay',
-        onOk: () => router.history.back(),
+        onOk: leavePage,
       });
     } else {
-      router.history.back();
+      leavePage();
     }
-  }, [hasUnsavedChanges, router]);
+  }, [hasUnsavedChanges, leavePage]);
 
   const tabItems = [
     {
@@ -601,11 +643,14 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     });
   }
 
-  const values = form.getValues();
-  const isRoute = !!(values && (values.uri !== undefined || values.uris !== undefined || values.methods !== undefined));
+  const isRoute = !!(watchedValues && (
+    watchedValues.uri !== undefined ||
+    watchedValues.uris !== undefined ||
+    watchedValues.methods !== undefined
+  ));
 
   if (isRoute) {
-    const curlCommand = generateCurlCommand(values, curlTargetHost);
+    const curlCommand = generateCurlCommand(watchedValues, curlTargetHost);
     tabItems.push({
       key: 'curl',
       label: 'cURL Preview',
@@ -665,13 +710,19 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const diffModified = pendingSubmitRef.current
     ? JSON.stringify(pendingSubmitRef.current, null, 2)
     : '{}';
+  const displayTabItems = rawData === undefined
+    ? tabItems
+    : [
+        ...tabItems.filter((item) => item.key === 'raw'),
+        ...tabItems.filter((item) => item.key !== 'raw'),
+      ];
 
   return (
     <>
       <Tabs
         activeKey={activeTab}
         onChange={handleTabChange}
-        items={tabItems}
+        items={displayTabItems}
       />
       <Modal
         open={diffModalOpen}

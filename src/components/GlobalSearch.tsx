@@ -19,7 +19,7 @@ import { Input, Modal, Spin, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import { RESOURCES } from '@/apis/dashboard';
-import { SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
+import { PAGE_SIZE_MAX, SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
 import { req } from '@/config/req';
 import IconSearch from '~icons/material-symbols/search';
 
@@ -42,6 +42,46 @@ const RESOURCE_COLORS: Record<string, string> = {
   pluginConfigs: 'lime',
   secrets: 'gold',
   protos: 'default',
+};
+
+const SEARCHABLE_FIELDS = [
+  'id',
+  'username',
+  'name',
+  'desc',
+  'sni',
+  'snis',
+  'uri',
+  'uris',
+  'host',
+  'hosts',
+  'service_id',
+  'upstream_id',
+  'plugin_config_id',
+  'manager',
+] as const;
+
+const appendSearchValue = (values: string[], value: unknown) => {
+  if (value === undefined || value === null) return;
+  if (Array.isArray(value)) {
+    value.forEach((item) => appendSearchValue(values, item));
+    return;
+  }
+  if (typeof value === 'object') {
+    Object.entries(value).forEach(([key, item]) => {
+      values.push(key);
+      appendSearchValue(values, item);
+    });
+    return;
+  }
+  values.push(String(value));
+};
+
+const resourceMatchesQuery = (value: Record<string, unknown>, query: string) => {
+  const values: string[] = [];
+  SEARCHABLE_FIELDS.forEach((field) => appendSearchValue(values, value[field]));
+  appendSearchValue(values, value.labels);
+  return values.join(' ').toLowerCase().includes(query);
 };
 
 export const GlobalSearch = () => {
@@ -71,20 +111,26 @@ export const GlobalSearch = () => {
     if (open) {
       setTimeout(() => inputRef.current?.focus(), 100);
     } else {
+      clearTimeout(debounceRef.current);
+      abortRef.current?.abort();
       setQuery('');
       setResults([]);
       setSelectedIndex(0);
+      setLoading(false);
     }
   }, [open]);
 
   const doSearch = useCallback(async (q: string) => {
-    if (!q.trim()) {
+    abortRef.current?.abort();
+    const normalizedQuery = q.trim().toLowerCase();
+
+    if (!normalizedQuery) {
       setResults([]);
+      setSelectedIndex(0);
+      setLoading(false);
       return;
     }
 
-    // Cancel previous search
-    abortRef.current?.abort();
     const controller = new AbortController();
     abortRef.current = controller;
 
@@ -94,14 +140,29 @@ export const GlobalSearch = () => {
     const promises = RESOURCES.map(async (r) => {
       try {
         const res = await req.get(r.api, {
-          params: { page: 1, page_size: 10, name: q },
+          params: { page: 1, page_size: PAGE_SIZE_MAX },
           signal: controller.signal,
           headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
         });
-        const list = res.data?.list;
-        if (!Array.isArray(list)) return;
+        const list = Array.isArray(res.data?.list) ? [...res.data.list] : [];
+        const totalPages = Math.ceil((res.data?.total ?? 0) / PAGE_SIZE_MAX);
+        if (totalPages > 1) {
+          const rest = await Promise.all(
+            Array.from({ length: totalPages - 1 }, (_, index) =>
+              req.get(r.api, {
+                params: { page: index + 2, page_size: PAGE_SIZE_MAX },
+                signal: controller.signal,
+                headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
+              })
+            )
+          );
+          rest.forEach((page) => {
+            if (Array.isArray(page.data?.list)) list.push(...page.data.list);
+          });
+        }
         for (const item of list) {
           const v = item.value as Record<string, unknown>;
+          if (!resourceMatchesQuery(v, normalizedQuery)) continue;
           const id = String(v.id || v.username || '');
           searchResults.push({
             resourceType: r.key,

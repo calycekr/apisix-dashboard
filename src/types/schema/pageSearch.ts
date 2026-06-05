@@ -34,6 +34,7 @@ export const pageSearchSchema = z
         return n;
       }),
     name: z.string().optional(),
+    q: z.string().optional(),
     uri: z.string().optional(),
     label: z.string().optional(),
     sort_by: z.string().optional(),

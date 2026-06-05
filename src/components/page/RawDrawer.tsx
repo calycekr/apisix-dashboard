@@ -69,6 +69,7 @@ export const RawDrawer = ({ open, onClose, onSaved, api, title, initialData }: R
       }
       width={700}
       placement="right"
+      destroyOnHidden
     >
       <AdminApiJsonEditor
         active={open}

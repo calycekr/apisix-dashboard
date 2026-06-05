@@ -346,7 +346,7 @@ export const RouteList = (props: RouteListProps) => {
           rowExpandable: () => true,
         }}
         toolBarRender={() => [
-          <SearchInput key="search" defaultValue={params.name ?? params.uri ?? ''} placeholder="Search by name or URI..." onSearch={(q) => setParams({ name: q, uri: q, page: 1 })} />,
+          <SearchInput key="search" defaultValue={params.q ?? params.name ?? params.uri ?? ''} placeholder="Search by name or URI..." onSearch={(q) => setParams({ q, name: undefined, uri: undefined, page: 1 })} />,
           <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
           <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
         ]}

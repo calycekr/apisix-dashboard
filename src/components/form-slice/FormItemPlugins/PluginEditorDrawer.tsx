@@ -25,7 +25,7 @@ import { SchemaForm } from '@/components/schema-form/SchemaForm';
 
 import type { PluginCardListProps } from './PluginCardList';
 
-export type PluginConfig = { name: string; config: object };
+export type PluginConfig = { name: string; config: Record<string, unknown> };
 export type PluginEditorDrawerProps = Pick<PluginCardListProps, 'mode'> & {
   opened: boolean;
   onClose: () => void;
@@ -34,7 +34,7 @@ export type PluginEditorDrawerProps = Pick<PluginCardListProps, 'mode'> & {
   schema?: object;
 };
 
-const toConfigStr = (p: object): string => {
+const toConfigStr = (p: object | undefined): string => {
   return !isEmpty(p) && !isNil(p) ? JSON.stringify(p, null, 2) : '{}';
 };
 
@@ -44,14 +44,86 @@ const hasProperties = (schema: object | undefined): boolean => {
   return typeof s.properties === 'object' && s.properties !== null;
 };
 
+const isRecord = (value: unknown): value is Record<string, unknown> => {
+  return !!value && typeof value === 'object' && !Array.isArray(value);
+};
+
+const cloneDefault = (value: unknown): unknown => {
+  if (Array.isArray(value)) return value.map(cloneDefault);
+  if (isRecord(value)) {
+    return Object.fromEntries(
+      Object.entries(value).map(([key, nestedValue]) => [key, cloneDefault(nestedValue)])
+    );
+  }
+  return value;
+};
+
+const applySchemaDefaults = (
+  schema: object | undefined,
+  config: Record<string, unknown> | undefined
+): Record<string, unknown> => {
+  const base = isRecord(config) ? { ...config } : {};
+  if (!schema || !isRecord(schema) || !isRecord(schema.properties)) return base;
+
+  for (const [key, propSchema] of Object.entries(schema.properties)) {
+    if (!isRecord(propSchema)) continue;
+    if (base[key] === undefined && 'default' in propSchema) {
+      base[key] = cloneDefault(propSchema.default);
+    }
+    if (isRecord(base[key]) && isRecord(propSchema.properties)) {
+      base[key] = applySchemaDefaults(propSchema, base[key] as Record<string, unknown>);
+    }
+  }
+
+  return base;
+};
+
+const isEmptyRequiredValue = (value: unknown): boolean => {
+  return value === undefined || value === null || value === '';
+};
+
+const collectRequiredIssues = (
+  schema: object | undefined,
+  value: Record<string, unknown>,
+  prefix = ''
+): string[] => {
+  if (!schema || !isRecord(schema)) return [];
+  const issues: string[] = [];
+  const required = Array.isArray(schema.required)
+    ? schema.required.filter((item): item is string => typeof item === 'string')
+    : [];
+  const properties = isRecord(schema.properties) ? schema.properties : {};
+
+  for (const key of required) {
+    if (isEmptyRequiredValue(value[key])) {
+      issues.push(`${prefix}${key} is required.`);
+    }
+  }
+
+  for (const [key, propSchema] of Object.entries(properties)) {
+    if (!isRecord(propSchema) || !isRecord(propSchema.properties) || !isRecord(value[key])) {
+      continue;
+    }
+    issues.push(
+      ...collectRequiredIssues(
+        propSchema,
+        value[key] as Record<string, unknown>,
+        `${prefix}${key}.`
+      )
+    );
+  }
+
+  return issues;
+};
+
 export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const { opened, onSave, onClose, plugin, mode, schema } = props;
   const { name, config } = plugin;
 
   const canUseForm = hasProperties(schema);
-  const [activeTab, setActiveTab] = useState<string>(canUseForm ? 'form' : 'json');
+  const [activeTab, setActiveTab] = useState<string>('json');
   const [formValue, setFormValue] = useState<Record<string, unknown>>(
-    config as Record<string, unknown>
+    applySchemaDefaults(schema, config)
   );
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -64,19 +136,20 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const handleClose = () => {
     onClose();
     methods.reset();
-    setFormValue(config as Record<string, unknown>);
-    setActiveTab(canUseForm ? 'form' : 'json');
+    setFormValue(applySchemaDefaults(schema, config));
+    setActiveTab('json');
     setSaveError(null);
   };
 
   useEffect(() => {
-    methods.setValue('config', toConfigStr(config));
-    setFormValue(config as Record<string, unknown>);
-  }, [config, methods]);
+    const nextValue = applySchemaDefaults(schema, config);
+    methods.setValue('config', toConfigStr(nextValue));
+    setFormValue(nextValue);
+  }, [config, methods, schema]);
 
   useEffect(() => {
-    setActiveTab(canUseForm ? 'form' : 'json');
-  }, [canUseForm]);
+    setActiveTab('json');
+  }, [name]);
 
   const handleTabChange = useCallback((key: string) => {
     if (key === 'json' && activeTab === 'form') {
@@ -104,14 +177,15 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       ? 'Edit Plugin'
       : 'View Plugin';
 
-  const getCurrentConfig = (): object => {
+  const getCurrentConfig = (): Record<string, unknown> => {
     if (activeTab === 'form') {
-      return formValue as object;
+      return formValue;
     }
     try {
-      return JSON.parse(methods.getValues('config') || '{}') as object;
+      const parsed = JSON.parse(methods.getValues('config') || '{}') as unknown;
+      return isRecord(parsed) ? parsed : formValue;
     } catch {
-      return formValue as object;
+      return formValue;
     }
   };
 
@@ -120,7 +194,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       ? [
           {
             key: 'form',
-            label: 'Form',
+            label: 'Fields',
             children: (
               <SchemaForm
                 schema={schema as Record<string, unknown>}
@@ -170,7 +244,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             <Tabs
               activeKey={activeTab}
               onChange={handleTabChange}
-              items={tabItems}
+              items={[tabItems[tabItems.length - 1], ...tabItems.slice(0, -1)]}
             />
           ) : (
             <FormItemEditor
@@ -205,11 +279,20 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
                     if (activeTab === 'json') {
                       // Validate JSON is parseable
                       try {
-                        JSON.parse(methods.getValues('config') || '{}');
+                        const parsed = JSON.parse(methods.getValues('config') || '{}') as unknown;
+                        if (!isRecord(parsed)) {
+                          setSaveError('Plugin config must be a JSON object.');
+                          return;
+                        }
                       } catch (e) {
                         setSaveError('Invalid JSON: ' + String(e));
                         return;
                       }
+                    }
+                    const requiredIssues = collectRequiredIssues(schema, cfg);
+                    if (requiredIssues.length > 0) {
+                      setSaveError(requiredIssues.join('\n'));
+                      return;
                     }
                     onSave({ name, config: cfg });
                     handleClose();

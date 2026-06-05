@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_SERVICES } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllRoutes } from './routes';
 import { deleteAllStreamRoutes } from './stream_routes';
@@ -45,7 +46,7 @@ export const putServiceReq = (
   const { id, ...rest } = data;
   return req.put<APISIXType['Service'], APISIXType['RespServiceDetail']>(
     `${API_SERVICES}/${id}`,
-    rest
+    stripSystemReadonlyFields(rest)
   );
 };
 

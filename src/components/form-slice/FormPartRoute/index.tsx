@@ -197,18 +197,28 @@ export const FormSectionUpstream = () => {
   );
 };
 
-export const FormSectionPlugins = () => {
+export const FormSectionPlugins = (
+  props: {
+    showPluginConfig?: boolean;
+    subsystem?: 'http' | 'stream';
+  } = {}
+) => {
+  const { showPluginConfig = true, subsystem = 'http' } = props;
   const { control } = useFormContext<RoutePostType>();
   return (
     <FormSection legend="Plugins" collapsible defaultOpen={true}>
-      <ResourceSelect
-        control={control}
-        name="plugin_config_id"
-        resourceApi={API_PLUGIN_CONFIGS}
-        resourceLabel="Plugin Config"
-      />
-      <Divider style={{ margin: '8px 0' }}>OR</Divider>
-      <FormItemPlugins name="plugins" />
+      {showPluginConfig && (
+        <>
+          <ResourceSelect
+            control={control}
+            name="plugin_config_id"
+            resourceApi={API_PLUGIN_CONFIGS}
+            resourceLabel="Plugin Config"
+          />
+          <Divider style={{ margin: '8px 0' }}>OR</Divider>
+        </>
+      )}
+      <FormItemPlugins name="plugins" subsystem={subsystem} />
     </FormSection>
   );
 };

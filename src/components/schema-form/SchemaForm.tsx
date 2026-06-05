@@ -27,7 +27,7 @@ import {
   Tooltip,
   Typography,
 } from 'antd';
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 
 import IconAdd from '~icons/material-symbols/add';
 import IconDelete from '~icons/material-symbols/delete-forever-outline';
@@ -229,6 +229,10 @@ const OneOfField = ({
 
   const [selectedIndex, setSelectedIndex] = useState(detectedIndex);
   const selectedVariant = variants[selectedIndex];
+
+  useEffect(() => {
+    setSelectedIndex(detectedIndex);
+  }, [detectedIndex]);
 
   const options = variants.map((v, i) => ({
     label: v.title || `Option ${i + 1}`,

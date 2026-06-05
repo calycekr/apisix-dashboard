@@ -143,7 +143,7 @@ function RouteComponent() {
           cardProps={{ bodyStyle: { padding: 0 } }}
           scroll={{ x: 'max-content' }}
           toolBarRender={() => [
-            <SearchInput key="search" defaultValue={params.name ?? ''} placeholder="Search protos..." onSearch={(name) => setParams({ name, page: 1 })} />,
+            <SearchInput key="search" defaultValue={params.q ?? params.name ?? ''} placeholder="Search protos..." onSearch={(q) => setParams({ q, name: undefined, page: 1 })} />,
             <ResourceSortSelect
               key="sort"
               sortBy={sortBy}
