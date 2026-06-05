@@ -28,6 +28,23 @@ export const stripSystemReadonlyFields = <T extends Record<string, unknown>>(dat
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+export const mergeEditablePayload = (
+  originalValue: unknown,
+  formValue: unknown
+): unknown => {
+  if (!isRecord(originalValue) || !isRecord(formValue)) return formValue;
+
+  const merged: Record<string, unknown> = { ...originalValue };
+  for (const [key, value] of Object.entries(formValue)) {
+    if (value === undefined) continue;
+    const previous = merged[key];
+    merged[key] = isRecord(previous) && isRecord(value)
+      ? mergeEditablePayload(previous, value)
+      : value;
+  }
+  return merged;
+};
+
 export const buildPatchPayload = (
   current: Record<string, unknown>,
   previous: Record<string, unknown>,

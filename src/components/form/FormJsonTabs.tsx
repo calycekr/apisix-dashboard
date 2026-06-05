@@ -24,7 +24,7 @@ import { type UseFormReturn, useWatch } from 'react-hook-form';
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { queryClient } from '@/config/global';
 import { useThemeMode } from '@/stores/global';
-import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
+import { mergeEditablePayload, stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { FormSubmitBtn } from './Btn';
 import classes from './FormJsonTabs.module.css';
@@ -79,27 +79,6 @@ function hasAnyDirtyField(dirtyFields: unknown): boolean {
 
 function escapeAttributeValue(value: string): string {
   return value.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
-}
-
-function mergeEditablePayload(
-  originalValue: unknown,
-  formValue: unknown
-): unknown {
-  if (!rawIsRecord(originalValue) || !rawIsRecord(formValue)) return formValue;
-
-  const merged: Record<string, unknown> = { ...originalValue };
-  for (const [key, value] of Object.entries(formValue)) {
-    if (value === undefined) continue;
-    const previous = merged[key];
-    merged[key] = rawIsRecord(previous) && rawIsRecord(value)
-      ? mergeEditablePayload(previous, value)
-      : value;
-  }
-  return merged;
-}
-
-function rawIsRecord(value: unknown): value is Record<string, unknown> {
-  return !!value && typeof value === 'object' && !Array.isArray(value);
 }
 
 function formatErrorPath(path: string): string {
