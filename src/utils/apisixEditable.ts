@@ -25,6 +25,14 @@ export const stripSystemReadonlyFields = <T extends Record<string, unknown>>(dat
   return copy;
 };
 
+export const stripPatchReadonlyFields = <T extends Record<string, unknown>>(data: T): T => {
+  const copy = { ...data };
+  PATCH_READONLY_KEYS.forEach((key) => {
+    delete copy[key];
+  });
+  return copy;
+};
+
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 

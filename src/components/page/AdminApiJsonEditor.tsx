@@ -24,7 +24,13 @@ import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
 import { useThemeMode } from '@/stores/global';
 import { APISIX } from '@/types/schema/apisix';
-import { buildPatchPayload, getChangedTopLevelReadonlyKeys, isRecord } from '@/utils/apisixEditable';
+import {
+  buildPatchPayload,
+  getChangedTopLevelReadonlyKeys,
+  isRecord,
+  mergeEditablePayload,
+  stripPatchReadonlyFields,
+} from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 
 function getZodSchemaForApi(apiPath: string) {
@@ -206,19 +212,6 @@ export const AdminApiJsonEditor = ({
       return;
     }
 
-    // Run schema validation if a Zod schema is available for this resource type
-    const schema = getZodSchemaForApi(api);
-    if (schema) {
-      const result = schema.safeParse(parsed);
-      if (!result.success) {
-        const errorDetails = result.error.errors
-          .map((err: ZodIssue) => `  ${err.path.join('.') || 'Root'}: ${err.message}`)
-          .join('\n');
-        setError(`Schema validation failed:\n${errorDetails}`);
-        return;
-      }
-    }
-
     if (!isRecord(parsed)) {
       setError('Invalid payload: top-level JSON must be an object');
       return;
@@ -229,8 +222,25 @@ export const AdminApiJsonEditor = ({
       return;
     }
 
-    const payload = buildPatchPayload(parsed, previous);
-    const skippedReadonlyKeys = getChangedTopLevelReadonlyKeys(parsed, previous);
+    const normalizedParsed = normalizeApiResource(api, parsed);
+    const editableParsed = stripPatchReadonlyFields(normalizedParsed);
+    const validationCandidate = mergeEditablePayload(previous, editableParsed);
+
+    // Run schema validation against the final resource state after skipped read-only fields are ignored.
+    const schema = getZodSchemaForApi(api);
+    if (schema) {
+      const result = schema.safeParse(validationCandidate);
+      if (!result.success) {
+        const errorDetails = result.error.errors
+          .map((err: ZodIssue) => `  ${err.path.join('.') || 'Root'}: ${err.message}`)
+          .join('\n');
+        setError(`Schema validation failed:\n${errorDetails}`);
+        return;
+      }
+    }
+
+    const payload = buildPatchPayload(normalizedParsed, previous);
+    const skippedReadonlyKeys = getChangedTopLevelReadonlyKeys(normalizedParsed, previous);
 
     if (Object.keys(payload).length === 0) {
       setValue(original);
