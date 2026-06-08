@@ -91,7 +91,25 @@ const isEmptyRequiredValue = (value: unknown): boolean => {
   return value === undefined || value === null || value === '';
 };
 
-const collectRequiredIssues = (
+const getSchemaTypes = (schema: Record<string, unknown>): string[] => {
+  if (Array.isArray(schema.type)) {
+    return schema.type.filter((item): item is string => typeof item === 'string');
+  }
+  return typeof schema.type === 'string' ? [schema.type] : [];
+};
+
+const matchesSchemaType = (value: unknown, type: string): boolean => {
+  if (type === 'object') return isRecord(value);
+  if (type === 'array') return Array.isArray(value);
+  if (type === 'integer') return typeof value === 'number' && Number.isInteger(value);
+  if (type === 'number') return typeof value === 'number' && Number.isFinite(value);
+  if (type === 'string') return typeof value === 'string';
+  if (type === 'boolean') return typeof value === 'boolean';
+  if (type === 'null') return value === null;
+  return true;
+};
+
+const collectSchemaIssues = (
   schema: object | undefined,
   value: Record<string, unknown>,
   prefix = ''
@@ -110,16 +128,46 @@ const collectRequiredIssues = (
   }
 
   for (const [key, propSchema] of Object.entries(properties)) {
-    if (!isRecord(propSchema) || !isRecord(propSchema.properties) || !isRecord(value[key])) {
+    if (!isRecord(propSchema)) {
       continue;
     }
-    issues.push(
-      ...collectRequiredIssues(
-        propSchema,
-        value[key] as Record<string, unknown>,
-        `${prefix}${key}.`
-      )
-    );
+    const currentValue = value[key];
+    if (isEmptyRequiredValue(currentValue)) continue;
+
+    const schemaTypes = getSchemaTypes(propSchema);
+    if (
+      schemaTypes.length > 0 &&
+      !schemaTypes.some((type) => matchesSchemaType(currentValue, type))
+    ) {
+      issues.push(`${prefix}${key} must be ${schemaTypes.join(' or ')}.`);
+      continue;
+    }
+
+    if (Array.isArray(propSchema.enum) && !propSchema.enum.includes(currentValue)) {
+      issues.push(`${prefix}${key} must be one of ${propSchema.enum.map(String).join(', ')}.`);
+    }
+
+    if (typeof currentValue === 'number') {
+      if (typeof propSchema.minimum === 'number' && currentValue < propSchema.minimum) {
+        issues.push(`${prefix}${key} must be >= ${propSchema.minimum}.`);
+      }
+      if (typeof propSchema.maximum === 'number' && currentValue > propSchema.maximum) {
+        issues.push(`${prefix}${key} must be <= ${propSchema.maximum}.`);
+      }
+    }
+
+    if (typeof currentValue === 'string') {
+      if (typeof propSchema.minLength === 'number' && currentValue.length < propSchema.minLength) {
+        issues.push(`${prefix}${key} must be at least ${propSchema.minLength} characters.`);
+      }
+      if (typeof propSchema.maxLength === 'number' && currentValue.length > propSchema.maxLength) {
+        issues.push(`${prefix}${key} must be at most ${propSchema.maxLength} characters.`);
+      }
+    }
+
+    if (isRecord(propSchema.properties) && isRecord(currentValue)) {
+      issues.push(...collectSchemaIssues(propSchema, currentValue, `${prefix}${key}.`));
+    }
   }
 
   return issues;
@@ -298,9 +346,9 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
                         return;
                       }
                     }
-                    const requiredIssues = collectRequiredIssues(schema, cfg);
-                    if (requiredIssues.length > 0) {
-                      setSaveError(requiredIssues.join('\n'));
+                    const schemaIssues = collectSchemaIssues(schema, cfg);
+                    if (schemaIssues.length > 0) {
+                      setSaveError(schemaIssues.join('\n'));
                       return;
                     }
                     onSave({ name, config: cfg });
