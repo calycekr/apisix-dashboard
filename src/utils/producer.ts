@@ -26,6 +26,8 @@ export const deepCleanEmptyKeys = <T extends object>(
 ) =>
   clean(obj, {
     cleanInPlace: true,
+    emptyArraysCleaner: false,
+    emptyObjectsCleaner: false,
     ...opts,
   });
 
