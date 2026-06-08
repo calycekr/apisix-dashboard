@@ -94,6 +94,8 @@ const CredentialDetailForm = (props: CredentialFormProps) => {
         onSubmit={(d) => putCredential.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
+        rawData={credentialData?.value}
+        adminApi={`${API_CREDENTIALS(username)}/${id}`}
       >
         <FormSectionGeneral readOnly />
         <FormPartCredential />
