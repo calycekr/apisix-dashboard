@@ -25,7 +25,6 @@ export const deepCleanEmptyKeys = <T extends object>(
   opts?: ICleanerOptions
 ) =>
   clean(obj, {
-    nullCleaner: true,
     cleanInPlace: true,
     ...opts,
   });
