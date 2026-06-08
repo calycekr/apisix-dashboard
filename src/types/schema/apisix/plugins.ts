@@ -19,18 +19,19 @@ import { z } from 'zod';
 const Plugin = z.record(z.unknown());
 
 const Plugins = z.record(Plugin);
+const FreeObject = z.object({}).catchall(z.unknown());
 
 const PluginsQuery = z.object({
   subsystem: z.union([z.literal('http'), z.literal('stream')]).optional(),
 });
 
-const PluginConsumerSchema = z.object({});
-const PluginMetadataSchema = z.object({});
+const PluginConsumerSchema = FreeObject;
+const PluginMetadataSchema = FreeObject;
 
 const PluginSchema = z.object({
   consumer_schema: PluginConsumerSchema.optional(),
   metadata_schema: PluginMetadataSchema.optional(),
-  schema: z.object({}).optional(),
+  schema: FreeObject.optional(),
 });
 
 const PluginSchemaKeys = z.union([

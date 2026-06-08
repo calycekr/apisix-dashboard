@@ -18,6 +18,7 @@ import { Editor } from '@monaco-editor/react';
 import { Alert, Button, message, Space, Tooltip, Typography } from 'antd';
 import type { editor } from 'monaco-editor';
 import { useCallback, useEffect, useRef, useState } from 'react';
+import type { ZodIssue } from 'zod';
 
 import { queryClient } from '@/config/global';
 import { req } from '@/config/req';
@@ -210,7 +211,7 @@ export const AdminApiJsonEditor = ({
       const result = schema.safeParse(parsed);
       if (!result.success) {
         const errorDetails = result.error.errors
-          .map((err) => `  ${err.path.join('.') || 'Root'}: ${err.message}`)
+          .map((err: ZodIssue) => `  ${err.path.join('.') || 'Root'}: ${err.message}`)
           .join('\n');
         setError(`Schema validation failed:\n${errorDetails}`);
         return;

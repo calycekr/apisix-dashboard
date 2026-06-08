@@ -20,15 +20,17 @@ import { APISIXCommon } from './common';
 import { APISIXPlugins } from './plugins';
 import { APISIXUpstreams } from './upstreams';
 
+const FreeObject = z.record(z.unknown());
+
 const StreamRouteProtocolLoggerItem = z.object({
   name: z.string(),
   filter: z.array(z.any()),
-  conf: z.object({}),
+  conf: FreeObject,
 });
 const StreamRouteProtocol = z.object({
   name: z.string(),
   superior_id: z.string(),
-  conf: z.object({}).optional(),
+  conf: FreeObject.optional(),
   logger: z.array(StreamRouteProtocolLoggerItem).optional(),
 });
 
