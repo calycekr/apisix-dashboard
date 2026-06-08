@@ -260,6 +260,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const pendingSubmitRef = useRef<unknown>(null);
   const allowNextNavigationRef = useRef(false);
   const blockerModalOpenRef = useRef(false);
+  const userSelectedTabRef = useRef(false);
+  const previousRawDataRef = useRef(rawData);
   const watchedValues = useWatch({ control: form.control }) as CurlValues;
 
   const hasUnsavedChanges =
@@ -325,6 +327,17 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       focusFormError(firstError.path);
     }
   }, [focusFormError, form.formState.errors]);
+
+  useEffect(() => {
+    if (
+      previousRawDataRef.current === undefined &&
+      rawData !== undefined &&
+      !userSelectedTabRef.current
+    ) {
+      setActiveTab('raw');
+    }
+    previousRawDataRef.current = rawData;
+  }, [rawData]);
 
   const handleRevert = useCallback(() => {
     Modal.confirm({
@@ -426,6 +439,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   const handleTabChange = useCallback(
     (key: string) => {
+      userSelectedTabRef.current = true;
       if (key === 'json' && activeTab === 'form') {
         // Serialize current form values to JSON editor
         const values = form.getValues() as Record<string, unknown>;
