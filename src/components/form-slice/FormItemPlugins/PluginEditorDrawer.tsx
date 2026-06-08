@@ -78,6 +78,15 @@ const applySchemaDefaults = (
   return base;
 };
 
+const getEditableConfig = (
+  schema: object | undefined,
+  config: Record<string, unknown> | undefined,
+  mode: PluginCardListProps['mode']
+): Record<string, unknown> => {
+  const base = isRecord(config) ? { ...config } : {};
+  return mode === 'add' ? applySchemaDefaults(schema, base) : base;
+};
+
 const isEmptyRequiredValue = (value: unknown): boolean => {
   return value === undefined || value === null || value === '';
 };
@@ -123,29 +132,29 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const canUseForm = hasProperties(schema);
   const [activeTab, setActiveTab] = useState<string>('json');
   const [formValue, setFormValue] = useState<Record<string, unknown>>(
-    applySchemaDefaults(schema, config)
+    getEditableConfig(schema, config, mode)
   );
   const [saveError, setSaveError] = useState<string | null>(null);
 
   const methods = useForm<{ config: string }>({
     criteriaMode: 'all',
     disabled: mode === 'view',
-    defaultValues: { config: toConfigStr(config) },
+    defaultValues: { config: toConfigStr(getEditableConfig(schema, config, mode)) },
   });
 
   const handleClose = () => {
     onClose();
     methods.reset();
-    setFormValue(applySchemaDefaults(schema, config));
+    setFormValue(getEditableConfig(schema, config, mode));
     setActiveTab('json');
     setSaveError(null);
   };
 
   useEffect(() => {
-    const nextValue = applySchemaDefaults(schema, config);
-    methods.setValue('config', toConfigStr(nextValue));
+    const nextValue = getEditableConfig(schema, config, mode);
+    methods.reset({ config: toConfigStr(nextValue) });
     setFormValue(nextValue);
-  }, [config, methods, schema]);
+  }, [config, methods, mode, schema]);
 
   useEffect(() => {
     setActiveTab('json');
