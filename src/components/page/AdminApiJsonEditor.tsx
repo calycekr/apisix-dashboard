@@ -29,6 +29,7 @@ import { showNotification } from '@/utils/notification';
 
 function getZodSchemaForApi(apiPath: string) {
   const normalized = apiPath.toLowerCase();
+  if (normalized.match(/^\/consumers\/[^/]+\/credentials(?:\/|$)/)) return APISIX.Credential;
   if (normalized.includes('/routes')) return APISIX.Route;
   if (normalized.includes('/services')) return APISIX.Service;
   if (normalized.includes('/upstreams')) return APISIX.Upstream;
