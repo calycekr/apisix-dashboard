@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_CONSUMER_GROUPS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllResources } from './utils';
 
@@ -47,7 +48,7 @@ export const putConsumerGroupReq = (
   return req.put<
     APISIXType['ConsumerGroupPut'],
     APISIXType['RespConsumerGroupDetail']
-  >(`${API_CONSUMER_GROUPS}/${id}`, rest);
+  >(`${API_CONSUMER_GROUPS}/${id}`, stripSystemReadonlyFields(rest));
 };
 
 export const deleteAllConsumerGroups = (req: AxiosInstance) =>

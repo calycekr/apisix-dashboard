@@ -20,6 +20,7 @@ import type { AxiosInstance } from 'axios';
 import { API_CREDENTIALS, SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { APISIXListResponse } from '@/types/schema/apisix/type';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 export type WithUsername = Pick<APISIXType['Consumer'], 'username'>;
 
@@ -62,5 +63,5 @@ export const putCredentialReq = (
   return req.put<
     APISIXType['CredentialPut'],
     APISIXType['RespCredentialDetail']
-  >(`${API_CREDENTIALS(username)}/${id}`, rest);
+  >(`${API_CREDENTIALS(username)}/${id}`, stripSystemReadonlyFields(rest));
 };

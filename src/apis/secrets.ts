@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_SECRETS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 /**
  * `manager` does not exist in apisix secret, we parse it from `id`
@@ -68,6 +69,6 @@ export const putSecretReq = (
   const { manager, id, ...rest } = data;
   return req.put<APISIXType['Secret'], APISIXType['RespSecretDetail']>(
     `${API_SECRETS}/${manager}/${id}`,
-    rest
+    stripSystemReadonlyFields(rest)
   );
 };

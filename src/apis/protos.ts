@@ -19,6 +19,7 @@ import type { AxiosInstance } from 'axios';
 import { API_PROTOS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 export const getProtoListReq = (req: AxiosInstance, params: PageSearchType) =>
   req
@@ -36,7 +37,7 @@ export const putProtoReq = (req: AxiosInstance, data: APISIXType['Proto']) => {
   const { id, ...rest } = data;
   return req.put<APISIXType['Proto'], APISIXType['RespProtoDetail']>(
     `${API_PROTOS}/${id}`,
-    rest
+    stripSystemReadonlyFields(rest)
   );
 };
 

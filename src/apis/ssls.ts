@@ -20,6 +20,7 @@ import type { SSLPostType } from '@/components/form-slice/FormPartSSL/schema';
 import { API_SSLS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllResources } from './utils';
 
@@ -39,7 +40,7 @@ export const putSSLReq = (req: AxiosInstance, data: APISIXType['SSL']) => {
   const { id, ...rest } = data;
   return req.put<APISIXType['SSL'], APISIXType['RespSSLDetail']>(
     `${API_SSLS}/${id}`,
-    rest
+    stripSystemReadonlyFields(rest)
   );
 };
 
