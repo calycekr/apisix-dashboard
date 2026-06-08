@@ -133,24 +133,6 @@ export const produceVarsToAPI = produce((draft: RoutePostType) => {
     delete d.vars;
   }
 
-  if (
-    d.plugins &&
-    typeof d.plugins === 'object' &&
-    !Array.isArray(d.plugins) &&
-    Object.keys(d.plugins as Record<string, unknown>).length === 0
-  ) {
-    delete d.plugins;
-  }
-
-  if (
-    d.timeout &&
-    typeof d.timeout === 'object' &&
-    !Array.isArray(d.timeout) &&
-    Object.keys(d.timeout as Record<string, unknown>).length === 0
-  ) {
-    delete d.timeout;
-  }
-
   // Enforce mutual exclusivity: prefer singular over plural if both exist
   if (d.uri && d.uris) {
     delete d.uris;
