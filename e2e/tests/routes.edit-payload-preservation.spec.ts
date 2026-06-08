@@ -34,11 +34,11 @@ test.beforeAll(async () => {
     desc: 'initial description',
     methods: ['GET'],
     plugins: {
-      'limit-count': {
-        count: 10,
-        time_window: 60,
-        rejected_code: 429,
-        key: 'remote_addr',
+      'response-rewrite': {
+        body: 'initial response body',
+        headers: {
+          'X-Preserved-Header': 'preserved-value',
+        },
       },
     },
   });
@@ -89,20 +89,20 @@ test('route form save preserves raw payload and strips readonly fields', async (
   expect(body.update_time).toBeUndefined();
   expect(body.desc).toBe(updatedDesc);
   expect(body.plugins).toEqual({
-    'limit-count': {
-      count: 10,
-      time_window: 60,
-      rejected_code: 429,
-      key: 'remote_addr',
+    'response-rewrite': {
+      body: 'initial response body',
+      headers: {
+        'X-Preserved-Header': 'preserved-value',
+      },
     },
   });
 
   const route = (await getRouteReq(e2eReq, routeId)).value;
   expect(route.desc).toBe(updatedDesc);
-  expect(route.plugins?.['limit-count']).toEqual({
-    count: 10,
-    time_window: 60,
-    rejected_code: 429,
-    key: 'remote_addr',
+  expect(route.plugins?.['response-rewrite']).toEqual({
+    body: 'initial response body',
+    headers: {
+      'X-Preserved-Header': 'preserved-value',
+    },
   });
 });
