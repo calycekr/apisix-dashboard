@@ -75,6 +75,11 @@ export default defineConfig({
             '@ant-design/pro-components',
             '@ant-design/v5-patch-for-react-19',
           ],
+          'topology-vendor': ['@xyflow/react', 'dagre'],
+          'tanstack-vendor': [
+            '@tanstack/react-query',
+            '@tanstack/react-router',
+          ],
         },
       },
     },
