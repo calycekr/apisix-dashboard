@@ -15,8 +15,29 @@
  * limitations under the License.
  */
 
+import { getPluginCatalogEntry } from './pluginCatalog';
+
 export const getPluginCategory = (name: string): { name: string; color: string; icon: string } => {
   const n = name.toLowerCase();
+  const catalogCategory = getPluginCatalogEntry(name)?.category;
+  if (catalogCategory === 'AI Gateway') {
+    return { name: catalogCategory, color: 'geekblue', icon: 'AI' };
+  }
+  if (catalogCategory === 'Authentication') {
+    return { name: catalogCategory, color: 'blue', icon: 'Auth' };
+  }
+  if (catalogCategory === 'Security') {
+    return { name: catalogCategory, color: 'volcano', icon: 'Shield' };
+  }
+  if (catalogCategory === 'Traffic') {
+    return { name: catalogCategory, color: 'cyan', icon: 'Traffic' };
+  }
+  if (catalogCategory === 'Transformation') {
+    return { name: catalogCategory, color: 'gold', icon: 'Transform' };
+  }
+  if (n.startsWith('ai-')) {
+    return { name: 'AI Gateway', color: 'geekblue', icon: 'AI' };
+  }
   if (
     n.includes('auth') ||
     n.includes('jwt') ||

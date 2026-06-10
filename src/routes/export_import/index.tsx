@@ -35,6 +35,7 @@ import {
 import { useCallback, useRef, useState } from 'react';
 
 import {
+  type ConfigValidationResult,
   EXPORT_VERSION,
   exportAllResources,
   type ExportData,
@@ -43,6 +44,7 @@ import {
   type ImportResult,
   RESOURCE_LABELS,
   type ResourceKey,
+  validateConfiguration,
 } from '@/apis/export-import';
 import PageHeader from '@/components/page/PageHeader';
 import IconDownload from '~icons/material-symbols/download';
@@ -60,6 +62,9 @@ function downloadJson(data: ExportData) {
 
 function ExportSection() {
   const [loading, setLoading] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validation, setValidation] =
+    useState<ConfigValidationResult | null>(null);
 
   const handleExport = async () => {
     setLoading(true);
@@ -78,6 +83,27 @@ function ExportSection() {
     }
   };
 
+  const handleValidate = async () => {
+    setValidating(true);
+    setValidation(null);
+    try {
+      const data = await exportAllResources();
+      const result = await validateConfiguration(data);
+      setValidation(result);
+      if (result.valid) {
+        message.success('Current APISIX configuration is valid');
+      } else {
+        message.error(
+          `Configuration validation found ${result.errors.length} error(s)`
+        );
+      }
+    } catch {
+      message.error('Failed to load current configuration for validation');
+    } finally {
+      setValidating(false);
+    }
+  };
+
   return (
     <Card
       title={
@@ -91,15 +117,23 @@ function ExportSection() {
         Export all APISIX resources (routes, services, upstreams, consumers, SSLs, etc.)
         as a JSON file. Use this for backup or migration to another cluster.
       </Typography.Paragraph>
-      <Button
-        type="primary"
-        icon={<IconDownload />}
-        loading={loading}
-        onClick={handleExport}
-        size="large"
-      >
-        Export All Resources
-      </Button>
+      <Space wrap>
+        <Button
+          type="primary"
+          icon={<IconDownload />}
+          loading={loading}
+          onClick={handleExport}
+          size="large"
+        >
+          Export All Resources
+        </Button>
+        <Button loading={validating} onClick={handleValidate} size="large">
+          Validate Current Configuration
+        </Button>
+      </Space>
+      {validation && (
+        <ValidationResult result={validation} />
+      )}
     </Card>
   );
 }
@@ -112,6 +146,9 @@ function ImportSection() {
   const [results, setResults] = useState<ImportResult[]>([]);
   const [progress, setProgress] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [validating, setValidating] = useState(false);
+  const [validation, setValidation] =
+    useState<ConfigValidationResult | null>(null);
   const abortRef = useRef(false);
 
   const handleFile = useCallback((file: File) => {
@@ -135,6 +172,7 @@ function ImportSection() {
         setSelectedResources(nonEmpty);
         setResults([]);
         setShowResults(false);
+        setValidation(null);
       } catch {
         message.error('Failed to parse JSON file');
       }
@@ -199,6 +237,21 @@ function ImportSection() {
         }
       },
     });
+  };
+
+  const handleValidate = async () => {
+    if (!fileData || selectedResources.length === 0) return;
+    setValidating(true);
+    const result = await validateConfiguration(fileData, selectedResources);
+    setValidation(result);
+    setValidating(false);
+    if (result.valid) {
+      message.success('Selected configuration is valid');
+    } else {
+      message.error(
+        `Configuration validation found ${result.errors.length} error(s)`
+      );
+    }
   };
 
   const toggleResource = (key: ResourceKey, checked: boolean) => {
@@ -292,21 +345,67 @@ function ImportSection() {
             <Progress percent={progress} status="active" style={{ marginBottom: 16 }} />
           )}
 
-          <Button
-            type="primary"
-            icon={<IconUpload />}
-            loading={importing}
-            disabled={selectedResources.length === 0}
-            onClick={handleImport}
-            size="large"
-          >
-            Import Selected Resources
-          </Button>
+          <Space wrap>
+            <Button
+              onClick={handleValidate}
+              loading={validating}
+              disabled={selectedResources.length === 0}
+              size="large"
+            >
+              Validate Selected Resources
+            </Button>
+            <Button
+              type="primary"
+              icon={<IconUpload />}
+              loading={importing}
+              disabled={selectedResources.length === 0}
+              onClick={handleImport}
+              size="large"
+            >
+              Import Selected Resources
+            </Button>
+          </Space>
 
+          {validation && <ValidationResult result={validation} />}
           {showResults && <ImportResults results={results} />}
         </>
       )}
     </Card>
+  );
+}
+
+function ValidationResult({ result }: { result: ConfigValidationResult }) {
+  if (result.valid) {
+    return (
+      <Alert
+        type="success"
+        showIcon
+        message="APISIX configuration validation passed"
+        style={{ marginTop: 16 }}
+      />
+    );
+  }
+
+  return (
+    <Alert
+      type="error"
+      showIcon
+      message={`APISIX configuration validation failed (${result.errors.length})`}
+      description={
+        <ul style={{ margin: 0, paddingLeft: 20 }}>
+          {result.errors.map((error, index) => (
+            <li key={`${error.resource_type}-${error.resource_id}-${index}`}>
+              {[error.resource_type, error.resource_id]
+                .filter(Boolean)
+                .join(' / ') || 'configuration'}
+              {error.index !== undefined ? ` [${error.index}]` : ''}: {' '}
+              {error.error}
+            </li>
+          ))}
+        </ul>
+      }
+      style={{ marginTop: 16 }}
+    />
   );
 }
 

@@ -16,6 +16,10 @@
  */
 import { Button, Card, Space, Tag, Typography } from 'antd';
 
+import {
+  getPluginCatalogEntry,
+  getPluginDescription,
+} from './pluginCatalog';
 import { getPluginCategory } from './utils';
 
 export type PluginCardProps = {
@@ -67,6 +71,8 @@ export const PluginCard = (props: PluginCardProps) => {
   const { name, desc, config, mode, onAdd, onEdit, onView, onDelete, search } = props;
   const summary = mode !== 'add' ? summarizeConfig(config) : [];
   const category = getPluginCategory(name);
+  const catalogEntry = getPluginCatalogEntry(name);
+  const description = getPluginDescription(name, desc);
 
   return (
     <Card
@@ -129,13 +135,22 @@ export const PluginCard = (props: PluginCardProps) => {
           <span>{category.name}</span>
         </Tag>
       </div>
-      {desc && (
+      {description && (
         <Typography.Text type="secondary" style={{ fontSize: 12, display: 'block' }}>
-          {desc}
+          {description}
         </Typography.Text>
       )}
+      {catalogEntry?.capabilities.length ? (
+        <div style={{ marginTop: 8, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+          {catalogEntry.capabilities.map((capability) => (
+            <Tag key={capability} bordered={false} style={{ margin: 0, fontSize: 11 }}>
+              {capability}
+            </Tag>
+          ))}
+        </div>
+      ) : null}
       {summary.length > 0 && (
-        <div style={{ marginTop: desc ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
+        <div style={{ marginTop: description ? 6 : 0, display: 'flex', flexWrap: 'wrap', gap: 4 }}>
           {summary.map((s) => (
             <Tag key={s} style={{ margin: 0, fontSize: 11 }}>{s}</Tag>
           ))}

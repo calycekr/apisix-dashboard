@@ -16,6 +16,7 @@
  */
 import { getConsumerGroupListReq } from '@/apis/consumer_groups';
 import { getConsumerListReq } from '@/apis/consumers';
+import { getCredentialListReq } from '@/apis/credentials';
 import { fetchAllResources } from '@/apis/fetchAll';
 import { getGlobalRuleListReq } from '@/apis/global_rules';
 import { getPluginConfigListReq } from '@/apis/plugin_configs';
@@ -27,10 +28,13 @@ import { getSSLListReq } from '@/apis/ssls';
 import { getStreamRouteListReq } from '@/apis/stream_routes';
 import { getUpstreamListReq } from '@/apis/upstreams';
 import {
+  API_CONFIG_VALIDATE,
   API_CONSUMER_GROUPS,
   API_CONSUMERS,
   API_GLOBAL_RULES,
   API_PLUGIN_CONFIGS,
+  API_PLUGIN_METADATA,
+  API_PLUGINS,
   API_PROTOS,
   API_ROUTES,
   API_SECRETS,
@@ -38,10 +42,12 @@ import {
   API_SSLS,
   API_STREAM_ROUTES,
   API_UPSTREAMS,
+  SKIP_INTERCEPTOR_HEADER,
 } from '@/config/constant';
 import { req } from '@/config/req';
+import type { APISIXType } from '@/types/schema/apisix';
 
-export const EXPORT_VERSION = 1;
+export const EXPORT_VERSION = 2;
 
 export type ExportData = {
   version: number;
@@ -53,10 +59,12 @@ export type ExportData = {
     routes: Record<string, unknown>[];
     streamRoutes: Record<string, unknown>[];
     consumers: Record<string, unknown>[];
+    credentials: Record<string, unknown>[];
     consumerGroups: Record<string, unknown>[];
     ssls: Record<string, unknown>[];
     globalRules: Record<string, unknown>[];
     pluginConfigs: Record<string, unknown>[];
+    pluginMetadata: Record<string, unknown>[];
     protos: Record<string, unknown>[];
     secrets: Record<string, unknown>[];
   };
@@ -64,16 +72,30 @@ export type ExportData = {
 
 export type ResourceKey = keyof ExportData['resources'];
 
+export type ConfigValidationError = {
+  resource_type?: string;
+  resource_id?: string;
+  index?: number;
+  error: string;
+};
+
+export type ConfigValidationResult = {
+  valid: boolean;
+  errors: ConfigValidationError[];
+};
+
 export const RESOURCE_LABELS: Record<ResourceKey, string> = {
   upstreams: 'Upstreams',
   services: 'Services',
   routes: 'Routes',
   streamRoutes: 'Stream Routes',
   consumers: 'Consumers',
+  credentials: 'Consumer Credentials',
   consumerGroups: 'Consumer Groups',
   ssls: 'SSLs',
   globalRules: 'Global Rules',
   pluginConfigs: 'Plugin Configs',
+  pluginMetadata: 'Plugin Metadata',
   protos: 'Protos',
   secrets: 'Secrets',
 };
@@ -83,10 +105,12 @@ export const IMPORT_ORDER: ResourceKey[] = [
   'upstreams',
   'services',
   'consumers',
+  'credentials',
   'consumerGroups',
   'ssls',
   'globalRules',
   'pluginConfigs',
+  'pluginMetadata',
   'protos',
   'secrets',
   'routes',
@@ -99,13 +123,100 @@ const RESOURCE_API_MAP: Record<ResourceKey, string> = {
   routes: API_ROUTES,
   streamRoutes: API_STREAM_ROUTES,
   consumers: API_CONSUMERS,
+  credentials: '',
   consumerGroups: API_CONSUMER_GROUPS,
   ssls: API_SSLS,
   globalRules: API_GLOBAL_RULES,
   pluginConfigs: API_PLUGIN_CONFIGS,
+  pluginMetadata: API_PLUGIN_METADATA,
   protos: API_PROTOS,
   secrets: API_SECRETS,
 };
+
+const VALIDATION_RESOURCE_KEYS: Record<ResourceKey, string> = {
+  upstreams: 'upstreams',
+  services: 'services',
+  routes: 'routes',
+  streamRoutes: 'stream_routes',
+  consumers: 'consumers',
+  credentials: 'consumers',
+  consumerGroups: 'consumer_groups',
+  ssls: 'ssls',
+  globalRules: 'global_rules',
+  pluginConfigs: 'plugin_configs',
+  pluginMetadata: 'plugin_metadata',
+  protos: 'protos',
+  secrets: 'secrets',
+};
+
+function getCredentialValidationItem(
+  item: Record<string, unknown>
+): Record<string, unknown> {
+  const { username, ...credential } = item;
+  const id = String(credential.id ?? '');
+  return {
+    ...credential,
+    id: id.includes('/credentials/')
+      ? id
+      : `${String(username ?? '')}/credentials/${id}`,
+  };
+}
+
+export const buildConfigValidationPayload = (
+  data: ExportData,
+  selectedResources: ResourceKey[] = IMPORT_ORDER
+): Record<string, Record<string, unknown>[]> => {
+  const payload: Record<string, Record<string, unknown>[]> = {};
+
+  for (const resourceType of selectedResources) {
+    const key = VALIDATION_RESOURCE_KEYS[resourceType];
+    const items = data.resources[resourceType] ?? [];
+    const normalizedItems =
+      resourceType === 'credentials'
+        ? items.map(getCredentialValidationItem)
+        : items;
+    payload[key] = [...(payload[key] ?? []), ...normalizedItems];
+  }
+
+  return payload;
+};
+
+export async function validateConfiguration(
+  data: ExportData,
+  selectedResources: ResourceKey[] = IMPORT_ORDER
+): Promise<ConfigValidationResult> {
+  try {
+    await req.post(
+      API_CONFIG_VALIDATE,
+      buildConfigValidationPayload(data, selectedResources)
+    );
+    return { valid: true, errors: [] };
+  } catch (error) {
+    const responseData = (
+      error as {
+        response?: {
+          data?: {
+            errors?: ConfigValidationError[];
+            error_msg?: string;
+          };
+        };
+      }
+    ).response?.data;
+    const errors = responseData?.errors;
+    if (Array.isArray(errors)) return { valid: false, errors };
+
+    return {
+      valid: false,
+      errors: [
+        {
+          error:
+            responseData?.error_msg ??
+            (error instanceof Error ? error.message : String(error)),
+        },
+      ],
+    };
+  }
+}
 
 export async function exportAllResources(): Promise<ExportData> {
   const results = await Promise.allSettled([
@@ -127,6 +238,17 @@ export async function exportAllResources(): Promise<ExportData> {
   ];
   const v = (i: number) => results[i].status === 'fulfilled' ? (results[i] as PromiseFulfilledResult<Record<string, unknown>[]>).value : [];
   const skipped = resourceNames.filter((_, i) => results[i].status === 'rejected');
+  const consumers = v(4);
+  const extendedResults = await Promise.allSettled([
+    exportCredentials(consumers),
+    exportPluginMetadata(),
+  ]);
+  if (extendedResults[0].status === 'rejected') skipped.push('credentials');
+  if (extendedResults[1].status === 'rejected') skipped.push('pluginMetadata');
+  const credentials =
+    extendedResults[0].status === 'fulfilled' ? extendedResults[0].value : [];
+  const pluginMetadata =
+    extendedResults[1].status === 'fulfilled' ? extendedResults[1].value : [];
 
   return {
     version: EXPORT_VERSION,
@@ -134,10 +256,57 @@ export async function exportAllResources(): Promise<ExportData> {
     skippedResources: skipped,
     resources: {
       upstreams: v(0), services: v(1), routes: v(2), streamRoutes: v(3),
-      consumers: v(4), consumerGroups: v(5), ssls: v(6), globalRules: v(7),
-      pluginConfigs: v(8), protos: v(9), secrets: v(10),
+      consumers, credentials, consumerGroups: v(5), ssls: v(6),
+      globalRules: v(7), pluginConfigs: v(8), pluginMetadata, protos: v(9),
+      secrets: v(10),
     },
   };
+}
+
+async function exportCredentials(
+  consumers: Record<string, unknown>[]
+): Promise<Record<string, unknown>[]> {
+  const credentialLists = await Promise.all(
+    consumers.map(async (consumer) => {
+      const username = String(consumer.username ?? '');
+      if (!username) return [];
+      const response = await getCredentialListReq(req, { username });
+      return response.list.map((credential) => ({ ...credential, username }));
+    })
+  );
+  return credentialLists.flat();
+}
+
+async function exportPluginMetadata(): Promise<Record<string, unknown>[]> {
+  const plugins = await req
+    .get<unknown, APISIXType['RespPlugins']>(API_PLUGINS, {
+      params: { all: true },
+    })
+    .then((response) => response.data);
+  const pluginNames = Object.entries(plugins)
+    .filter(([, plugin]) => plugin.metadata_schema)
+    .map(([name]) => name);
+  const metadata = await Promise.all(
+    pluginNames.map(async (name): Promise<Record<string, unknown> | null> => {
+      try {
+        const response = await req.get<
+          unknown,
+          APISIXType['RespPluginMetadataDetail']
+        >(`${API_PLUGIN_METADATA}/${name}`, {
+          headers: {
+            [SKIP_INTERCEPTOR_HEADER]: ['404'],
+          },
+        });
+        return { id: name, ...stripTimestamps(response.data.value) };
+      } catch (error) {
+        const status = (error as { response?: { status?: number } }).response
+          ?.status;
+        if (status === 404) return null;
+        throw error;
+      }
+    })
+  );
+  return metadata.filter((item): item is Record<string, unknown> => item !== null);
 }
 
 function stripTimestamps(data: Record<string, unknown>): Record<string, unknown> {
@@ -156,6 +325,7 @@ export type ImportResult = {
 
 function getResourceId(resourceType: ResourceKey, item: Record<string, unknown>): string {
   if (resourceType === 'consumers') return String(item.username ?? item.id ?? '');
+  if (resourceType === 'credentials') return String(item.id ?? '');
   if (resourceType === 'secrets') {
     // secrets have composite IDs like "vault/1"
     const manager = item.manager ?? '';
@@ -195,7 +365,12 @@ export async function importResources(
         const putBody = { ...body };
         delete putBody.id;
         delete putBody.username;
-        await req.put(`${apiPath}/${id}`, putBody);
+        if (resourceType === 'credentials') {
+          const username = String(item.username ?? '');
+          await req.put(`${API_CONSUMERS}/${username}/credentials/${id}`, putBody);
+        } else {
+          await req.put(`${apiPath}/${id}`, putBody);
+        }
         result.success++;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);

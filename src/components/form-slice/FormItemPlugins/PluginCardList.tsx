@@ -21,6 +21,7 @@ import { useEffect } from 'react';
 import IconClose from '~icons/material-symbols/cancel';
 
 import { PluginCard, type PluginCardProps } from './PluginCard';
+import { getPluginSearchText } from './pluginCatalog';
 import { getPluginCategory } from './utils';
 
 type PluginCardListSearchProps = {
@@ -74,7 +75,7 @@ export type PluginCardListProps = Omit<OptionProps, 'name'> & {
   search: string;
   plugins: string[];
   /** Dynamic descriptions from API schema (overrides hardcoded) */
-  descriptions?: Map<string, string>;
+    descriptions?: Map<string, string>;
   /** Plugin configurations for displaying config summaries on cards */
   configs?: Map<string, object>;
 };
@@ -87,6 +88,7 @@ export const PluginCardList = observer((props: PluginCardListProps) => {
     search: '',
     category: 'All',
     plugins: [] as string[],
+    descriptions: new Map<string, string>(),
     mode: 'add' as PluginCardProps['mode'],
     setSearch(search: string) {
       this.search = search.toLowerCase().trim();
@@ -97,13 +99,20 @@ export const PluginCardList = observer((props: PluginCardListProps) => {
     setPlugins(plugins: string[]) {
       this.plugins = plugins;
     },
+    setDescriptions(descriptions?: Map<string, string>) {
+      this.descriptions = descriptions ?? new Map();
+    },
     setMode(mode: PluginCardProps['mode']) {
       this.mode = mode;
     },
     get list() {
       let arr = !this.search
         ? this.plugins
-        : this.plugins.filter((d) => d.toLowerCase().includes(this.search));
+        : this.plugins.filter((name) =>
+            getPluginSearchText(name, this.descriptions.get(name)).includes(
+              this.search
+            )
+          );
       if (this.mode === 'add' && this.category !== 'All') {
         arr = arr.filter((name) => {
           const cat = getPluginCategory(name);
@@ -115,6 +124,10 @@ export const PluginCardList = observer((props: PluginCardListProps) => {
   }));
 
   useEffect(() => optionsOb.setPlugins(plugins), [optionsOb, plugins]);
+  useEffect(
+    () => optionsOb.setDescriptions(descriptions),
+    [descriptions, optionsOb]
+  );
   useEffect(() => optionsOb.setSearch(search), [optionsOb, search]);
   useEffect(() => optionsOb.setMode(mode), [optionsOb, mode]);
 
@@ -134,9 +147,11 @@ export const PluginCardList = observer((props: PluginCardListProps) => {
           className="marketplace-tabs"
           items={[
             { key: 'All', label: 'All' },
+            { key: 'AI Gateway', label: 'AI Gateway' },
             { key: 'Authentication', label: '🔒 Auth' },
             { key: 'Security', label: '🛡️ Security' },
             { key: 'Traffic', label: '⚡ Traffic' },
+            { key: 'Transformation', label: 'Transformation' },
             { key: 'Observability', label: '📊 Observability' },
             { key: 'Serverless', label: '☁️ Serverless' },
             { key: 'Others', label: '📦 Others' },

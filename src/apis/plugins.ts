@@ -28,6 +28,17 @@ export type NeedPluginSchema = {
   schema: APISIXType['PluginSchemaKeys'];
 };
 
+export const selectPluginNamesWithSchema = (
+  plugins: Record<string, Record<string, unknown>>,
+  schema: APISIXType['PluginSchemaKeys']
+) => {
+  const names: string[] = [];
+  for (const [name, config] of Object.entries(plugins)) {
+    if (config[schema]) names.push(name);
+  }
+  return names;
+};
+
 export const getPluginsListQueryOptions = () => {
   return queryOptions({
     queryKey: ['plugins-list'],
@@ -50,13 +61,7 @@ export const getPluginsListWithSchemaQueryOptions = (
           params: { subsystem, all: true },
         })
         .then((v) => {
-          const data = Object.entries(v.data);
-          const names = [];
-          for (const [name, config] of data) {
-            if (config[schema]) {
-              names.push(name);
-            }
-          }
+          const names = selectPluginNamesWithSchema(v.data, schema);
           return { names, originObj: v.data };
         }),
   });

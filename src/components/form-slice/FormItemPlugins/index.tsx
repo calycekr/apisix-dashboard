@@ -37,6 +37,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 
 import type { PluginCardProps } from './PluginCard';
 import { PluginCardList, PluginCardListSearch } from './PluginCardList';
+import { getPluginDescription, getPluginSearchText } from './pluginCatalog';
 import { type PluginConfig, PluginEditorDrawer } from './PluginEditorDrawer';
 import { SelectPluginsDrawer } from './SelectPluginsDrawer';
 
@@ -147,9 +148,12 @@ export const FormItemPlugins = <T extends FieldValues>(
     const map = new Map<string, string>();
     for (const [name, schemaObj] of pluginsOb.pluginSchemaObj.entries()) {
       const s = schemaObj?.[schema];
-      if (s && typeof s === 'object' && 'description' in s) {
-        map.set(name, String((s as { description: string }).description));
-      }
+      const schemaDescription =
+        s && typeof s === 'object' && 'description' in s
+          ? String((s as { description: string }).description)
+          : undefined;
+      const description = getPluginDescription(name, schemaDescription);
+      if (description) map.set(name, description);
     }
     return map;
   }, [pluginsOb.pluginSchemaObj, schema]);
@@ -158,7 +162,9 @@ export const FormItemPlugins = <T extends FieldValues>(
   const selectedCount = selectedPlugins.length;
   const visibleSelectedCount = pluginsOb.search
     ? selectedPlugins.filter((name) =>
-        name.toLowerCase().includes(pluginsOb.search.toLowerCase().trim())
+        getPluginSearchText(name, pluginDescriptions.get(name)).includes(
+          pluginsOb.search.toLowerCase().trim()
+        )
       ).length
     : selectedCount;
 
