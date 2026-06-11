@@ -649,7 +649,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     const curlCommand = generateCurlCommand(watchedValues, curlTargetHost);
     tabItems.push({
       key: 'curl',
-      label: 'Request Preview',
+      label: 'cURL Command',
       children: (
         <div>
           <Alert
