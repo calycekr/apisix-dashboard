@@ -245,7 +245,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const { children, form, onSubmit, submitLabel = 'Submit', disabled = false, rawData, adminApi } = props;
   const { mode } = useThemeMode();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>(() => rawData === undefined ? 'form' : 'raw');
+  const [activeTab, setActiveTab] = useState<string>('form');
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -265,8 +265,6 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const pendingSubmitRef = useRef<unknown>(null);
   const allowNextNavigationRef = useRef(false);
   const blockerModalOpenRef = useRef(false);
-  const userSelectedTabRef = useRef(false);
-  const previousRawDataRef = useRef(rawData);
   const formTabInitializedRef = useRef(false);
   const watchedValues = useWatch({ control: form.control }) as CurlValues;
 
@@ -333,17 +331,6 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
       focusFormError(firstError.path);
     }
   }, [focusFormError, form.formState.errors]);
-
-  useEffect(() => {
-    if (
-      previousRawDataRef.current === undefined &&
-      rawData !== undefined &&
-      !userSelectedTabRef.current
-    ) {
-      setActiveTab('raw');
-    }
-    previousRawDataRef.current = rawData;
-  }, [rawData]);
 
   useEffect(() => {
     if (activeTab !== 'form' || formTabInitializedRef.current) return;
@@ -456,7 +443,6 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   const handleTabChange = useCallback(
     (key: string) => {
-      userSelectedTabRef.current = true;
       if (key === 'json' && activeTab === 'form') {
         // Serialize current form values to JSON editor
         const values = form.getValues() as Record<string, unknown>;
@@ -532,7 +518,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const tabItems = [
     {
       key: 'form',
-      label: 'Form',
+      label: 'Visual Editor',
       children: (
         <form
           onSubmit={form.handleSubmit(safeSubmit, (errors) => {
@@ -568,7 +554,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   if (rawData === undefined) {
     tabItems.push({
       key: 'json',
-      label: 'JSON',
+      label: 'Raw JSON',
       children: (
         <div>
           <Alert
@@ -636,7 +622,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   } else {
     tabItems.push({
       key: 'raw',
-      label: 'Admin API JSON',
+      label: 'Raw JSON',
       children: (
         <AdminApiJsonEditor
           api={adminApi ?? ''}
@@ -663,7 +649,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     const curlCommand = generateCurlCommand(watchedValues, curlTargetHost);
     tabItems.push({
       key: 'curl',
-      label: 'cURL Preview',
+      label: 'Request Preview',
       children: (
         <div>
           <Alert
@@ -728,19 +714,12 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         2
       )
     : '{}';
-  const displayTabItems = rawData === undefined
-    ? tabItems
-    : [
-        ...tabItems.filter((item) => item.key === 'raw'),
-        ...tabItems.filter((item) => item.key !== 'raw'),
-      ];
-
   return (
     <>
       <Tabs
         activeKey={activeTab}
         onChange={handleTabChange}
-        items={displayTabItems}
+        items={tabItems}
       />
       <Modal
         open={diffModalOpen}
