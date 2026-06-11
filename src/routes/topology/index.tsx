@@ -30,7 +30,7 @@ import {
   useNodesState,
   useReactFlow,
 } from '@xyflow/react';
-import { Button, Divider,Drawer, List, Spin, Tag, theme, Typography } from 'antd';
+import { Button, Divider, Drawer, List, Spin, Tag, theme, Typography } from 'antd';
 import dagre from 'dagre';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
@@ -320,10 +320,9 @@ function TopologyGraph({ data }: { data: TopologyData }) {
         ...node,
         style: {
           ...node.style,
-          transition: 'all 0.2s ease-in-out',
+          transition: 'box-shadow 0.2s ease-in-out, border-color 0.2s ease-in-out',
           boxShadow: highlight ? '0 0 12px var(--ant-color-primary)' : 'none',
-          borderColor: highlight ? 'var(--ant-color-primary)' : node.style?.borderColor,
-          transform: highlight ? 'scale(1.02)' : 'none',
+          ...(highlight ? { borderColor: 'var(--ant-color-primary)' } : {}),
           cursor: 'pointer',
         },
       };
