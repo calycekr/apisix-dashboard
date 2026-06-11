@@ -18,7 +18,12 @@ import { queryOptions, skipToken } from '@tanstack/react-query';
 import type { AxiosRequestConfig } from 'axios';
 
 import type { PluginConfig } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
-import { API_PLUGIN_METADATA, API_PLUGINS, API_PLUGINS_LIST } from '@/config/constant';
+import {
+  API_PLUGIN_METADATA,
+  API_PLUGINS,
+  API_PLUGINS_LIST,
+  SKIP_INTERCEPTOR_HEADER,
+} from '@/config/constant';
 import { req } from '@/config/req';
 import type { APISIXType } from '@/types/schema/apisix';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
@@ -59,6 +64,9 @@ export const getPluginsListWithSchemaQueryOptions = (
       req
         .get<unknown, APISIXType['RespPlugins']>(API_PLUGINS, {
           params: { subsystem, all: true },
+          headers: {
+            [SKIP_INTERCEPTOR_HEADER]: ['404', '500'],
+          },
         })
         .then((v) => {
           const names = selectPluginNamesWithSchema(v.data, schema);
@@ -77,7 +85,12 @@ export const getPluginSchemaQueryOptions = (
       ? () =>
           req
             .get<unknown, APISIXType['RespPluginSchema']>(
-              `${API_PLUGINS}/${name}`
+              `${API_PLUGINS}/${name}`,
+              {
+                headers: {
+                  [SKIP_INTERCEPTOR_HEADER]: ['404', '500'],
+                },
+              }
             )
             .then((v) => v.data)
       : skipToken,

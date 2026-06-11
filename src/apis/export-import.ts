@@ -243,12 +243,22 @@ export async function exportAllResources(): Promise<ExportData> {
     exportCredentials(consumers),
     exportPluginMetadata(),
   ]);
-  if (extendedResults[0].status === 'rejected') skipped.push('credentials');
-  if (extendedResults[1].status === 'rejected') skipped.push('pluginMetadata');
+  if (
+    extendedResults[0].status === 'rejected' ||
+    extendedResults[0].value.hadFailures
+  ) {
+    skipped.push('credentials');
+  }
+  if (
+    extendedResults[1].status === 'rejected' ||
+    extendedResults[1].value.hadFailures
+  ) {
+    skipped.push('pluginMetadata');
+  }
   const credentials =
-    extendedResults[0].status === 'fulfilled' ? extendedResults[0].value : [];
+    extendedResults[0].status === 'fulfilled' ? extendedResults[0].value.items : [];
   const pluginMetadata =
-    extendedResults[1].status === 'fulfilled' ? extendedResults[1].value : [];
+    extendedResults[1].status === 'fulfilled' ? extendedResults[1].value.items : [];
 
   return {
     version: EXPORT_VERSION,
@@ -265,8 +275,8 @@ export async function exportAllResources(): Promise<ExportData> {
 
 async function exportCredentials(
   consumers: Record<string, unknown>[]
-): Promise<Record<string, unknown>[]> {
-  const credentialLists = await Promise.all(
+): Promise<{ items: Record<string, unknown>[]; hadFailures: boolean }> {
+  const credentialLists = await Promise.allSettled(
     consumers.map(async (consumer) => {
       const username = String(consumer.username ?? '');
       if (!username) return [];
@@ -274,10 +284,18 @@ async function exportCredentials(
       return response.list.map((credential) => ({ ...credential, username }));
     })
   );
-  return credentialLists.flat();
+  return {
+    items: credentialLists.flatMap((result) =>
+      result.status === 'fulfilled' ? result.value : []
+    ),
+    hadFailures: credentialLists.some((result) => result.status === 'rejected'),
+  };
 }
 
-async function exportPluginMetadata(): Promise<Record<string, unknown>[]> {
+async function exportPluginMetadata(): Promise<{
+  items: Record<string, unknown>[];
+  hadFailures: boolean;
+}> {
   const plugins = await req
     .get<unknown, APISIXType['RespPlugins']>(API_PLUGINS, {
       params: { all: true },
@@ -286,7 +304,7 @@ async function exportPluginMetadata(): Promise<Record<string, unknown>[]> {
   const pluginNames = Object.entries(plugins)
     .filter(([, plugin]) => plugin.metadata_schema)
     .map(([name]) => name);
-  const metadata = await Promise.all(
+  const metadata = await Promise.allSettled(
     pluginNames.map(async (name): Promise<Record<string, unknown> | null> => {
       try {
         const response = await req.get<
@@ -306,7 +324,12 @@ async function exportPluginMetadata(): Promise<Record<string, unknown>[]> {
       }
     })
   );
-  return metadata.filter((item): item is Record<string, unknown> => item !== null);
+  return {
+    items: metadata.flatMap((result) =>
+      result.status === 'fulfilled' && result.value ? [result.value] : []
+    ),
+    hadFailures: metadata.some((result) => result.status === 'rejected'),
+  };
 }
 
 function stripTimestamps(data: Record<string, unknown>): Record<string, unknown> {

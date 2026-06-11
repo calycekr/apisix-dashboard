@@ -147,7 +147,7 @@ export const GlobalSearch = () => {
         const list = Array.isArray(res.data?.list) ? [...res.data.list] : [];
         const totalPages = Math.ceil((res.data?.total ?? 0) / PAGE_SIZE_MAX);
         if (totalPages > 1) {
-          const rest = await Promise.all(
+          const rest = await Promise.allSettled(
             Array.from({ length: totalPages - 1 }, (_, index) =>
               req.get(r.api, {
                 params: { page: index + 2, page_size: PAGE_SIZE_MAX },
@@ -157,7 +157,12 @@ export const GlobalSearch = () => {
             )
           );
           rest.forEach((page) => {
-            if (Array.isArray(page.data?.list)) list.push(...page.data.list);
+            if (
+              page.status === 'fulfilled' &&
+              Array.isArray(page.value.data?.list)
+            ) {
+              list.push(...page.value.data.list);
+            }
           });
         }
         for (const item of list) {

@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useQueries, useSuspenseQuery } from '@tanstack/react-query';
+import { useQueries, useQuery } from '@tanstack/react-query';
 import { useDeepCompareEffect } from 'react-use';
 
 import {
@@ -30,11 +30,11 @@ export type PluginInfo = PluginConfig & { schema: object };
 
 // waiting apisix api to help handle the request
 export const usePluginMetadataList = () => {
-  const pluginsListQuery = useSuspenseQuery(
+  const pluginsListQuery = useQuery(
     getPluginsListWithSchemaQueryOptions({ schema: 'metadata_schema' })
   );
 
-  const { names, originObj } = pluginsListQuery.data;
+  const { names = [], originObj = {} } = pluginsListQuery.data ?? {};
 
   const metadataQueries = useQueries({
     queries: names
@@ -65,7 +65,7 @@ export const usePluginMetadataList = () => {
         config: req.isSuccess
           ? stripSystemReadonlyFields(req.data?.value ?? {})
           : {},
-        schema: originObj[pluginName].metadata_schema as object,
+        schema: (originObj[pluginName]?.metadata_schema as object | undefined) ?? {},
       };
       pluginInfoMapOp.set(pluginName, info);
       if (req.isSuccess) {

@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { useSuspenseQuery } from '@tanstack/react-query';
+import { useQuery } from '@tanstack/react-query';
+import { Alert, Button } from 'antd';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { difference } from 'rambdax';
@@ -131,7 +132,7 @@ export const FormItemPlugins = <T extends FieldValues>(
     },
   }));
 
-  const pluginsListReq = useSuspenseQuery(
+  const pluginsListReq = useQuery(
     getPluginsListWithSchemaQueryOptions({ schema, subsystem })
   );
 
@@ -140,7 +141,9 @@ export const FormItemPlugins = <T extends FieldValues>(
     pluginsOb.init(rawObject);
   }, [pluginsOb, rawObject]);
   useDeepCompareEffect(() => {
-    pluginsOb.initPlugins(pluginsListReq.data);
+    if (pluginsListReq.data) {
+      pluginsOb.initPlugins(pluginsListReq.data);
+    }
   }, [pluginsOb, pluginsListReq.data]);
 
   // Extract descriptions from plugin schemas (dynamic, from API)
@@ -159,6 +162,9 @@ export const FormItemPlugins = <T extends FieldValues>(
   }, [pluginsOb.pluginSchemaObj, schema]);
 
   const selectedPlugins = pluginsOb.selected;
+  const unavailablePlugins = pluginsListReq.data
+    ? selectedPlugins.filter((name) => !pluginsOb.pluginSchemaObj.has(name))
+    : [];
   const selectedCount = selectedPlugins.length;
   const visibleSelectedCount = pluginsOb.search
     ? selectedPlugins.filter((name) =>
@@ -176,6 +182,29 @@ export const FormItemPlugins = <T extends FieldValues>(
     >
       <input name={fName} type="hidden" />
       <>
+        {pluginsListReq.isError && (
+          <Alert
+            type="warning"
+            showIcon
+            message="Plugin catalog is temporarily unavailable"
+            description="Existing plugin settings are preserved and can still be reviewed as JSON or removed. Adding plugins is disabled until the catalog can be loaded."
+            action={
+              <Button size="small" onClick={() => pluginsListReq.refetch()}>
+                Retry
+              </Button>
+            }
+            style={{ marginBottom: 12 }}
+          />
+        )}
+        {unavailablePlugins.length > 0 && (
+          <Alert
+            type="warning"
+            showIcon
+            message="Some configured plugins are not available in this APISIX instance"
+            description={`${unavailablePlugins.join(', ')}. Their stored configuration remains intact. Review it in JSON mode or remove the plugin before saving if APISIX no longer supports it.`}
+            style={{ marginBottom: 12 }}
+          />
+        )}
         <div
           style={{
             alignItems: 'center',
@@ -228,7 +257,11 @@ export const FormItemPlugins = <T extends FieldValues>(
             opened={pluginsOb.selectPluginsOpened}
             setOpened={pluginsOb.setSelectPluginsOpened}
             onAdd={(name) => pluginsOb.on('add', name)}
-            disabled={restField.disabled}
+            disabled={
+              restField.disabled ||
+              pluginsListReq.isError ||
+              pluginsListReq.isPending
+            }
           />
         </div>
         <PluginCardList

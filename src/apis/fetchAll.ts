@@ -32,13 +32,15 @@ export async function fetchAllResources<T>(
   const items = first.list.map((i) => i.value);
   const totalPages = Math.ceil(first.total / 100);
   if (totalPages > 1) {
-    const rest = await Promise.all(
+    const rest = await Promise.allSettled(
       Array.from({ length: totalPages - 1 }, (_, i) =>
         fetcher(req, { page: i + 2, page_size: 100 })
       )
     );
     for (const page of rest) {
-      items.push(...page.list.map((i) => i.value));
+      if (page.status === 'fulfilled') {
+        items.push(...page.value.list.map((i) => i.value));
+      }
     }
   }
   return items;

@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { useMutation } from '@tanstack/react-query';
+import { Alert, Button } from 'antd';
 import { toJS } from 'mobx';
 import { useLocalObservable } from 'mobx-react-lite';
 import { difference } from 'rambdax';
@@ -127,6 +128,20 @@ export const PluginMetadata = () => {
 
   return (
     <>
+      {getMetadataListReq.isError && (
+        <Alert
+          type="warning"
+          showIcon
+          message="Plugin metadata catalog is unavailable"
+          description="The page remains available, but metadata cannot be listed or added until APISIX returns the plugin schema catalog."
+          action={
+            <Button size="small" onClick={getMetadataListReq.refetch}>
+              Retry
+            </Button>
+          }
+          style={{ marginBottom: 12 }}
+        />
+      )}
       <div style={{ display: 'flex', gap: 8 }}>
         <PluginCardListSearch
           search={pluginsOb.search}
@@ -137,6 +152,7 @@ export const PluginMetadata = () => {
           onAdd={(name) => pluginsOb.on('add', name)}
           opened={pluginsOb.selectPluginsOpened}
           setOpened={pluginsOb.setSelectPluginsOpened}
+          disabled={getMetadataListReq.isError || isLoading}
         />
       </div>
       <PluginCardList
