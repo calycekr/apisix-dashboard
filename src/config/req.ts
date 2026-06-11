@@ -53,10 +53,25 @@ export type APISIXRespErr = {
   message?: string;
 };
 
+const notificationTimestamps = new Map<string, number>();
+
+const showRateLimitedError = (
+  id: string,
+  message: string,
+  intervalMs = 10_000
+) => {
+  const now = Date.now();
+  const previous = notificationTimestamps.get(id) ?? 0;
+  if (now - previous < intervalMs) return;
+  notificationTimestamps.set(id, now);
+  showNotification({ id, message, type: 'error' });
+};
+
 const matchSkipInterceptor = (err: AxiosError) => {
   const interceptors = err.config?.headers?.[SKIP_INTERCEPTOR_HEADER] || [];
   const status = err.response?.status;
-  return interceptors.some((v: string) => v === String(status));
+  const failureType = status === undefined ? 'network' : String(status);
+  return interceptors.some((v: string) => v === failureType);
 };
 
 /** Build a human-readable error message with context */
@@ -69,6 +84,12 @@ function buildErrorMessage(err: AxiosError<APISIXRespErr>): string {
   // Network error (server unreachable)
   if (!err.response) {
     return `Network error: Cannot reach APISIX (${method} ${path}). Check that APISIX is running.`;
+  }
+
+  if (status === 503) {
+    return apisixMsg
+      ? `APISIX Admin API is reachable but its configuration store is unavailable: ${apisixMsg}`
+      : 'APISIX Admin API is reachable but its configuration store is unavailable. Check APISIX-to-etcd connectivity and etcd health.';
   }
 
   const statusLabel =
@@ -109,28 +130,24 @@ req.interceptors.response.use(
       const res = err.response as AxiosResponse<APISIXRespErr>;
 
       if (res.status === HttpStatusCode.Unauthorized) {
-        showNotification({
-          id: 'auth-error',
-          message: 'Authentication failed — check your Admin Key in Settings',
-          type: 'error',
-        });
+        showRateLimitedError(
+          'auth-error',
+          'Authentication failed — check your Admin Key in Settings'
+        );
         getDefaultStore().set(isSettingsOpenAtom, true);
       } else {
         const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
-        showNotification({
-          id: message,
-          message,
-          type: 'error',
-        });
+        showRateLimitedError(
+          res.status === HttpStatusCode.ServiceUnavailable
+            ? 'admin-api-config-store-unavailable'
+            : message,
+          message
+        );
       }
     } else {
       // Network error — no response at all
       const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
-      showNotification({
-        id: 'network-error',
-        message,
-        type: 'error',
-      });
+      showRateLimitedError('network-error', message);
     }
 
     return Promise.reject(err);

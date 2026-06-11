@@ -17,13 +17,18 @@
 import { useQuery } from '@tanstack/react-query';
 import { useRouterState } from '@tanstack/react-router';
 import { Badge, Breadcrumb, Button, Layout, theme, Tooltip } from 'antd';
+import axios from 'axios';
 import { useAtomValue } from 'jotai';
 import type { FC } from 'react';
 
 import { ActivityLogButton } from '@/components/ActivityLogDrawer';
 import { GlobalSearch } from '@/components/GlobalSearch';
 import { SIDEBAR_COLLAPSED_WIDTH } from '@/components/Navbar';
-import { APPSHELL_HEADER_HEIGHT, APPSHELL_NAVBAR_WIDTH } from '@/config/constant';
+import {
+  APPSHELL_HEADER_HEIGHT,
+  APPSHELL_NAVBAR_WIDTH,
+  SKIP_INTERCEPTOR_HEADER,
+} from '@/config/constant';
 import { navRoutes } from '@/config/navRoutes';
 import { req } from '@/config/req';
 import { sidebarCollapsedAtom, useThemeMode } from '@/stores/global';
@@ -48,25 +53,84 @@ const sourceLabels: Record<string, string> = {
 };
 
 const ApiStatusIndicator = () => {
-  const { data: isConnected } = useQuery({
+  const { data: apiStatus } = useQuery({
     queryKey: ['api-health'],
     queryFn: async () => {
       try {
-        await req.get('/routes', { params: { page: 1, page_size: 10 } });
-        return true;
-      } catch {
-        return false;
+        await req.get('/routes', {
+          params: { page: 1, page_size: 1 },
+          headers: {
+            [SKIP_INTERCEPTOR_HEADER]: [
+              'network',
+              '400',
+              '401',
+              '403',
+              '404',
+              '500',
+              '502',
+              '503',
+              '504',
+            ],
+          },
+        });
+        return {
+          state: 'connected' as const,
+          label: 'Connected',
+          tooltip: 'APISIX Admin API and its configuration store are available.',
+        };
+      } catch (error) {
+        if (!axios.isAxiosError(error) || !error.response) {
+          return {
+            state: 'disconnected' as const,
+            label: 'Disconnected',
+            tooltip: 'Cannot reach the APISIX Admin API.',
+          };
+        }
+        if (error.response.status === 401 || error.response.status === 403) {
+          return {
+            state: 'auth' as const,
+            label: 'Auth failed',
+            tooltip: 'APISIX Admin API rejected the configured Admin Key.',
+          };
+        }
+        if (error.response.status === 503) {
+          return {
+            state: 'degraded' as const,
+            label: 'etcd unavailable',
+            tooltip:
+              'APISIX Admin API is reachable but cannot read its configuration store. Check APISIX-to-etcd connectivity and etcd health.',
+          };
+        }
+        return {
+          state: 'degraded' as const,
+          label: 'Admin API degraded',
+          tooltip: `APISIX Admin API responded with HTTP ${error.response.status}.`,
+        };
       }
     },
     refetchInterval: 30_000,
     staleTime: 15_000,
+    retry: false,
   });
 
+  const badgeStatus =
+    apiStatus?.state === 'connected'
+      ? 'success'
+      : apiStatus?.state === 'degraded'
+        ? 'warning'
+        : apiStatus
+          ? 'error'
+          : 'processing';
+
   return (
-    <Tooltip title={isConnected === false ? 'APISIX Admin API unreachable' : 'APISIX Admin API connected'}>
+    <Tooltip title={apiStatus?.tooltip ?? 'Checking APISIX Admin API status'}>
       <Badge
-        status={isConnected === false ? 'error' : isConnected === true ? 'success' : 'processing'}
-        text={<span style={{ fontSize: 12 }}>{isConnected === false ? 'Disconnected' : 'Connected'}</span>}
+        status={badgeStatus}
+        text={
+          <span style={{ fontSize: 12 }}>
+            {apiStatus?.label ?? 'Checking'}
+          </span>
+        }
       />
     </Tooltip>
   );

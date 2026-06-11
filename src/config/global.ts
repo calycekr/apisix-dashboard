@@ -16,6 +16,7 @@
  */
 import { QueryClient } from '@tanstack/react-query';
 import { createRouter } from '@tanstack/react-router';
+import axios from 'axios';
 
 import { routeTree } from '@/routeTree.gen';
 
@@ -25,4 +26,17 @@ export const router = createRouter({ routeTree, basepath: BASE_PATH });
 
 export type Router = typeof router;
 
-export const queryClient = new QueryClient({});
+export const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: (failureCount, error) => {
+        if (!axios.isAxiosError(error)) return failureCount < 1;
+        const status = error.response?.status;
+        if (status === undefined) return failureCount < 1;
+        if (status === 429) return failureCount < 2;
+        return false;
+      },
+    },
+  },
+});
