@@ -17,7 +17,7 @@
 import { Alert, Button, Drawer, Space, Tabs, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useCallback, useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
@@ -35,6 +35,10 @@ import {
   validateAIGatewayConfig,
 } from './aiGateway';
 import type { PluginCardListProps } from './PluginCardList';
+import {
+  getPluginCompatibilityNotices,
+  validatePluginCompatibility,
+} from './pluginCompatibility';
 
 export type PluginConfig = { name: string; config: Record<string, unknown> };
 export type PluginEditorDrawerProps = Pick<PluginCardListProps, 'mode'> & {
@@ -124,6 +128,10 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     disabled: mode === 'view',
     defaultValues: { config: toConfigStr(getEditableConfig(schema, config, mode)) },
   });
+  const watchedConfig = useWatch({
+    control: methods.control,
+    name: 'config',
+  });
 
   const handleClose = () => {
     onClose();
@@ -174,7 +182,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       return formValue;
     }
     try {
-      const parsed = JSON.parse(methods.getValues('config') || '{}') as unknown;
+      const parsed = JSON.parse(watchedConfig || '{}') as unknown;
       return isRecord(parsed) ? parsed : formValue;
     } catch {
       return formValue;
@@ -213,6 +221,10 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   ];
   const aiTemplates =
     mode === 'add' ? getAIGatewayTemplates(name) : [];
+  const compatibilityNotices = getPluginCompatibilityNotices(
+    name,
+    getCurrentConfig()
+  );
 
   const applyTemplate = (template: Record<string, unknown>) => {
     const nextValue = applySchemaDefaults(schema, template);
@@ -267,6 +279,16 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
           style={{ marginBottom: 12 }}
         />
       )}
+      {compatibilityNotices.map((notice) => (
+        <Alert
+          key={notice.key}
+          type={notice.type}
+          showIcon
+          message={notice.message}
+          description={notice.description}
+          style={{ marginBottom: 12 }}
+        />
+      ))}
       <FormProvider {...methods}>
         <form>
           {canUseForm ? (
@@ -323,7 +345,15 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
                       cfg
                     );
                     const aiGatewayIssues = validateAIGatewayConfig(name, cfg);
-                    const issues = [...schemaIssues, ...aiGatewayIssues];
+                    const compatibilityIssues = validatePluginCompatibility(
+                      name,
+                      cfg
+                    );
+                    const issues = [
+                      ...schemaIssues,
+                      ...aiGatewayIssues,
+                      ...compatibilityIssues,
+                    ];
                     if (issues.length > 0) {
                       setSaveError(issues.join('\n'));
                       return;

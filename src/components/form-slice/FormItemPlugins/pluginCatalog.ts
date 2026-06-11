@@ -37,6 +37,55 @@ const entries: Record<string, PluginCatalogEntry> = {
     keywords: ['llm', 'fallback', 'load balancing', 'retry', 'multi provider'],
     capabilities: ['Multi-provider', 'Fallback', 'Health checks'],
   },
+  'ai-prompt-guard': {
+    description:
+      'Validate AI prompts against allow and deny patterns, with configurable handling for unsupported request formats.',
+    category: 'AI Gateway',
+    keywords: ['llm', 'prompt', 'guardrail', 'consumer', 'fail mode'],
+    capabilities: ['Prompt guardrails', 'Consumer policies', 'Fail mode'],
+  },
+  'ai-aliyun-content-moderation': {
+    description:
+      'Moderate AI requests and responses with Alibaba Cloud services and explicit unsupported-request handling.',
+    category: 'AI Gateway',
+    keywords: ['llm', 'moderation', 'aliyun', 'consumer', 'fail mode'],
+    capabilities: ['Content moderation', 'Request checks', 'Fail mode'],
+  },
+  'ai-aws-content-moderation': {
+    description:
+      'Moderate AI request content with AWS Comprehend and configurable handling for non-AI traffic.',
+    category: 'AI Gateway',
+    keywords: ['llm', 'moderation', 'aws', 'comprehend', 'fail mode'],
+    capabilities: ['Content moderation', 'AWS Comprehend', 'Fail mode'],
+  },
+  'openid-connect': {
+    description:
+      'Authenticate requests with OpenID Connect, including local JWT verification, PKCE, and lua-resty-session 4.x settings.',
+    category: 'Authentication',
+    keywords: ['oidc', 'oauth', 'jwt', 'pkce', 'session', 'sso'],
+    capabilities: ['OIDC', 'Local JWT verification', 'Session management'],
+  },
+  'forward-auth': {
+    description:
+      'Delegate authorization to an external service with bounded POST request-body forwarding.',
+    category: 'Authentication',
+    keywords: ['external auth', 'authorization', 'request body limit'],
+    capabilities: ['External authorization', 'Body size limit'],
+  },
+  'hmac-auth': {
+    description:
+      'Authenticate signed requests with HMAC credentials and bounded request-body digest validation.',
+    category: 'Authentication',
+    keywords: ['signature', 'digest', 'request body limit', 'consumer'],
+    capabilities: ['HMAC signatures', 'Body validation', 'Body size limit'],
+  },
+  'batch-requests': {
+    description:
+      'Execute bounded internal request pipelines with metadata controls for body size and pipeline item count.',
+    category: 'Traffic',
+    keywords: ['batch', 'pipeline', 'metadata', 'request limit'],
+    capabilities: ['Request pipeline', 'Pipeline limits'],
+  },
   'proxy-buffering': {
     description:
       'Control buffering of upstream responses before they are sent to clients.',
