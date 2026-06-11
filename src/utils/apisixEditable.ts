@@ -14,8 +14,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-export const SYSTEM_READONLY_KEYS = ['id', 'manager', 'create_time', 'update_time'] as const;
+export const SYSTEM_TIMESTAMP_KEYS = ['create_time', 'update_time'] as const;
+export const SYSTEM_READONLY_KEYS = ['id', 'manager', ...SYSTEM_TIMESTAMP_KEYS] as const;
 export const PATCH_READONLY_KEYS = [...SYSTEM_READONLY_KEYS, 'username'] as const;
+
+export const stripSystemTimestamps = <T extends Record<string, unknown>>(data: T): T => {
+  const copy = { ...data };
+  SYSTEM_TIMESTAMP_KEYS.forEach((key) => {
+    delete copy[key];
+  });
+  return copy;
+};
 
 export const stripSystemReadonlyFields = <T extends Record<string, unknown>>(data: T): T => {
   const copy = { ...data };

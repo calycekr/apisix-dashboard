@@ -30,6 +30,7 @@ import {
   isRecord,
   mergeEditablePayload,
   stripPatchReadonlyFields,
+  stripSystemTimestamps,
 } from '@/utils/apisixEditable';
 import { showNotification } from '@/utils/notification';
 
@@ -60,6 +61,10 @@ function normalizeApiResource(apiPath: string, data: Record<string, unknown>): R
     id: decodeURIComponent(id),
     manager,
   };
+}
+
+function getEditorResource(apiPath: string, data: Record<string, unknown>) {
+  return stripSystemTimestamps(normalizeApiResource(apiPath, data));
 }
 
 type SaveFeedback = {
@@ -153,7 +158,7 @@ export const AdminApiJsonEditor = ({
           at: new Date().toLocaleTimeString(),
         });
       } else {
-        loadData(normalizeApiResource(api, initialData));
+        loadData(getEditorResource(api, initialData));
       }
     }
 
@@ -182,7 +187,7 @@ export const AdminApiJsonEditor = ({
           return;
         }
 
-        loadData(normalizeApiResource(api, data));
+        loadData(getEditorResource(api, data));
       })
       .catch(() => {
         if (cancelled) return;
@@ -277,12 +282,12 @@ export const AdminApiJsonEditor = ({
       }
 
       let reloaded = false;
-      let nextValue = toJson(parsed);
+      let nextValue = toJson(stripSystemTimestamps(parsed));
       try {
         const latest = await req.get(api);
         const latestData = latest.data?.value as Record<string, unknown> | undefined;
         if (latestData) {
-          nextValue = toJson(normalizeApiResource(api, latestData));
+          nextValue = toJson(getEditorResource(api, latestData));
           reloaded = true;
         }
       } catch {

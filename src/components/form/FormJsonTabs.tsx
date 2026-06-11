@@ -24,7 +24,12 @@ import { type UseFormReturn, useWatch } from 'react-hook-form';
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { queryClient } from '@/config/global';
 import { useThemeMode } from '@/stores/global';
-import { mergeEditablePayload, stripSystemReadonlyFields } from '@/utils/apisixEditable';
+import {
+  isRecord,
+  mergeEditablePayload,
+  stripSystemReadonlyFields,
+  stripSystemTimestamps,
+} from '@/utils/apisixEditable';
 
 import { FormSubmitBtn } from './Btn';
 import classes from './FormJsonTabs.module.css';
@@ -711,9 +716,17 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     });
   }
 
-  const diffOriginal = rawData ? JSON.stringify(rawData, null, 2) : '{}';
+  const diffOriginal = isRecord(rawData)
+    ? JSON.stringify(stripSystemTimestamps(rawData), null, 2)
+    : '{}';
   const diffModified = pendingSubmitRef.current
-    ? JSON.stringify(pendingSubmitRef.current, null, 2)
+    ? JSON.stringify(
+        isRecord(pendingSubmitRef.current)
+          ? stripSystemTimestamps(pendingSubmitRef.current)
+          : pendingSubmitRef.current,
+        null,
+        2
+      )
     : '{}';
   const displayTabItems = rawData === undefined
     ? tabItems
