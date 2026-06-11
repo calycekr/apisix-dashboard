@@ -124,8 +124,8 @@ function RouteComponent() {
       />
       <FormTOCBox>
         <ServiceDetailForm />
+        <ReverseReferences resourceType="service" resourceId={id} />
       </FormTOCBox>
-      <ReverseReferences resourceType="service" resourceId={id} />
     </>
   );
 }

@@ -97,21 +97,19 @@ const UpstreamDetailForm = (
   }
 
   return (
-    <FormTOCBox>
-      <FormProvider {...form}>
-        <FormJsonTabs
-          form={form}
-          onSubmit={(d) => putUpstream.mutateAsync(pipeProduce()(d))}
-          submitLabel="Save"
-          disabled={readOnly}
-          rawData={upstreamData}
-          adminApi={`${API_UPSTREAMS}/${id}`}
-        >
-          <FormSectionGeneral readOnly />
-          <FormPartUpstream />
-        </FormJsonTabs>
-      </FormProvider>
-    </FormTOCBox>
+    <FormProvider {...form}>
+      <FormJsonTabs
+        form={form}
+        onSubmit={(d) => putUpstream.mutateAsync(pipeProduce()(d))}
+        submitLabel="Save"
+        disabled={readOnly}
+        rawData={upstreamData}
+        adminApi={`${API_UPSTREAMS}/${id}`}
+      >
+        <FormSectionGeneral readOnly />
+        <FormPartUpstream />
+      </FormJsonTabs>
+    </FormProvider>
   );
 };
 
@@ -142,12 +140,14 @@ function RouteComponent() {
           </Space>
         )}
       />
-      <UpstreamDetailForm
-        id={id}
-        readOnly={readOnly}
-        setReadOnly={setReadOnly}
-      />
-      <ReverseReferences resourceType="upstream" resourceId={id} />
+      <FormTOCBox>
+        <UpstreamDetailForm
+          id={id}
+          readOnly={readOnly}
+          setReadOnly={setReadOnly}
+        />
+        <ReverseReferences resourceType="upstream" resourceId={id} />
+      </FormTOCBox>
     </>
   );
 }
