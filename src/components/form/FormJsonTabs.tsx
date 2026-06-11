@@ -16,10 +16,10 @@
  */
 import { DiffEditor, Editor } from '@monaco-editor/react';
 import { useBlocker, useRouter } from '@tanstack/react-router';
-import { Alert, Button, Input, message, Modal, Space, Tabs, Typography } from 'antd';
+import { Alert, Button, Modal, Space, Tabs } from 'antd';
 import { clsx } from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { type UseFormReturn, useWatch } from 'react-hook-form';
+import type { UseFormReturn } from 'react-hook-form';
 
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { queryClient } from '@/config/global';
@@ -33,29 +33,6 @@ import {
 
 import { FormSubmitBtn } from './Btn';
 import classes from './FormJsonTabs.module.css';
-
-interface CurlValues {
-  methods?: string[];
-  uri?: string;
-  uris?: string[];
-  host?: string;
-  hosts?: string[];
-}
-
-function generateCurlCommand(values: CurlValues | null | undefined, targetHost: string): string {
-  if (!values) return '';
-  const method = (values.methods && values.methods[0]) || 'GET';
-  const uri = values.uri || (values.uris && values.uris[0]) || '/';
-
-  let headerOption = '';
-  const hostHeader = values.host || (values.hosts && values.hosts[0]);
-  if (hostHeader && hostHeader !== '*') {
-    headerOption = ` -H "Host: ${hostHeader}"`;
-  }
-
-  const urlHost = targetHost.replace(/\/$/, '') || 'localhost:9080';
-  return `curl -i -X ${method.toUpperCase()}${headerOption} "http://${urlHost}${uri}"`;
-}
 
 function flattenErrors(
   errors: Record<string, unknown>,
@@ -255,18 +232,10 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [jsonTabDirty, setJsonTabDirty] = useState<boolean>(false);
   const [rawTabDirty, setRawTabDirty] = useState<boolean>(false);
   const [rawTabSaving, setRawTabSaving] = useState<boolean>(false);
-  const [curlTargetHost, setCurlTargetHost] = useState<string>(() => {
-    try {
-      return localStorage.getItem('apisix-dashboard:curl-target-host') || 'localhost:9080';
-    } catch {
-      return 'localhost:9080';
-    }
-  });
   const pendingSubmitRef = useRef<unknown>(null);
   const allowNextNavigationRef = useRef(false);
   const blockerModalOpenRef = useRef(false);
   const formTabInitializedRef = useRef(false);
-  const watchedValues = useWatch({ control: form.control }) as CurlValues;
 
   const hasUnsavedChanges =
     (hasAnyDirtyField(form.formState.dirtyFields) || jsonTabDirty || rawTabDirty) &&
@@ -635,69 +604,6 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           }}
           onSavingChange={setRawTabSaving}
         />
-      ),
-    });
-  }
-
-  const isRoute = !!(watchedValues && (
-    watchedValues.uri !== undefined ||
-    watchedValues.uris !== undefined ||
-    watchedValues.methods !== undefined
-  ));
-
-  if (isRoute) {
-    const curlCommand = generateCurlCommand(watchedValues, curlTargetHost);
-    tabItems.push({
-      key: 'curl',
-      label: 'cURL Command',
-      children: (
-        <div>
-          <Alert
-            type="info"
-            showIcon
-            message="This generated cURL command reflects your current form values. Edit the target host below to match your APISIX data plane address."
-            style={{ marginBottom: 12 }}
-          />
-          <div style={{ marginBottom: 12, display: 'flex', alignItems: 'center', gap: 8 }}>
-            <Typography.Text style={{ whiteSpace: 'nowrap', fontSize: 13 }}>Target host:</Typography.Text>
-            <Input
-              size="small"
-              value={curlTargetHost}
-              onChange={(e) => {
-                const val = e.target.value;
-                setCurlTargetHost(val);
-                try {
-                  localStorage.setItem('apisix-dashboard:curl-target-host', val);
-                } catch {
-                  // ignore storage quota/security blocks
-                }
-              }}
-              placeholder="localhost:9080"
-              style={{ maxWidth: 260, fontFamily: 'monospace' }}
-              addonBefore="http://"
-            />
-          </div>
-          <div style={{ border: '1px solid var(--ant-color-border)', borderRadius: 6, padding: 12, background: 'var(--ant-color-fill-quaternary)', position: 'relative' }}>
-            <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: 13, color: 'var(--ant-color-text)' }}>
-              {curlCommand}
-            </pre>
-            <div style={{ marginTop: 12, display: 'flex', justifyContent: 'flex-end' }}>
-              <Button
-                size="small"
-                onClick={async () => {
-                  try {
-                    await navigator.clipboard.writeText(curlCommand);
-                    message.success('cURL command copied to clipboard');
-                  } catch {
-                    message.error('Failed to copy');
-                  }
-                }}
-              >
-                Copy cURL
-              </Button>
-            </div>
-          </div>
-        </div>
       ),
     });
   }
