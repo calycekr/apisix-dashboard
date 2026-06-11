@@ -14,10 +14,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Tag, Tooltip } from 'antd';
+import { Button, Popover, Tag } from 'antd';
 import dayjs from 'dayjs';
 
-const MAX_VISIBLE = 2;
+const MAX_VISIBLE_PLUGINS = 3;
 
 type PluginListItem = {
   value?: {
@@ -47,23 +47,42 @@ export const renderPluginCount = (
   plugins: Record<string, unknown> | undefined
 ) => {
   if (!plugins) return '-';
-  const names = Object.keys(plugins);
+  const names = Object.keys(plugins).sort();
   if (names.length === 0) return '-';
 
-  const visible = names.slice(0, MAX_VISIBLE);
-  const remaining = names.length - MAX_VISIBLE;
+  const visible = names.slice(0, MAX_VISIBLE_PLUGINS);
+  const remaining = names.length - MAX_VISIBLE_PLUGINS;
 
   return (
-    <span style={{ display: 'inline-flex', gap: 3, overflow: 'hidden', maxWidth: '100%' }}>
+    <span style={{ display: 'inline-flex', gap: 3, maxWidth: '100%' }}>
       {visible.map((n) => (
         <Tag key={n} style={{ margin: 0, fontSize: 11 }}>
           {n}
         </Tag>
       ))}
       {remaining > 0 && (
-        <Tooltip title={names.slice(MAX_VISIBLE).join(', ')}>
-          <Tag style={{ margin: 0, fontSize: 11 }}>+{remaining}</Tag>
-        </Tooltip>
+        <Popover
+          title={`${names.length} plugins`}
+          trigger={['hover', 'click']}
+          content={
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 4, maxWidth: 360 }}>
+              {names.map((name) => (
+                <Tag key={name} style={{ margin: 0 }}>
+                  {name}
+                </Tag>
+              ))}
+            </div>
+          }
+        >
+          <Button
+            type="link"
+            size="small"
+            aria-label={`Show all ${names.length} plugins`}
+            style={{ height: 22, padding: '0 4px', fontSize: 11 }}
+          >
+            +{remaining}
+          </Button>
+        </Popover>
       )}
     </span>
   );
