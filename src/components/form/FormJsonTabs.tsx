@@ -262,6 +262,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const blockerModalOpenRef = useRef(false);
   const userSelectedTabRef = useRef(false);
   const previousRawDataRef = useRef(rawData);
+  const formTabInitializedRef = useRef(false);
   const watchedValues = useWatch({ control: form.control }) as CurlValues;
 
   const hasUnsavedChanges =
@@ -338,6 +339,17 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     }
     previousRawDataRef.current = rawData;
   }, [rawData]);
+
+  useEffect(() => {
+    if (activeTab !== 'form' || formTabInitializedRef.current) return;
+
+    const frame = window.requestAnimationFrame(() => {
+      form.reset(form.getValues(), { keepDefaultValues: false });
+      formTabInitializedRef.current = true;
+    });
+
+    return () => window.cancelAnimationFrame(frame);
+  }, [activeTab, form]);
 
   const handleRevert = useCallback(() => {
     Modal.confirm({
