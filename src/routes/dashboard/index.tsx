@@ -24,10 +24,11 @@ import type { ReactNode } from 'react';
 
 import {
   getDashboardData,
+  type OperationalAlerts,
+  type PluginUsage,
   type RecentItem,
   type ResourceCounts,
 } from '@/apis/dashboard';
-import { getOperationalAlerts, type OperationalAlerts, type PluginUsage } from '@/apis/operational';
 import PageHeader from '@/components/page/PageHeader';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
 import IconDns from '~icons/material-symbols/dns';
@@ -327,21 +328,9 @@ function PluginUsageSection({ plugins }: { plugins?: PluginUsage[] }) {
 }
 
 function DashboardPage() {
-  const {
-    data: dashboardData,
-    isLoading: dashboardLoading,
-  } = useQuery({
+  const { data: dashboardData, isLoading } = useQuery({
     queryKey: ['dashboard', 'data'],
     queryFn: getDashboardData,
-    staleTime: 30_000,
-  });
-
-  const {
-    data: alerts,
-    isLoading: alertsLoading,
-  } = useQuery({
-    queryKey: ['dashboard', 'operationalAlerts'],
-    queryFn: getOperationalAlerts,
     staleTime: 60_000,
   });
 
@@ -351,10 +340,14 @@ function DashboardPage() {
         title="Dashboard"
         desc="Overview of your APISIX gateway resources"
       />
-      <ResourceCountCards counts={dashboardData?.counts} alerts={alerts} isLoading={dashboardLoading} />
-      <OperationalAlertsSection alerts={alerts} isLoading={alertsLoading} />
-      <PluginUsageSection plugins={alerts?.pluginUsage} />
-      <RecentChangesTable items={dashboardData?.recentChanges} isLoading={dashboardLoading} />
+      <ResourceCountCards
+        counts={dashboardData?.counts}
+        alerts={dashboardData?.alerts}
+        isLoading={isLoading}
+      />
+      <OperationalAlertsSection alerts={dashboardData?.alerts} isLoading={isLoading} />
+      <PluginUsageSection plugins={dashboardData?.alerts.pluginUsage} />
+      <RecentChangesTable items={dashboardData?.recentChanges} isLoading={isLoading} />
     </>
   );
 }

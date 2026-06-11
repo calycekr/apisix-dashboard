@@ -30,12 +30,32 @@ import {
 } from '@/config/constant';
 import { req } from '@/config/req';
 
+const OPERATIONAL_PAGE_SIZE = 100;
+
 const RESOURCES = [
-  { key: 'routes', api: API_ROUTES, labelKey: 'sources.routes', detailPrefix: '/routes/detail' },
+  {
+    key: 'routes',
+    api: API_ROUTES,
+    labelKey: 'sources.routes',
+    detailPrefix: '/routes/detail',
+    pageSize: OPERATIONAL_PAGE_SIZE,
+  },
   { key: 'services', api: API_SERVICES, labelKey: 'sources.services', detailPrefix: '/services/detail' },
-  { key: 'upstreams', api: API_UPSTREAMS, labelKey: 'sources.upstreams', detailPrefix: '/upstreams/detail' },
+  {
+    key: 'upstreams',
+    api: API_UPSTREAMS,
+    labelKey: 'sources.upstreams',
+    detailPrefix: '/upstreams/detail',
+    pageSize: OPERATIONAL_PAGE_SIZE,
+  },
   { key: 'consumers', api: API_CONSUMERS, labelKey: 'sources.consumers', detailPrefix: '/consumers/detail' },
-  { key: 'ssls', api: API_SSLS, labelKey: 'sources.ssls', detailPrefix: '/ssls/detail' },
+  {
+    key: 'ssls',
+    api: API_SSLS,
+    labelKey: 'sources.ssls',
+    detailPrefix: '/ssls/detail',
+    pageSize: OPERATIONAL_PAGE_SIZE,
+  },
   { key: 'streamRoutes', api: API_STREAM_ROUTES, labelKey: 'sources.streamRoutes', detailPrefix: '/stream_routes/detail' },
   { key: 'consumerGroups', api: API_CONSUMER_GROUPS, labelKey: 'sources.consumerGroups', detailPrefix: '/consumer_groups/detail' },
   { key: 'globalRules', api: API_GLOBAL_RULES, labelKey: 'sources.globalRules', detailPrefix: '/global_rules/detail' },
@@ -54,22 +74,31 @@ export type RecentItem = {
   detailPath: string;
 };
 
+export type PluginUsage = { name: string; count: number };
+
+export type OperationalAlerts = {
+  expiringSSLs: Array<{ id: string; sni: string; daysLeft: number; expiryDate: string }>;
+  disabledRoutes: Array<{ id: string; name?: string; uri?: string }>;
+  upstreamsWithHealthCheck: Array<{ id: string; name?: string; hasChecks: boolean }>;
+  pluginUsage: PluginUsage[];
+};
+
 export type DashboardData = {
   counts: ResourceCounts;
   recentChanges: RecentItem[];
+  alerts: OperationalAlerts;
 };
 
 /**
- * Single pass: one API call per resource (page_size=10) gives both
- * the total count (via response.total) and recent items (via response.list).
- * This halves the number of API calls compared to separate count + recent calls.
+ * One request per resource provides counts and recent items. Routes, SSLs, and
+ * upstreams use the same response to calculate operational alerts as well.
  */
 export const getDashboardData = async (): Promise<DashboardData> => {
   const results = await Promise.allSettled(
     RESOURCES.map((r) =>
       req
         .get(r.api, {
-          params: { page: 1, page_size: 10 },
+          params: { page: 1, page_size: 'pageSize' in r ? r.pageSize : 10 },
           headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
         })
         .then((v) => ({
@@ -84,6 +113,14 @@ export const getDashboardData = async (): Promise<DashboardData> => {
 
   const counts: ResourceCounts = {};
   const items: RecentItem[] = [];
+  const alerts: OperationalAlerts = {
+    expiringSSLs: [],
+    disabledRoutes: [],
+    upstreamsWithHealthCheck: [],
+    pluginUsage: [],
+  };
+  const pluginCounts = new Map<string, number>();
+  const now = Date.now();
 
   for (const result of results) {
     if (result.status !== 'fulfilled') continue;
@@ -91,6 +128,51 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     counts[key] = total;
     for (const item of list) {
       const v = item.value;
+
+      if (key === 'ssls') {
+        const validityEnd = v.validity_end as number | undefined;
+        if (validityEnd) {
+          const expiryMs = validityEnd * 1000;
+          const daysLeft = Math.ceil((expiryMs - now) / (24 * 60 * 60 * 1000));
+          if (daysLeft <= 30) {
+            alerts.expiringSSLs.push({
+              id: String(v.id),
+              sni: String(v.sni || (v.snis as string[] | undefined)?.[0] || 'unknown'),
+              daysLeft,
+              expiryDate: new Date(expiryMs).toISOString().slice(0, 10),
+            });
+          }
+        }
+      }
+
+      if (key === 'routes') {
+        if (v.status === 0) {
+          alerts.disabledRoutes.push({
+            id: String(v.id),
+            name: v.name as string | undefined,
+            uri: (v.uri as string | undefined) || (v.uris as string[] | undefined)?.join(', '),
+          });
+        }
+        if (v.plugins && typeof v.plugins === 'object') {
+          for (const name of Object.keys(v.plugins)) {
+            pluginCounts.set(name, (pluginCounts.get(name) ?? 0) + 1);
+          }
+        }
+      }
+
+      if (key === 'upstreams') {
+        const checks = v.checks as
+          | { active?: unknown; passive?: unknown }
+          | undefined;
+        if (checks?.active || checks?.passive) {
+          alerts.upstreamsWithHealthCheck.push({
+            id: String(v.id),
+            name: v.name as string | undefined,
+            hasChecks: true,
+          });
+        }
+      }
+
       if (!v?.update_time) continue;
       const id = v.id || v.username || '';
       items.push({
@@ -103,9 +185,16 @@ export const getDashboardData = async (): Promise<DashboardData> => {
     }
   }
 
+  alerts.expiringSSLs.sort((a, b) => a.daysLeft - b.daysLeft);
+  alerts.pluginUsage = Array.from(pluginCounts.entries())
+    .map(([name, count]) => ({ name, count }))
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 10);
+
   return {
     counts,
     recentChanges: items.sort((a, b) => b.updateTime - a.updateTime).slice(0, 10),
+    alerts,
   };
 };
 
