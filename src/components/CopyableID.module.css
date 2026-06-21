@@ -1,0 +1,11 @@
+.id {
+  color: var(--ant-color-text-secondary);
+  font-family: var(--app-font-monospace);
+  font-size: var(--app-font-size-sm);
+  font-weight: var(--app-font-weight-label);
+  letter-spacing: 0;
+}
+
+.id:hover {
+  color: var(--ant-color-text);
+}

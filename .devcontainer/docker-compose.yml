@@ -1,0 +1,17 @@
+include:
+  - path:
+    - ../e2e/server/docker-compose.yml
+    - docker-compose.override.yml
+services:
+  apisix-dashboard:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    command: sleep infinity
+    volumes:
+      - ..:/workspace:cached
+    networks:
+      - apisix
+    ports:
+      - '5173:5173'
+      - '5174:5174'

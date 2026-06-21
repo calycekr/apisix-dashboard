@@ -1,0 +1,124 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+import { expect, test } from '@playwright/test';
+
+test.beforeEach(async ({ page }) => {
+  await page.addInitScript(() => {
+    localStorage.setItem('settings:adminKey', 'api-console-test-key');
+    sessionStorage.clear();
+  });
+
+  await page.route('**/apisix/admin/routes**', async (route) => {
+    const url = new URL(route.request().url());
+    const isConsoleRequest =
+      url.searchParams.get('page') === '2'
+      && url.searchParams.get('page_size') === '25';
+
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      headers: {
+        'x-api-console-test': isConsoleRequest ? 'executed' : 'bootstrap',
+      },
+      body: JSON.stringify({
+        list: isConsoleRequest
+          ? [{ value: { id: 'route-25', name: 'Route 25', uri: '/test' } }]
+          : [],
+        total: isConsoleRequest ? 1 : 0,
+      }),
+    });
+  });
+
+  await page.goto('raw_api');
+});
+
+test('executes query requests and exposes response diagnostics', async ({ page }) => {
+  // Select GET method since default is now PUT
+  await page.getByRole('combobox', { name: 'Method' }).click();
+  await page.getByRole('option', { name: 'GET' }).click();
+
+  const queryInput = page.getByRole('textbox', { name: 'Query parameters' });
+  await queryInput.fill('page=2&page_size=25');
+
+  await expect(page.getByText('/apisix/admin/routes?page=2&page_size=25')).toBeVisible();
+
+  const requestPromise = page.waitForRequest((request) =>
+    request.url().includes('/apisix/admin/routes?page=2&page_size=25')
+  );
+  await page.keyboard.press('Control+Enter');
+  const request = await requestPromise;
+
+  expect(request.headers()['x-api-key']).toBe('api-console-test-key');
+  await expect(page.getByText('200', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'History (1)' })).toBeVisible();
+
+  await page.getByText('Headers', { exact: true }).click();
+  await expect(page.locator('.view-lines')).toContainText('x-api-console-test');
+  await expect(page.locator('.view-lines')).toContainText('executed');
+  await expect(page.getByRole('button', { name: 'Copy headers' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'History (1)' }).click();
+  await expect(
+    page.getByRole('button', {
+      name: /GET \/routes\?page=2&page_size=25 200/,
+    })
+  ).toBeVisible();
+});
+
+test('saves and restores session presets without executing them', async ({ page }) => {
+  // Select GET method since default is now PUT
+  await page.getByRole('combobox', { name: 'Method' }).click();
+  await page.getByRole('option', { name: 'GET' }).click();
+
+  const queryInput = page.getByRole('textbox', { name: 'Query parameters' });
+  await queryInput.fill('page=2&page_size=25');
+
+  await page.getByRole('button', { name: 'Save preset' }).click();
+  await page.getByRole('textbox', { name: 'Preset name' }).fill('Paged routes');
+  await page
+    .getByRole('dialog', { name: 'Save session preset' })
+    .getByRole('button', { name: 'Save preset' })
+    .click();
+
+  await expect(page.getByRole('button', { name: 'Presets (1)' })).toBeVisible();
+  await queryInput.fill('page=9');
+
+  let consoleRequests = 0;
+  page.on('request', (request) => {
+    if (request.url().includes('/apisix/admin/routes?page=2&page_size=25')) {
+      consoleRequests += 1;
+    }
+  });
+
+  await page.getByRole('button', { name: 'Presets (1)' }).click();
+  await page.getByRole('button', { name: /Paged routes GET/ }).click();
+
+  await expect(queryInput).toHaveValue('page=2&page_size=25');
+  await expect(page.getByText('/apisix/admin/routes?page=2&page_size=25')).toBeVisible();
+  expect(consoleRequests).toBe(0);
+
+  const presets = await page.evaluate(() =>
+    JSON.parse(sessionStorage.getItem('api-console:session-presets') ?? '[]')
+  );
+  expect(presets).toHaveLength(1);
+  expect(presets[0]).toMatchObject({
+    name: 'Paged routes',
+    method: 'GET',
+    endpoint: '/routes?page=2&page_size=25',
+  });
+});

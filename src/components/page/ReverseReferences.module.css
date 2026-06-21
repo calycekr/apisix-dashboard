@@ -1,0 +1,67 @@
+.card {
+  margin-top: 4px;
+  overflow: hidden;
+  border-color: var(--ant-color-border-secondary);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+}
+
+.card :global(.ant-card-head) {
+  background: color-mix(in srgb, var(--ant-color-fill-quaternary) 42%, transparent);
+}
+
+.card :global(.ant-card-body) {
+  padding: 0;
+}
+
+.heading {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.summary {
+  font-size: var(--app-font-size-sm);
+  font-weight: 400;
+}
+
+.count {
+  min-width: 30px;
+  margin-inline-end: 0;
+  border: 0;
+  border-radius: 999px;
+  background: var(--ant-color-primary-bg);
+  color: var(--ant-color-primary);
+  font-weight: var(--app-font-weight-heading);
+  text-align: center;
+}
+
+.table :global(.ant-table-thead > tr > th) {
+  font-size: var(--app-font-size-sm);
+  font-weight: var(--app-font-weight-strong);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.table :global(.ant-table-tbody > tr:last-child > td) {
+  border-bottom: 0;
+}
+
+.typeTag {
+  min-width: 78px;
+  margin: 0;
+  border-color: transparent;
+  background: var(--ant-color-fill-tertiary);
+  color: var(--ant-color-text-secondary);
+  font-weight: var(--app-font-weight-strong);
+  text-align: center;
+}
+
+.id {
+  color: var(--ant-color-text-secondary);
+  font-family: var(--app-font-monospace);
+  font-size: var(--app-font-size-sm);
+}
+
+.empty {
+  margin-block: 28px;
+}

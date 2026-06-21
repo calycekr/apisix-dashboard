@@ -1,0 +1,74 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type React from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+export type BulkActionsReturn = {
+  selectedRowKeys: React.Key[];
+  setSelectedRowKeys: React.Dispatch<React.SetStateAction<React.Key[]>>;
+  rowSelection: {
+    selectedRowKeys: React.Key[];
+    onChange: React.Dispatch<React.SetStateAction<React.Key[]>>;
+  };
+  bulkBarProps: {
+    selectedCount: number;
+    selectedIds: string[];
+    onComplete: (failedIds?: string[]) => void;
+    onClear: () => void;
+  };
+};
+
+export const useBulkActions = (
+  refetch: () => void,
+  visibleRowKeys?: React.Key[]
+): BulkActionsReturn => {
+  const [selectedRowKeys, setSelectedRowKeys] = useState<React.Key[]>([]);
+
+  useEffect(() => {
+    if (!visibleRowKeys) return;
+
+    const visible = new Set(visibleRowKeys.map(String));
+    setSelectedRowKeys((prev) => {
+      const next = prev.filter((key) => visible.has(String(key)));
+      return next.length === prev.length ? prev : next;
+    });
+  }, [visibleRowKeys]);
+
+  const onComplete = useCallback((failedIds: string[] = []) => {
+    setSelectedRowKeys(failedIds);
+    refetch();
+  }, [refetch]);
+
+  const onClear = useCallback(() => {
+    setSelectedRowKeys([]);
+  }, []);
+
+  return {
+    selectedRowKeys,
+    setSelectedRowKeys,
+    rowSelection: {
+      selectedRowKeys,
+      onChange: setSelectedRowKeys,
+    },
+    bulkBarProps: {
+      selectedCount: selectedRowKeys.length,
+      selectedIds: selectedRowKeys.map(String),
+      onComplete,
+      onClear,
+    },
+  };
+};

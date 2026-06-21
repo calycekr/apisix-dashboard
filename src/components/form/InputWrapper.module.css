@@ -1,0 +1,80 @@
+.root {
+  position: relative;
+  min-width: 0;
+  margin-bottom: 24px;
+}
+
+.labelRow {
+  display: flex;
+  align-items: center;
+  margin-bottom: 7px;
+  font-size: var(--app-font-size-base);
+  font-weight: var(--app-font-weight-strong);
+  line-height: 1.4;
+  transition: color 0.2s ease;
+}
+
+.root:focus-within .labelRow {
+  color: var(--ant-color-primary);
+}
+
+.asterisk {
+  color: var(--ant-color-error);
+  margin-right: 4px;
+  font-weight: var(--app-font-weight-heading);
+}
+
+.description {
+  max-width: 720px;
+  margin: -1px 0 9px;
+  font-size: var(--app-font-size-sm);
+  color: var(--ant-color-text-secondary);
+  line-height: var(--app-line-height-relaxed);
+}
+
+.errorContainer {
+  margin-top: 6px;
+  animation: slideIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+}
+
+.errorText {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--app-font-size-sm);
+  color: var(--ant-color-error);
+  font-weight: var(--app-font-weight-label);
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.rootError {
+  --field-accent: var(--ant-color-error);
+}
+
+.rootSuccess {
+  --field-accent: var(--ant-color-success);
+}
+
+.tooltipIcon {
+  margin-left: 6px;
+  color: var(--ant-color-text-quaternary);
+  cursor: help;
+  display: inline-flex;
+  align-items: center;
+  transition: color 0.2s ease;
+  vertical-align: middle;
+}
+
+.tooltipIcon:hover {
+  color: var(--ant-color-text-secondary);
+}

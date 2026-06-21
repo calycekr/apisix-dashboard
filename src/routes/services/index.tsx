@@ -1,0 +1,215 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { ProColumns } from '@ant-design/pro-components';
+import { ProTable } from '@ant-design/pro-components';
+import { createFileRoute, Link } from '@tanstack/react-router';
+import { Button, Typography } from 'antd';
+import { useMemo, useState } from 'react';
+
+import { getServiceListQueryOptions, useServiceList } from '@/apis/hooks';
+import { CopyableID } from '@/components/CopyableID';
+import { LabelsDisplay } from '@/components/LabelsDisplay';
+import { BulkDeleteBar } from '@/components/page/BulkDeleteBar';
+import { ServiceExpandedRow } from '@/components/page/ExpandedRowComponents';
+import { LabelSearchInput } from '@/components/page/LabelSearchInput';
+import PageHeader from '@/components/page/PageHeader';
+import { RawDrawer } from '@/components/page/RawDrawer';
+import { ResourceSortSelect } from '@/components/page/ResourceSortSelect';
+import { SearchInput } from '@/components/page/SearchInput';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
+import { TableEllipsisText } from '@/components/TableEllipsisText';
+import { AntdConfigProvider } from '@/config/antdConfigProvider';
+import { API_SERVICES } from '@/config/constant';
+import { queryClient } from '@/config/global';
+import type { APISIXType } from '@/types/schema/apisix';
+import { pageSearchSchema } from '@/types/schema/pageSearch';
+import { getPluginFilterOptions, hasPluginName, renderPluginCount, renderUnixDateTime, unixFieldSorter } from '@/utils/columns';
+import { useBulkActions } from '@/utils/useBulkActions';
+
+const ServiceList = () => {
+  const { data, isFetching, refetch, pagination, params, setParams, sortBy, sortOrder, setSort } = useServiceList();
+  const { rowSelection, bulkBarProps } = useBulkActions(
+    refetch,
+    data?.list?.map((record) => record.value.id)
+  );
+  const [rawTarget, setRawTarget] = useState<{ api: string; title: string; data?: Record<string, unknown> } | null>(null);
+  const pluginFilterOptions = useMemo(
+    () => getPluginFilterOptions(data?.list),
+    [data?.list]
+  );
+
+  const columns = useMemo<ProColumns<APISIXType['RespServiceItem']>[]>(() => {
+    return [
+      {
+        title: 'RAW',
+        key: 'raw',
+        width: 72,
+        fixed: 'left',
+        render: (_, record) => [
+          <Button
+            key="raw"
+            size="small"
+            type="link"
+            onClick={() => setRawTarget({ api: `${API_SERVICES}/${record.value.id}`, title: `Service: ${record.value.name || record.value.id}`, data: record.value as Record<string, unknown> })}
+          >
+            Raw
+          </Button>,
+        ],
+      },
+      {
+        dataIndex: ['value', 'id'],
+        title: 'ID',
+        key: 'id',
+        width: 120,
+        render: (_, record) => <CopyableID id={record.value.id} />,
+      },
+      {
+        dataIndex: ['value', 'name'],
+        title: 'Name',
+        key: 'name',
+        render: (_, record) => (
+          <Link to="/services/detail/$id" params={{ id: record.value.id }}>
+            <Typography.Text strong>{record.value.name || '-'}</Typography.Text>
+          </Link>
+        ),
+      },
+      {
+        dataIndex: ['value', 'hosts'],
+        title: 'Hosts',
+        key: 'hosts',
+        valueType: 'text',
+        ellipsis: { showTitle: false },
+        render: (_, record) => {
+          const hosts = record.value.hosts;
+          if (!hosts?.length) return '-';
+          const display = `${hosts[0]}${hosts.length > 1 ? ` +${hosts.length - 1}` : ''}`;
+          return <TableEllipsisText value={hosts.join(', ')} displayValue={display} code />;
+        },
+      },
+      {
+        dataIndex: ['value', 'upstream_id'],
+        title: 'Upstream',
+        key: 'upstream_id',
+        render: (_, record) => {
+          const id = record.value.upstream_id;
+          if (!id) return record.value.upstream?.nodes ? 'Inline' : '-';
+          return (
+            <Link to="/upstreams/detail/$id" params={{ id }}>{id}</Link>
+          );
+        },
+      },
+      {
+        dataIndex: ['value', 'plugins'],
+        title: 'Plugins',
+        key: 'plugins',
+        filters: pluginFilterOptions,
+        onFilter: (value, record) => hasPluginName(record.value.plugins, value),
+        render: (_, record) => renderPluginCount(record.value.plugins),
+      },
+      {
+        dataIndex: ['value', 'labels'],
+        title: 'Labels',
+        key: 'labels',
+        hideInTable: true,
+        render: (_, record) => <LabelsDisplay labels={record.value.labels} />,
+      },
+      {
+        dataIndex: ['value', 'create_time'],
+        title: 'Created At',
+        key: 'create_time',
+        valueType: 'dateTime',
+        defaultSortOrder: 'ascend',
+        sorter: unixFieldSorter('create_time'),
+        renderText: renderUnixDateTime,
+      },
+      {
+        dataIndex: ['value', 'update_time'],
+        title: 'Updated At',
+        key: 'update_time',
+        valueType: 'dateTime',
+        sorter: unixFieldSorter('update_time'),
+        renderText: renderUnixDateTime,
+      },
+    ];
+  }, [pluginFilterOptions]);
+
+  return (
+    <AntdConfigProvider>
+      <BulkDeleteBar
+        {...bulkBarProps}
+        resourceName="Service"
+        apiBase={API_SERVICES}
+      />
+      <ProTable
+        columns={columns}
+        dataSource={data?.list}
+        rowKey={(record) => record.value.id}
+        loading={isFetching}
+        search={false}
+        rowSelection={rowSelection}
+        options={{ density: true, fullScreen: false, reload: () => { void refetch(); }, setting: true }}
+        columnsState={{
+          persistenceKey: 'table-v3:services',
+          persistenceType: 'localStorage',
+        }}
+        dateFormatter="string"
+        headerTitle={false}
+        pagination={pagination}
+        cardProps={{ styles: { body: { padding: 0 } } }}
+        scroll={{ x: 'max-content' }}
+        expandable={{
+          expandedRowRender: (record) => <ServiceExpandedRow service={record.value} />,
+          rowExpandable: () => true,
+        }}
+        toolBarRender={() => [
+          <SearchInput key="search" defaultValue={params.q ?? params.name ?? ''} placeholder="Search services..." onSearch={(q) => setParams({ q, name: undefined, page: 1 })} />,
+          <LabelSearchInput key="label" defaultValue={params.label ?? ''} onSearch={(label) => setParams({ label, page: 1 })} />,
+          <ResourceSortSelect key="sort" sortBy={sortBy} sortOrder={sortOrder} onChange={setSort} />,
+        ]}
+      />
+      <RawDrawer
+        open={!!rawTarget}
+        onClose={() => setRawTarget(null)}
+        onSaved={async () => { await refetch(); }}
+        api={rawTarget?.api ?? ''}
+        title={rawTarget?.title ?? ''}
+        initialData={rawTarget?.data}
+      />
+    </AntdConfigProvider>
+  );
+};
+
+function RouteComponent() {
+  return (
+    <>
+      <PageHeader
+        title="Services"
+        desc="Reuse upstream and plugin configuration across related routes."
+        extra={<ToAddPageBtn label="Add Service" to="/services/add" />}
+      />
+      <ServiceList />
+    </>
+  );
+}
+
+export const Route = createFileRoute('/services/')({
+  component: RouteComponent,
+  validateSearch: pageSearchSchema,
+  loaderDeps: ({ search }) => search,
+  loader: ({ deps }) =>
+    queryClient.ensureQueryData(getServiceListQueryOptions(deps)),
+});

@@ -1,0 +1,19 @@
+.toolbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+}
+
+.toolbar > :global(.ant-btn) {
+  margin-left: 0 !important;
+}
+
+@media (max-width: 640px) {
+  .toolbar {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .toolbar > :global(.ant-btn) {
+    width: 100%;
+  }
+}

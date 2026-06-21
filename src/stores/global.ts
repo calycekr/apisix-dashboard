@@ -1,0 +1,53 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { atom, useAtom } from 'jotai';
+import { atomWithStorage } from 'jotai/utils';
+
+// Admin key with persistent storage
+export const adminKeyAtom = atomWithStorage<string>(
+  'settings:adminKey',
+  '',
+  undefined,
+  {
+    getOnInit: true,
+  }
+);
+
+// Settings modal visibility state
+export const isSettingsOpenAtom = atom<boolean>(false);
+
+// Theme mode with persistent storage
+export const themeModeAtom = atomWithStorage<'light' | 'dark'>(
+  'theme',
+  'light',
+  undefined,
+  { getOnInit: true }
+);
+
+export const useThemeMode = () => {
+  const [mode, setMode] = useAtom(themeModeAtom);
+  const toggle = () => setMode((prev) => (prev === 'light' ? 'dark' : 'light'));
+  return { mode, toggle };
+};
+
+// Sidebar collapsed state with persistent storage
+export const sidebarCollapsedAtom = atomWithStorage<boolean>(
+  'sidebar:collapsed',
+  false,
+  undefined,
+  { getOnInit: true }
+);

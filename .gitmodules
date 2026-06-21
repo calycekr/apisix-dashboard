@@ -1,0 +1,9 @@
+[submodule ".github/actions/gitleaks-action"]
+	path = .github/actions/gitleaks-action
+	url = https://github.com/zricethezav/gitleaks-action
+[submodule ".github/actions/paths-filter"]
+	path = .github/actions/paths-filter
+	url = https://github.com/dorny/paths-filter.git
+[submodule ".github/actions/tmate-action"]
+	path = .github/actions/tmate-action
+	url = https://github.com/mxschmitt/action-tmate

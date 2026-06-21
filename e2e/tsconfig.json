@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "lib": [
+      "es2021",
+      "dom"
+    ],
+    "allowJs": true,
+    "noEmit": true,
+    "sourceMap": false,
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "resolveJsonModule": true,
+    "baseUrl": ".",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "noImplicitAny": false,
+    "verbatimModuleSyntax": true,
+    "paths": {
+      "@e2e/*": [
+        "./*"
+      ],
+      "@/*": [
+        "../src/*"
+      ]
+    }
+  },
+  "include": [
+    "./**/*.ts",
+    "../src/types/global.d.ts"
+  ]
+}

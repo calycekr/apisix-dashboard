@@ -1,0 +1,15 @@
+.contained {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border);
+  border-radius: 6px;
+  background: var(--ant-color-bg-container);
+}
+
+.error {
+  border-color: var(--ant-color-error);
+}
+
+.flush {
+  overflow: hidden;
+  background: var(--ant-color-bg-container);
+}

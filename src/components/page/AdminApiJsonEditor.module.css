@@ -1,0 +1,21 @@
+.fillAvailable {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.editorArea {
+  flex: 1;
+  min-height: 180px;
+}
+
+.actionBar {
+  flex: 0 0 auto;
+}
+
+@media (max-width: 480px) {
+  .editorArea {
+    min-height: 120px;
+  }
+}

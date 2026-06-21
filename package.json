@@ -1,0 +1,113 @@
+{
+  "name": "apisix-dashboard",
+  "version": "1.0.0",
+  "description": "Next-Gen client-side visual control plane for Apache APISIX, built with React 19, Vite, and TanStack.",
+  "author": "jinbagi",
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jinbagi/apisix-dashboard.git"
+  },
+  "homepage": "https://github.com/jinbagi/apisix-dashboard#readme",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc -b && vite build",
+    "lint": "eslint . --cache --max-warnings=0 --no-warn-ignored",
+    "lint:fix": "pnpm lint --fix",
+    "preview": "vite preview",
+    "prepare": "husky",
+    "e2e": "playwright test"
+  },
+  "dependencies": {
+    "@ant-design/pro-components": "3.1.12-0",
+    "@fontsource-variable/inter": "5.2.8",
+    "@fontsource/ibm-plex-mono": "^5.2.7",
+    "@hookform/resolvers": "5.4.0",
+    "@monaco-editor/react": "^4.7.0",
+    "@tanstack/react-query": "^5.101.0",
+    "@tanstack/react-router": "^1.170.15",
+    "@xyflow/react": "^12.10.2",
+    "antd": "^6.4.4",
+    "axios": "^1.17.0",
+    "clsx": "^2.1.1",
+    "dagre": "^0.8.5",
+    "dayjs": "^1.11.13",
+    "dotenv": "^16.5.0",
+    "fast-clean": "^1.4.0",
+    "immer": "^10.1.1",
+    "jotai": "^2.20.1",
+    "mobx": "^6.16.1",
+    "mobx-persist-store": "^1.1.8",
+    "mobx-react-lite": "^4.1.0",
+    "mobx-react-observer": "^2.0.0",
+    "monaco-editor": "^0.52.2",
+    "nanoid": "^5.1.5",
+    "qs": "^6.15.2",
+    "rambdax": "^11.3.1",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "react-hook-form": "7.79.0",
+    "react-use": "^17.6.0",
+    "znv": "^0.5.0",
+    "zod": "^3.24.3",
+    "zod-empty": "^1.4.4"
+  },
+  "devDependencies": {
+    "@eslint/js": "^9.32.0",
+    "@estruyf/github-actions-reporter": "^1.10.0",
+    "@hookform/devtools": "^4.4.0",
+    "@iconify-json/material-symbols": "^1.2.20",
+    "@playwright/test": "^1.57.0",
+    "@svgr/core": "^8.1.0",
+    "@svgr/plugin-jsx": "^8.1.0",
+    "@tanstack/react-query-devtools": "^5.101.0",
+    "@tanstack/react-router-devtools": "^1.167.0",
+    "@tanstack/router-plugin": "^1.168.18",
+    "@types/dagre": "^0.7.54",
+    "@types/node": "^25.9.3",
+    "@types/qs": "^6.15.1",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.0.4",
+    "@vitejs/plugin-react": "^6.0.2",
+    "eslint": "^9.32.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
+    "eslint-plugin-headers": "^1.3.3",
+    "eslint-plugin-import": "^2.32.0",
+    "eslint-plugin-playwright": "^2.2.1",
+    "eslint-plugin-react": "^7.37.5",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "eslint-plugin-react-refresh": "^0.4.20",
+    "eslint-plugin-simple-import-sort": "^12.1.1",
+    "eslint-plugin-unused-imports": "^4.1.4",
+    "globals": "^16.0.0",
+    "husky": "^9.1.7",
+    "jiti": "^2.4.2",
+    "lint-staged": "^17.0.7",
+    "selfsigned": "^5.5.0",
+    "typescript": "~5.8.3",
+    "typescript-eslint": "^8.38.0",
+    "unplugin-icons": "^23.0.1",
+    "unplugin-info": "^1.3.2",
+    "vite": "^8.0.16",
+    "yaml": "^2.9.0"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "pnpm lint:fix"
+    ]
+  },
+  "packageManager": "pnpm@10.10.0+sha512.d615db246fe70f25dcfea6d8d73dee782ce23e2245e3c4f6f888249fb568149318637dca73c2c5c8ef2a4ca0d5657fb9567188bfab47f566d1ee6ce987815c39",
+  "pnpm": {
+    "overrides": {
+      "lodash": ">=4.17.21",
+      "minimatch": ">=3.0.5",
+      "@swc/core": "1.10.0"
+    },
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "esbuild"
+    ]
+  }
+}

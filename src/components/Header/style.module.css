@@ -1,0 +1,41 @@
+.header {
+  position: fixed;
+  top: 0;
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-inline: 24px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  background: color-mix(in srgb, var(--ant-color-bg-container) 94%, transparent);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.025);
+  backdrop-filter: blur(10px);
+  transition: left 0.2s;
+}
+
+.context,
+.actions {
+  display: flex;
+  align-items: center;
+}
+
+.context {
+  min-width: 0;
+  gap: 18px;
+}
+
+.actions {
+  flex-shrink: 0;
+  gap: 9px;
+}
+
+@media (max-width: 800px) {
+  .header {
+    padding-inline: 14px;
+  }
+
+  .context :global(.ant-breadcrumb) {
+    display: none;
+  }
+}

@@ -1,0 +1,475 @@
+.page {
+  max-width: 1440px;
+  margin: 0 auto;
+}
+
+.advisory {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding: 13px 16px;
+  background: color-mix(in srgb, var(--ant-color-warning-bg) 55%, transparent);
+  border: 1px solid var(--ant-color-warning-border);
+  border-radius: 10px;
+}
+
+.advisory p {
+  max-width: 840px;
+  margin: 3px 0 0 !important;
+  font-size: var(--app-font-size-md);
+  line-height: 1.55;
+}
+
+.requestCard {
+  margin-bottom: 16px;
+  border-color: var(--ant-color-border-secondary);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.requestCard :global(.ant-card-head) {
+  min-height: 58px;
+}
+
+.requestCard :global(.ant-card-body) {
+  padding-top: 18px;
+}
+
+.cardTitle,
+.panelTitle {
+  display: flex;
+  align-items: baseline;
+}
+
+.cardTitle {
+  gap: 10px;
+}
+
+.cardTitle > span:first-child,
+.panelTitle > span:first-child {
+  font-weight: 650;
+}
+
+.cardTitle :global(.ant-typography) {
+  font-size: var(--app-font-size-sm);
+  font-weight: 400;
+}
+
+.requestFields {
+  display: grid;
+  grid-template-columns: 128px minmax(190px, 240px) minmax(280px, 1fr);
+  gap: 12px;
+  align-items: end;
+}
+
+.queryField {
+  grid-column: 1 / -1;
+}
+
+.field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.fieldLabel {
+  color: var(--ant-color-text-secondary);
+  font-size: var(--app-font-size-xs);
+  font-weight: var(--app-font-weight-strong);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.methodSelect,
+.resourceSelect,
+.pathAutoComplete {
+  width: 100%;
+}
+
+.pathInput {
+  display: flex;
+  align-items: center;
+}
+
+.pathInput > span:first-child {
+  display: grid;
+  flex: 0 0 34px;
+  height: var(--ant-control-height);
+  color: var(--ant-color-text-tertiary);
+  font: var(--app-font-weight-strong) var(--app-font-size-base)/1 var(--app-font-monospace);
+  background: var(--ant-color-fill-quaternary);
+  border: 1px solid var(--ant-color-border);
+  border-right: 0;
+  border-radius: var(--ant-border-radius) 0 0 var(--ant-border-radius);
+  place-items: center;
+}
+
+.pathAutoComplete :global(.ant-select-selector) {
+  font-family: var(--app-font-monospace) !important;
+  border-radius: 0 var(--ant-border-radius) var(--ant-border-radius) 0 !important;
+}
+
+.queryInput {
+  font-family: var(--app-font-monospace);
+  border-radius: 0 var(--ant-border-radius) var(--ant-border-radius) 0;
+}
+
+.optionPath {
+  font-size: var(--app-font-size-sm);
+}
+
+.optionName {
+  margin-left: 7px;
+  font-size: var(--app-font-size-sm);
+}
+
+.requestSummary {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 18px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ant-color-border-secondary);
+}
+
+.endpointSummary {
+  display: flex;
+  min-width: 0;
+  gap: 9px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.methodTag {
+  min-width: 58px;
+  margin: 0;
+  font-weight: var(--app-font-weight-heading);
+  text-align: center;
+}
+
+.endpoint {
+  flex: 1;
+  min-width: 180px;
+  overflow: hidden;
+  font-size: var(--app-font-size-sm);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.methodHint {
+  width: 100%;
+  padding-left: 67px;
+  font-size: var(--app-font-size-sm);
+}
+
+.requestActions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 8px;
+  align-items: center;
+}
+
+.executeButton {
+  min-width: 112px;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+.shortcut {
+  margin-left: 7px;
+  opacity: 0.72;
+  font-size: var(--app-font-size-2xs);
+  font-weight: var(--app-font-weight-label);
+}
+
+.workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  height: clamp(420px, calc(100vh - 390px), 680px);
+}
+
+.splitWorkspace {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.workspaceCard {
+  display: flex;
+  min-width: 0;
+  height: 100%;
+  flex-direction: column;
+  overflow: hidden;
+  border-color: var(--ant-color-border-secondary);
+  box-shadow: 0 1px 2px rgb(15 23 42 / 4%);
+}
+
+.workspaceCard :global(.ant-card-head) {
+  min-height: 52px;
+}
+
+.panelTitle {
+  gap: 8px;
+}
+
+.panelTitle :global(.ant-typography),
+.responseTitle :global(.ant-typography) {
+  font-size: var(--app-font-size-sm);
+  font-weight: 400;
+}
+
+.responseTitle {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  font-weight: var(--app-font-weight-strong);
+}
+
+.responseTitle :global(.ant-segmented) {
+  margin-left: 4px;
+}
+
+.responseTitle :global(.ant-tag) {
+  margin: 0;
+}
+
+.editorStack {
+  display: flex;
+  height: 100%;
+  flex-direction: column;
+}
+
+.schemaGuide {
+  padding: 12px 12px 0;
+}
+
+.editor {
+  flex: 1;
+  min-height: 0;
+}
+
+.responseError {
+  padding: 20px;
+}
+
+.emptyResponse {
+  display: flex;
+  height: 100%;
+  padding: 32px;
+  flex-direction: column;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.emptyResponseMark {
+  margin-bottom: 8px;
+  color: var(--ant-color-primary);
+  font: var(--app-font-weight-strong) var(--app-font-size-page-title)/1 var(--app-font-monospace);
+}
+
+.emptyResponse :global(.ant-typography-secondary) {
+  max-width: 360px;
+  font-size: var(--app-font-size-md);
+}
+
+.historyList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.historyItem {
+  width: 100%;
+  padding: 12px 13px;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 9px;
+  background: var(--ant-color-bg-container);
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.historyItem:hover {
+  border-color: var(--ant-color-primary-border);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.historyItem:focus-visible {
+  outline: 2px solid var(--ant-color-primary-border);
+  outline-offset: 2px;
+}
+
+.historyHeading,
+.historyMeta {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+}
+
+.historyHeading {
+  gap: 7px;
+}
+
+.historyHeading :global(.ant-tag) {
+  min-width: 58px;
+  margin: 0;
+  font-weight: var(--app-font-weight-heading);
+  text-align: center;
+}
+
+.historyHeading :global(.ant-typography) {
+  min-width: 0;
+}
+
+.historyMeta {
+  gap: 10px;
+  margin-top: 7px;
+  padding-left: 65px;
+  font-size: var(--app-font-size-xs);
+}
+
+.historyMeta :global(.ant-typography:last-child) {
+  margin-left: auto;
+}
+
+.drawerIntro {
+  margin-top: 0 !important;
+  font-size: var(--app-font-size-sm);
+}
+
+.presetItem {
+  display: flex;
+  overflow: hidden;
+  align-items: center;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 9px;
+  background: var(--ant-color-bg-container);
+  transition: border-color 0.18s ease, background 0.18s ease;
+}
+
+.presetItem:hover {
+  border-color: var(--ant-color-primary-border);
+  background: var(--ant-color-fill-quaternary);
+}
+
+.presetRestore {
+  min-width: 0;
+  flex: 1;
+  padding: 11px 4px 11px 13px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  text-align: left;
+}
+
+.presetRestore:focus-visible {
+  outline: 2px solid var(--ant-color-primary-border);
+  outline-offset: -2px;
+}
+
+.presetName {
+  margin-bottom: 7px;
+  font-size: var(--app-font-size-md);
+  font-weight: var(--app-font-weight-strong);
+}
+
+@media (max-width: 960px) {
+  .requestFields {
+    grid-template-columns: 120px minmax(180px, 1fr);
+  }
+
+  .pathField {
+    grid-column: 1 / -1;
+  }
+
+  .queryField {
+    grid-column: 1 / -1;
+  }
+
+  .requestSummary {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requestActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .splitWorkspace {
+    grid-template-columns: minmax(0, 1fr);
+    height: auto;
+  }
+
+  .splitWorkspace .workspaceCard {
+    min-height: 460px;
+  }
+}
+
+@media (max-width: 640px) {
+  .advisory {
+    gap: 12px;
+    flex-direction: column;
+  }
+
+  .cardTitle {
+    gap: 2px;
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .requestFields {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .pathField {
+    grid-column: auto;
+  }
+
+  .queryField {
+    grid-column: auto;
+  }
+
+  .endpointSummary {
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .endpoint {
+    max-width: calc(100% - 68px);
+  }
+
+  .methodHint {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .requestActions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .requestActions > :first-child {
+    grid-column: 1 / -1;
+  }
+
+  .executeButton {
+    min-width: 0;
+  }
+
+  .workspace,
+  .splitWorkspace {
+    height: auto;
+  }
+
+  .workspaceCard,
+  .splitWorkspace .workspaceCard {
+    min-height: 420px;
+  }
+}

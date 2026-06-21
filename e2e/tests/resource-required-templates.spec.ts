@@ -1,0 +1,146 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { test } from '@e2e/utils/test';
+import { expect, type Locator, type Page } from '@playwright/test';
+
+const requiredFields = (page: Page) =>
+  page.locator('[data-form-field]').evaluateAll((nodes) =>
+    nodes
+      .filter((node) => node.querySelector('[class*="asterisk"]'))
+      .map((node) => node.getAttribute('data-form-field'))
+  );
+
+const readMonacoValue = async (page: Page, editor: Locator) => {
+  await editor.click();
+  await page.keyboard.press('Control+A');
+  await page.keyboard.press('Control+C');
+  const value = await page.evaluate(() => navigator.clipboard.readText());
+  return value.replace(/\r\n/g, '\n');
+};
+
+test('create forms show conditional required fields and minimal JSON templates', async ({
+  page,
+}) => {
+  await page.goto('/ui/routes/add');
+  await expect(page.getByRole('heading', { name: 'Add Route' })).toBeVisible();
+  await expect.poll(() => requiredFields(page)).toEqual(
+    expect.arrayContaining(['uri', 'uris'])
+  );
+
+  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  const routeJsonEditor = page.locator(
+    '.ant-tabs-tabpane-active .monaco-editor'
+  );
+  await expect(routeJsonEditor).toBeVisible();
+  await expect.poll(() => readMonacoValue(page, routeJsonEditor)).toBe(
+    JSON.stringify({ uri: '/' }, null, 2)
+  );
+
+  await page.getByRole('tab', { name: 'Visual Editor' }).click();
+  await page.locator('input[name="uri"]').fill('/orders');
+  await expect.poll(() => requiredFields(page)).not.toContain('uris');
+
+  await page.goto('/ui/services/add');
+  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await expect
+    .poll(() =>
+      readMonacoValue(
+        page,
+        page.locator('.ant-tabs-tabpane-active .monaco-editor')
+      )
+    )
+    .toBe('{}');
+
+  await page.goto('/ui/upstreams/add');
+  await expect.poll(() => requiredFields(page)).toContain('nodes');
+  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await expect
+    .poll(() =>
+      readMonacoValue(
+        page,
+        page.locator('.ant-tabs-tabpane-active .monaco-editor')
+      )
+    )
+    .toBe(
+    JSON.stringify(
+      {
+        nodes: [
+          {
+            host: '127.0.0.1',
+            port: 80,
+            weight: 1,
+          },
+        ],
+      },
+      null,
+      2
+    )
+  );
+
+  await page.getByRole('tab', { name: 'Visual Editor' }).click();
+  await page
+    .locator('[data-form-field="discovery_type"] .ant-select-selector')
+    .click();
+  await page.keyboard.type('dns');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => requiredFields(page)).toContain('service_name');
+
+  await page.locator('input[name="service_name"]').fill('orders');
+  await expect.poll(() => requiredFields(page)).not.toContain('nodes');
+  await expect.poll(() => requiredFields(page)).toEqual(
+    expect.arrayContaining(['service_name', 'discovery_type'])
+  );
+});
+
+test('API Console switches required-only templates with the resource', async ({
+  page,
+}) => {
+  await page.goto('/ui/raw_api');
+  const requestEditor = page.locator('.monaco-editor').first();
+  await expect.poll(() => readMonacoValue(page, requestEditor)).toBe(
+    JSON.stringify({ uri: '/' }, null, 2)
+  );
+
+  const resourceSelect = page
+    .locator('label')
+    .filter({ hasText: 'Resource' })
+    .locator('.ant-select-selector');
+
+  await resourceSelect.click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => readMonacoValue(page, requestEditor)).toBe('{}');
+
+  await resourceSelect.click();
+  await page.keyboard.press('ArrowDown');
+  await page.keyboard.press('Enter');
+  await expect.poll(() => readMonacoValue(page, requestEditor)).toBe(
+    JSON.stringify(
+      {
+        nodes: [
+          {
+            host: '127.0.0.1',
+            port: 80,
+            weight: 1,
+          },
+        ],
+      },
+      null,
+      2
+    )
+  );
+});

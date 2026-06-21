@@ -1,0 +1,85 @@
+.compact {
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-sm);
+}
+
+.alert {
+  margin-bottom: 12px;
+}
+
+.compact .alert {
+  padding: 8px 12px 9px;
+}
+
+.compact .alert :global(.ant-alert-icon) {
+  margin-inline-end: 8px;
+  font-size: var(--app-font-size-md);
+  line-height: 18px;
+}
+
+.compact .alert :global(.ant-alert-message) {
+  margin-bottom: 5px;
+  color: var(--ant-color-text);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-md);
+  font-weight: var(--app-font-weight-strong);
+  line-height: 18px;
+}
+
+.guideTitle {
+  color: var(--ant-color-text) !important;
+  display: inline-block;
+  font-family: var(--app-font-family) !important;
+  font-size: var(--app-font-size-md) !important;
+  font-weight: var(--app-font-weight-strong);
+  line-height: 18px !important;
+}
+
+.compact .alert :global(.ant-alert-description) {
+  color: var(--ant-color-text-secondary);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-sm);
+  line-height: 18px;
+}
+
+.compact :global(.ant-typography) {
+  color: inherit;
+  font-family: var(--app-font-family);
+  font-size: inherit;
+  line-height: inherit;
+}
+
+.compact :global(.ant-space-item) {
+  line-height: 18px;
+}
+
+.compact :global(code) {
+  border-color: var(--ant-color-border-secondary);
+  border-radius: 4px;
+  color: var(--ant-color-text);
+  font-family: var(--app-font-monospace);
+  font-size: var(--app-font-size-xs);
+  line-height: 16px;
+  padding: 0 4px;
+  vertical-align: 1px;
+}
+
+.guideSection {
+  min-height: 18px;
+}
+
+.sectionLabel {
+  color: var(--ant-color-text) !important;
+  font-weight: var(--app-font-weight-strong);
+}
+
+.compactList {
+  margin: 1px 0 0;
+  padding-left: 18px;
+}
+
+.compactList li {
+  margin: 0;
+  padding-left: 1px;
+  line-height: 18px;
+}

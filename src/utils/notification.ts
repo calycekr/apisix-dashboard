@@ -1,0 +1,84 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import type { MessageInstance } from 'antd/es/message/interface';
+import type { NotificationInstance } from 'antd/es/notification/interface';
+
+import { addLogEntry } from '@/stores/activityLog';
+
+export type NotificationType = 'success' | 'error' | 'info' | 'warning';
+
+export type ShowNotificationOptions = {
+  message: string;
+  type: NotificationType;
+  id?: string;
+};
+
+let messageApi: MessageInstance | null = null;
+let notificationApi: NotificationInstance | null = null;
+
+export const setupNotification = (
+  msg: MessageInstance,
+  ntf: NotificationInstance
+): void => {
+  messageApi = msg;
+  notificationApi = ntf;
+};
+
+export const showNotification = ({
+  message,
+  type,
+  id,
+}: ShowNotificationOptions): void => {
+  addLogEntry(type, message);
+
+  // Success/info → lightweight center toast
+  if (type === 'success' || type === 'info') {
+    if (!messageApi) {
+      // eslint-disable-next-line no-console
+      console.warn('[notification] messageApi not initialized:', message);
+      return;
+    }
+    messageApi.open({
+      type,
+      content: message,
+      key: id,
+      duration: type === 'success' ? 3 : 5,
+    });
+    return;
+  }
+
+  // Error/warning → top-right notification card
+  if (!notificationApi) {
+    // eslint-disable-next-line no-console
+    console.warn('[notification] notificationApi not initialized:', message);
+    return;
+  }
+
+  const config = {
+    message: type === 'error' ? 'Error' : 'Warning',
+    description: message,
+    key: id,
+    duration: type === 'error' ? 10 : 8,
+    placement: 'topRight' as const,
+  };
+
+  if (type === 'error') {
+    notificationApi.error(config);
+  } else {
+    notificationApi.warning(config);
+  }
+};

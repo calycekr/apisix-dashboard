@@ -1,0 +1,1079 @@
+/**
+ * Licensed to the Apache Software Foundation (ASF) under one or more
+ * contributor license agreements.  See the NOTICE file distributed with
+ * this work for additional information regarding copyright ownership.
+ * The ASF licenses this file to You under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with
+ * the License.  You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+import { createFileRoute } from '@tanstack/react-router';
+import {
+  Alert,
+  AutoComplete,
+  Button,
+  Card,
+  Drawer,
+  Empty,
+  Input,
+  message,
+  Modal,
+  Segmented,
+  Select,
+  Space,
+  Spin,
+  Tag,
+  Typography,
+} from 'antd';
+import { useAtomValue } from 'jotai';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import type { ZodTypeAny } from 'zod';
+
+import { JsonCodeEditor } from '@/components/form/JsonCodeEditor';
+import { JsonSchemaGuide } from '@/components/form/JsonSchemaGuide';
+import { ServicePostSchema } from '@/components/form-slice/FormPartService/schema';
+import { SSLPostSchema } from '@/components/form-slice/FormPartSSL/schema';
+import { StreamRoutePostSchema } from '@/components/form-slice/FormPartStreamRoute/schema';
+import { UpstreamPostSchema } from '@/components/form-slice/FormPartUpstream/schema';
+import PageHeader from '@/components/page/PageHeader';
+import {
+  API_CONSUMER_GROUPS,
+  API_CONSUMERS,
+  API_GLOBAL_RULES,
+  API_PLUGIN_CONFIGS,
+  API_PLUGIN_METADATA,
+  API_PLUGINS,
+  API_PROTOS,
+  API_ROUTES,
+  API_SECRETS,
+  API_SERVICES,
+  API_SSLS,
+  API_STREAM_ROUTES,
+  API_UPSTREAMS,
+  SKIP_INTERCEPTOR_HEADER,
+} from '@/config/constant';
+import { req } from '@/config/req';
+import {
+  ROUTE_REQUIRED_TEMPLATE,
+  SERVICE_REQUIRED_TEMPLATE,
+  UPSTREAM_REQUIRED_TEMPLATE,
+} from '@/config/resourceTemplates';
+import { adminKeyAtom } from '@/stores/global';
+import { APISIX } from '@/types/schema/apisix';
+import { APISIXProtos } from '@/types/schema/apisix/protos';
+import { createRequiredJsonTemplate } from '@/utils/jsonRequiredTemplate';
+import { getJsonSchemaFeedback } from '@/utils/jsonSchemaFeedback';
+import { getResourceConditionalRequirements } from '@/utils/resourceJsonSchema';
+
+import classes from './index.module.css';
+
+const RESOURCE_OPTIONS = [
+  { label: 'Routes', value: API_ROUTES },
+  { label: 'Services', value: API_SERVICES },
+  { label: 'Upstreams', value: API_UPSTREAMS },
+  { label: 'Consumers', value: API_CONSUMERS },
+  { label: 'Consumer Groups', value: API_CONSUMER_GROUPS },
+  { label: 'SSLs', value: API_SSLS },
+  { label: 'Stream Routes', value: API_STREAM_ROUTES },
+  { label: 'Global Rules', value: API_GLOBAL_RULES },
+  { label: 'Plugin Configs', value: API_PLUGIN_CONFIGS },
+  { label: 'Plugin Metadata', value: API_PLUGIN_METADATA },
+  { label: 'Plugins', value: API_PLUGINS },
+  { label: 'Protos', value: API_PROTOS },
+  { label: 'Secrets', value: API_SECRETS },
+];
+
+const METHODS = ['PUT', 'PATCH', 'GET', 'POST', 'DELETE'] as const;
+
+const METHOD_COLORS: Record<string, string> = {
+  GET: '#13c2c2',
+  PUT: '#faad14',
+  PATCH: '#52c41a',
+  POST: '#1677ff',
+  DELETE: '#ff4d4f',
+};
+
+const METHOD_HINTS: Record<string, string> = {
+  GET: 'Read collection, resource, or subpath',
+  PUT: 'Send body as full replace/update',
+  PATCH: 'Send body as partial update',
+  POST: 'Send body to collection or subpath',
+  DELETE: 'Delete the target path',
+};
+
+const METHODS_REQUIRING_RESOURCE_PATH = new Set(['PUT', 'PATCH', 'DELETE']);
+
+type ExistingResource = { path: string; name?: string };
+type ConsoleResponse = {
+  status: number;
+  data: string;
+  headers: string;
+  time: number;
+};
+type RequestHistoryEntry = {
+  id: string;
+  method: string;
+  resource: string;
+  pathSuffix: string;
+  queryString: string;
+  body: string;
+  endpoint: string;
+  status: number;
+  time: number;
+  createdAt: number;
+};
+type RequestPreset = {
+  id: string;
+  name: string;
+  method: string;
+  resource: string;
+  pathSuffix: string;
+  queryString: string;
+  body: string;
+  endpoint: string;
+  createdAt: number;
+};
+
+const REQUEST_HISTORY_KEY = 'api-console:session-history';
+const REQUEST_PRESETS_KEY = 'api-console:session-presets';
+const MAX_REQUEST_HISTORY = 25;
+const MAX_REQUEST_PRESETS = 20;
+const CONSOLE_INTERCEPTOR_SKIPS = [
+  'network',
+  '400',
+  '401',
+  '403',
+  '404',
+  '409',
+  '422',
+  '429',
+  '500',
+  '502',
+  '503',
+  '504',
+];
+
+const readRequestHistory = (): RequestHistoryEntry[] => {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(REQUEST_HISTORY_KEY) ?? '[]');
+    return Array.isArray(value) ? value.slice(0, MAX_REQUEST_HISTORY) : [];
+  } catch {
+    return [];
+  }
+};
+
+const readRequestPresets = (): RequestPreset[] => {
+  try {
+    const value = JSON.parse(sessionStorage.getItem(REQUEST_PRESETS_KEY) ?? '[]');
+    return Array.isArray(value) ? value.slice(0, MAX_REQUEST_PRESETS) : [];
+  } catch {
+    return [];
+  }
+};
+
+const stringifyHeaders = (headers: unknown) => {
+  if (!headers) return '{}';
+  const value = typeof (headers as { toJSON?: () => unknown }).toJSON === 'function'
+    ? (headers as { toJSON: () => unknown }).toJSON()
+    : headers;
+  return stringifyResponseData(value) || '{}';
+};
+
+const AdminRouteBodySchema = APISIX.Route.omit({
+  id: true,
+  create_time: true,
+  update_time: true,
+}).refine(
+  (data) =>
+    (typeof data.uri === 'string' && data.uri.trim().length > 0) ||
+    (Array.isArray(data.uris) &&
+      data.uris.some((uri) => uri.trim().length > 0)),
+  {
+    message: 'At least one request URI is required (uri or uris)',
+    path: ['uri'],
+  }
+);
+
+const getRequestBodySchema = (
+  resource: string,
+  method: string,
+  pathSuffix: string
+): ZodTypeAny | null => {
+  if (method === 'PATCH' || method === 'GET' || method === 'DELETE') return null;
+
+  const hasResourceId = pathSuffix.length > 0;
+  switch (resource) {
+    case API_ROUTES:
+      return AdminRouteBodySchema;
+    case API_STREAM_ROUTES:
+      return StreamRoutePostSchema;
+    case API_SERVICES:
+      return ServicePostSchema;
+    case API_UPSTREAMS:
+      return UpstreamPostSchema;
+    case API_CONSUMERS:
+      return hasResourceId
+        ? APISIX.ConsumerPut.omit({ username: true })
+        : APISIX.ConsumerPut;
+    case API_CONSUMER_GROUPS:
+      return hasResourceId
+        ? APISIX.ConsumerGroupPut.omit({ id: true })
+        : APISIX.ConsumerGroupPut;
+    case API_SSLS:
+      return SSLPostSchema;
+    case API_GLOBAL_RULES:
+      return hasResourceId
+        ? APISIX.GlobalRulePut.omit({ id: true })
+        : APISIX.GlobalRulePut;
+    case API_PLUGIN_CONFIGS:
+      return hasResourceId
+        ? APISIX.PluginConfigPut.omit({ id: true })
+        : APISIX.PluginConfigPut;
+    case API_PLUGIN_METADATA:
+      return APISIX.PluginMetadataPut;
+    case API_PROTOS:
+      return APISIXProtos.ProtoPost;
+    case API_SECRETS: {
+      const manager = pathSuffix.split('/')[0];
+      if (manager === 'vault') {
+        return APISIX.VaultSecret.omit({ id: true, manager: true });
+      }
+      if (manager === 'aws') {
+        return APISIX.AWSSecret.omit({ id: true, manager: true });
+      }
+      if (manager === 'gcp') {
+        return APISIX.GCPSecret.omit({ id: true, manager: true });
+      }
+      return null;
+    }
+    default:
+      return null;
+  }
+};
+
+const getRequiredRequestTemplate = (
+  resource: string,
+  method: string,
+  pathSuffix: string
+) => {
+  const schema = getRequestBodySchema(resource, method, pathSuffix);
+  if (!schema) return {};
+
+  if (resource === API_ROUTES) {
+    return createRequiredJsonTemplate(schema, ROUTE_REQUIRED_TEMPLATE);
+  }
+  if (resource === API_SERVICES) {
+    return createRequiredJsonTemplate(schema, SERVICE_REQUIRED_TEMPLATE);
+  }
+  if (resource === API_UPSTREAMS) {
+    return createRequiredJsonTemplate(schema, UPSTREAM_REQUIRED_TEMPLATE);
+  }
+  return createRequiredJsonTemplate(schema);
+};
+
+const stringifyRequiredRequestTemplate = (
+  resource: string,
+  method: string,
+  pathSuffix: string
+) =>
+  JSON.stringify(
+    getRequiredRequestTemplate(resource, method, pathSuffix),
+    null,
+    2
+  );
+
+const getResourcePath = (value: Record<string, unknown>, resource: string) => {
+  if (resource === API_SECRETS) {
+    const manager = value.manager ? String(value.manager) : '';
+    const id = value.id ? String(value.id) : '';
+    return manager && id ? `${manager}/${id}` : id;
+  }
+
+  return String(value.id || value.username || '');
+};
+
+const stringifyResponseData = (data: unknown) => {
+  if (data === undefined) return '';
+  if (typeof data === 'string') return data;
+  try {
+    return JSON.stringify(data, null, 2);
+  } catch {
+    return String(data);
+  }
+};
+
+const getErrorResponse = (error: unknown, elapsed: number): ConsoleResponse & { error: string } => {
+  const response = (error as {
+    response?: { status?: number; data?: unknown; headers?: unknown };
+  }).response;
+  if (response) {
+    return {
+      status: response.status ?? 0,
+      data: stringifyResponseData(response.data),
+      headers: stringifyHeaders(response.headers),
+      error: typeof response.data === 'string'
+        ? response.data
+        : error instanceof Error ? error.message : String(error),
+      time: elapsed,
+    };
+  }
+
+  return {
+    status: 0,
+    data: '',
+    headers: '{}',
+    error: error instanceof Error ? error.message : String(error),
+    time: elapsed,
+  };
+};
+
+function useExistingResources(resource: string) {
+  const [items, setItems] = useState<ExistingResource[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setLoading(true);
+    req
+      .get(resource, {
+        params: { page: 1, page_size: 100 },
+        headers: { [SKIP_INTERCEPTOR_HEADER]: CONSOLE_INTERCEPTOR_SKIPS },
+      })
+      .then((res) => {
+        if (cancelled) return;
+        const list = res.data?.list;
+        if (!Array.isArray(list)) { setItems([]); return; }
+        setItems(
+          list
+            .map((item: { value: Record<string, unknown> }) => ({
+              path: getResourcePath(item.value, resource),
+              name: String(item.value.name || item.value.desc || ''),
+            }))
+            .filter((item) => item.path)
+        );
+      })
+      .catch(() => { if (!cancelled) setItems([]); })
+      .finally(() => { if (!cancelled) setLoading(false); });
+    return () => { cancelled = true; };
+  }, [resource]);
+
+  return { items, loading };
+}
+
+function RawApiPage() {
+  const adminKey = useAtomValue(adminKeyAtom);
+  const [resource, setResource] = useState(API_ROUTES);
+  const [method, setMethod] = useState<string>('PUT');
+  const [pathSuffix, setPathSuffix] = useState('');
+  const [queryString, setQueryString] = useState('');
+  const [body, setBody] = useState(() =>
+    stringifyRequiredRequestTemplate(API_ROUTES, 'PUT', '')
+  );
+  const [loading, setLoading] = useState(false);
+  const [loadingExisting, setLoadingExisting] = useState(false);
+  const [response, setResponse] = useState<ConsoleResponse | null>(null);
+  const [responseError, setResponseError] = useState<string | null>(null);
+  const [responseView, setResponseView] = useState<'Body' | 'Headers'>('Body');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [presetsOpen, setPresetsOpen] = useState(false);
+  const [savePresetOpen, setSavePresetOpen] = useState(false);
+  const [presetName, setPresetName] = useState('');
+  const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>(
+    readRequestHistory
+  );
+  const [requestPresets, setRequestPresets] = useState<RequestPreset[]>(
+    readRequestPresets
+  );
+
+  const { items: existingResources, loading: resourcesLoading } = useExistingResources(resource);
+
+  const needsBody = method !== 'GET' && method !== 'DELETE';
+  const normalizedPathSuffix = pathSuffix.trim().replace(/^\/+|\/+$/g, '');
+  const normalizedQueryString = queryString.trim().replace(/^[?&]+/, '');
+  const endpoint = normalizedPathSuffix ? `${resource}/${normalizedPathSuffix}` : resource;
+  const requestUrl = normalizedQueryString
+    ? `${endpoint}?${normalizedQueryString}`
+    : endpoint;
+  const requestBodySchema = useMemo(
+    () => getRequestBodySchema(resource, method, normalizedPathSuffix),
+    [method, normalizedPathSuffix, resource]
+  );
+
+  const handleLoadExisting = useCallback(async () => {
+    if (!normalizedPathSuffix) { message.warning('Enter a path suffix to load'); return; }
+    setLoadingExisting(true);
+    setResponse(null);
+    setResponseError(null);
+    const start = performance.now();
+    try {
+      const res = await req.get(requestUrl, {
+        headers: { [SKIP_INTERCEPTOR_HEADER]: CONSOLE_INTERCEPTOR_SKIPS },
+      });
+      const value = res.data?.value ?? res.data;
+      setBody(JSON.stringify(value, null, 2));
+      setResponse({
+        status: res.status,
+        data: stringifyResponseData(res.data),
+        headers: stringifyHeaders(res.headers),
+        time: Math.round(performance.now() - start),
+      });
+      message.success(`Loaded ${normalizedPathSuffix}`);
+    } catch (e) {
+      const failure = getErrorResponse(e, Math.round(performance.now() - start));
+      setResponseError(failure.error);
+      setResponse(failure);
+      message.error(`Failed to load ${normalizedPathSuffix}`);
+    } finally {
+      setLoadingExisting(false);
+    }
+  }, [normalizedPathSuffix, requestUrl]);
+
+  const addHistoryEntry = useCallback((
+    status: number,
+    elapsed: number
+  ) => {
+    const entry: RequestHistoryEntry = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      method,
+      resource,
+      pathSuffix: normalizedPathSuffix,
+      queryString: normalizedQueryString,
+      body: needsBody ? body : '',
+      endpoint: requestUrl,
+      status,
+      time: elapsed,
+      createdAt: Date.now(),
+    };
+    setRequestHistory((current) => {
+      const next = [entry, ...current].slice(0, MAX_REQUEST_HISTORY);
+      sessionStorage.setItem(REQUEST_HISTORY_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, [
+    body,
+    method,
+    needsBody,
+    normalizedPathSuffix,
+    normalizedQueryString,
+    requestUrl,
+    resource,
+  ]);
+
+  const doExecute = useCallback(async () => {
+    if (
+      METHODS_REQUIRING_RESOURCE_PATH.has(method) &&
+      !normalizedPathSuffix
+    ) {
+      message.error(`${method} requires a resource path suffix.`);
+      return;
+    }
+
+    let parsedBody: unknown = undefined;
+    if (needsBody) {
+      try {
+        parsedBody = JSON.parse(body);
+      } catch (e) {
+        message.error('Invalid JSON: ' + String(e));
+        return;
+      }
+      if (requestBodySchema) {
+        const feedback = getJsonSchemaFeedback(requestBodySchema, body);
+        if (feedback.syntaxError || feedback.issues.length > 0) {
+          message.error('Resolve the APISIX schema issues before executing this request.');
+          return;
+        }
+      }
+    }
+    setLoading(true);
+    setResponse(null);
+    setResponseError(null);
+    const start = performance.now();
+    try {
+      const res = await req.request({
+        method: method.toLowerCase(),
+        url: requestUrl,
+        data: parsedBody,
+        headers: { [SKIP_INTERCEPTOR_HEADER]: CONSOLE_INTERCEPTOR_SKIPS },
+      });
+      const elapsed = Math.round(performance.now() - start);
+      setResponse({
+        status: res.status,
+        data: stringifyResponseData(res.data),
+        headers: stringifyHeaders(res.headers),
+        time: elapsed,
+      });
+      addHistoryEntry(res.status, elapsed);
+    } catch (e) {
+      const failure = getErrorResponse(e, Math.round(performance.now() - start));
+      setResponseError(failure.error);
+      setResponse(failure);
+      addHistoryEntry(failure.status, failure.time);
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    method,
+    normalizedPathSuffix,
+    requestUrl,
+    body,
+    needsBody,
+    requestBodySchema,
+    addHistoryEntry,
+  ]);
+
+  const handleExecute = useCallback(() => {
+    if (method === 'DELETE') {
+      Modal.confirm({
+        centered: true, okButtonProps: { danger: true },
+        title: `DELETE ${requestUrl}`,
+        content: 'This will permanently delete the resource.',
+        okText: 'Delete', onOk: doExecute,
+      });
+    } else if (method === 'PUT') {
+      Modal.confirm({
+        centered: true, title: `PUT ${requestUrl}`,
+        content: 'PUT replaces the entire resource. Omitted fields will be removed.',
+        okText: 'Execute', onOk: doExecute,
+      });
+    } else {
+      doExecute();
+    }
+  }, [method, requestUrl, doExecute]);
+
+  useEffect(() => {
+    const handleShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.key === 'Enter') {
+        event.preventDefault();
+        if (!loading && !loadingExisting) handleExecute();
+      }
+    };
+    window.addEventListener('keydown', handleShortcut);
+    return () => window.removeEventListener('keydown', handleShortcut);
+  }, [handleExecute, loading, loadingExisting]);
+
+  const formatRequestBody = useCallback(() => {
+    try {
+      setBody(JSON.stringify(JSON.parse(body), null, 2));
+      message.success('Request JSON formatted');
+    } catch (error) {
+      message.error(`Invalid JSON: ${String(error)}`);
+    }
+  }, [body]);
+
+  const restoreHistoryEntry = useCallback((entry: RequestHistoryEntry) => {
+    setMethod(entry.method);
+    setResource(entry.resource);
+    setPathSuffix(entry.pathSuffix);
+    setQueryString(entry.queryString ?? '');
+    if (entry.body) setBody(entry.body);
+    setResponse(null);
+    setResponseError(null);
+    setResponseView('Body');
+    setHistoryOpen(false);
+    message.success('Request restored. Review it before sending.');
+  }, []);
+
+  const clearHistory = useCallback(() => {
+    sessionStorage.removeItem(REQUEST_HISTORY_KEY);
+    setRequestHistory([]);
+  }, []);
+
+  const savePreset = useCallback(() => {
+    const name = presetName.trim();
+    if (!name) {
+      message.warning('Enter a preset name');
+      return;
+    }
+    const preset: RequestPreset = {
+      id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      name,
+      method,
+      resource,
+      pathSuffix: normalizedPathSuffix,
+      queryString: normalizedQueryString,
+      body: needsBody ? body : '',
+      endpoint: requestUrl,
+      createdAt: Date.now(),
+    };
+    setRequestPresets((current) => {
+      const next = [
+        preset,
+        ...current.filter((item) => item.name.toLowerCase() !== name.toLowerCase()),
+      ].slice(0, MAX_REQUEST_PRESETS);
+      sessionStorage.setItem(REQUEST_PRESETS_KEY, JSON.stringify(next));
+      return next;
+    });
+    setPresetName('');
+    setSavePresetOpen(false);
+    message.success(`Saved session preset "${name}"`);
+  }, [
+    body,
+    method,
+    needsBody,
+    normalizedPathSuffix,
+    normalizedQueryString,
+    presetName,
+    requestUrl,
+    resource,
+  ]);
+
+  const restorePreset = useCallback((preset: RequestPreset) => {
+    setMethod(preset.method);
+    setResource(preset.resource);
+    setPathSuffix(preset.pathSuffix);
+    setQueryString(preset.queryString);
+    if (preset.body) setBody(preset.body);
+    setResponse(null);
+    setResponseError(null);
+    setResponseView('Body');
+    setPresetsOpen(false);
+    message.success(`Restored "${preset.name}". Review it before sending.`);
+  }, []);
+
+  const deletePreset = useCallback((id: string) => {
+    setRequestPresets((current) => {
+      const next = current.filter((preset) => preset.id !== id);
+      sessionStorage.setItem(REQUEST_PRESETS_KEY, JSON.stringify(next));
+      return next;
+    });
+  }, []);
+
+  const handleCopyCurl = useCallback(async () => {
+    if (!adminKey?.trim()) { message.warning('Admin Key required'); return; }
+    const masked = adminKey.length > 4
+      ? adminKey.slice(0, 2) + '*'.repeat(adminKey.length - 4) + adminKey.slice(-2)
+      : '****';
+    const baseUrl = `${window.location.origin}/apisix/admin`;
+    const lines = [`curl -i -X ${method} '${baseUrl}${requestUrl}'`, `  -H 'X-API-KEY: ${masked}'`];
+    if (needsBody && body.trim()) {
+      lines.push("  -H 'Content-Type: application/json'");
+      lines.push(`  -d '${body.replace(/'/g, "'\\''").replace(/\n\s*/g, ' ').trim()}'`);
+    }
+    try {
+      await navigator.clipboard.writeText(lines.join(' \\\n'));
+      message.success('Copied as curl (Admin Key masked — replace the masked value with your key)');
+    } catch { message.error('Failed to copy'); }
+  }, [method, requestUrl, body, needsBody, adminKey]);
+
+  const statusColor = response ? (response.status < 300 ? 'success' : response.status < 400 ? 'warning' : 'error') : undefined;
+
+  return (
+    <div className={classes.page}>
+      <PageHeader
+        title="API Console"
+        desc="Build and inspect direct requests to the APISIX Admin API"
+        tag={{ label: 'Advanced', color: 'gold' }}
+      />
+
+      <div className={classes.advisory}>
+        <div>
+          <Typography.Text strong>Direct Admin API access</Typography.Text>
+          <Typography.Paragraph type="secondary">
+            Requests are sent exactly as configured. Use resource RAW editors
+            when you want guided validation and safer payload handling.
+          </Typography.Paragraph>
+        </div>
+        <Tag color="warning">Use with care</Tag>
+      </div>
+
+      <Card
+        className={classes.requestCard}
+        title={
+          <div className={classes.cardTitle}>
+            <span>Request builder</span>
+            <Typography.Text type="secondary">
+              Configure the method, resource, and target path
+            </Typography.Text>
+          </div>
+        }
+        extra={
+          <Space size={6}>
+            <Button size="small" type="text" onClick={() => setSavePresetOpen(true)}>
+              Save preset
+            </Button>
+            <Button size="small" onClick={() => setPresetsOpen(true)}>
+              Presets{requestPresets.length ? ` (${requestPresets.length})` : ''}
+            </Button>
+            <Button size="small" onClick={() => setHistoryOpen(true)}>
+              History{requestHistory.length ? ` (${requestHistory.length})` : ''}
+            </Button>
+          </Space>
+        }
+      >
+        <div className={classes.requestFields}>
+          <label className={classes.field}>
+            <span className={classes.fieldLabel}>Method</span>
+            <Select
+              value={method}
+              onChange={(value) => {
+                setMethod(value);
+                setBody(
+                  stringifyRequiredRequestTemplate(
+                    resource,
+                    value,
+                    normalizedPathSuffix
+                  )
+                );
+              }}
+              className={classes.methodSelect}
+              labelRender={({ value }) => (
+                <span style={{ color: METHOD_COLORS[value as string], fontWeight: 700 }}>
+                  {value as string}
+                </span>
+              )}
+              options={METHODS.map((m) => ({ value: m, label: m }))}
+            />
+          </label>
+
+          <label className={classes.field}>
+            <span className={classes.fieldLabel}>Resource</span>
+            <Select
+              value={resource}
+              onChange={(v) => {
+                setResource(v);
+                setBody(stringifyRequiredRequestTemplate(v, method, ''));
+                setPathSuffix('');
+                setQueryString('');
+                setResponse(null);
+                setResponseError(null);
+              }}
+              options={RESOURCE_OPTIONS}
+              className={classes.resourceSelect}
+              showSearch
+              optionFilterProp="label"
+            />
+          </label>
+
+          <label className={`${classes.field} ${classes.pathField}`}>
+            <span className={classes.fieldLabel}>Path suffix</span>
+            <div className={classes.pathInput}>
+              <span aria-hidden="true">/</span>
+              <AutoComplete
+                value={pathSuffix}
+                onChange={setPathSuffix}
+                options={existingResources.map((r) => ({
+                  value: r.path,
+                  label: (
+                    <span>
+                      <Typography.Text code className={classes.optionPath}>{r.path}</Typography.Text>
+                      {r.name && (
+                        <Typography.Text type="secondary" className={classes.optionName}>
+                          {r.name}
+                        </Typography.Text>
+                      )}
+                    </span>
+                  ),
+                }))}
+                placeholder="Optional ID or nested path"
+                className={classes.pathAutoComplete}
+                filterOption={(input, option) => !!option?.value?.toString().toLowerCase().includes(input.toLowerCase())}
+                notFoundContent={resourcesLoading ? <Spin size="small" /> : null}
+              />
+            </div>
+          </label>
+
+          <label className={`${classes.field} ${classes.queryField}`}>
+            <span className={classes.fieldLabel}>Query parameters</span>
+            <div className={classes.pathInput}>
+              <span aria-hidden="true">?</span>
+              <Input
+                value={queryString}
+                onChange={(event) => setQueryString(event.target.value)}
+                placeholder="page=1&page_size=50"
+                className={classes.queryInput}
+              />
+            </div>
+          </label>
+        </div>
+
+        <div className={classes.requestSummary}>
+          <div className={classes.endpointSummary}>
+            <Tag color={METHOD_COLORS[method]} className={classes.methodTag}>{method}</Tag>
+            <Typography.Text code className={classes.endpoint}>
+              /apisix/admin{requestUrl}
+            </Typography.Text>
+            <Typography.Text type="secondary" className={classes.methodHint}>
+              {METHOD_HINTS[method]}
+            </Typography.Text>
+          </div>
+
+          <div className={classes.requestActions}>
+            <Button size="small" type="text" onClick={handleCopyCurl}>
+              Copy as curl
+            </Button>
+            <Button
+              loading={loadingExisting}
+              disabled={!normalizedPathSuffix}
+              onClick={handleLoadExisting}
+            >
+              Load resource
+            </Button>
+            <Button
+              type="primary"
+              loading={loading}
+              disabled={
+                METHODS_REQUIRING_RESOURCE_PATH.has(method) &&
+                !normalizedPathSuffix
+              }
+              onClick={handleExecute}
+              aria-keyshortcuts="Control+Enter Meta+Enter"
+              title="Send request (Ctrl/Cmd + Enter)"
+              className={classes.executeButton}
+              style={{ background: METHOD_COLORS[method] }}
+            >
+              Send {method}
+              <span className={classes.shortcut}>Ctrl/Cmd + Enter</span>
+            </Button>
+          </div>
+        </div>
+      </Card>
+
+      <div className={`${classes.workspace} ${needsBody ? classes.splitWorkspace : ''}`}>
+        {needsBody && (
+          <Card
+            className={classes.workspaceCard}
+            title={
+              <div className={classes.panelTitle}>
+                <span>Request body</span>
+                <Typography.Text type="secondary">JSON</Typography.Text>
+              </div>
+            }
+            extra={
+              <Button size="small" type="text" onClick={formatRequestBody}>
+                Format JSON
+              </Button>
+            }
+            styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
+          >
+            <div className={classes.editorStack}>
+              <div className={classes.schemaGuide}>
+                {requestBodySchema ? (
+                  <JsonSchemaGuide
+                    schema={requestBodySchema}
+                    value={body}
+                    title={`${method} request schema`}
+                    compact
+                    conditionalRequirements={getResourceConditionalRequirements(resource)}
+                  />
+                ) : (
+                  <Alert
+                    type="info"
+                    showIcon
+                    message={
+                      method === 'PATCH'
+                        ? 'PATCH accepts a partial payload; APISIX validates changed fields.'
+                        : 'No dashboard schema is available for this endpoint.'
+                    }
+                    style={{ padding: '8px 12px', fontSize: 'var(--app-font-size-sm)' }}
+                  />
+                )}
+              </div>
+              <div className={classes.editor}>
+                <JsonCodeEditor
+                  height="100%"
+                  value={body}
+                  onChange={(nextValue) => setBody(nextValue ?? '')}
+                  variant="flush"
+                />
+              </div>
+            </div>
+          </Card>
+        )}
+
+        <Card
+          className={classes.workspaceCard}
+          title={
+            <div className={classes.responseTitle}>
+              <span>Response</span>
+              {response && statusColor && (
+                <Tag color={statusColor}>{response.status || 'Error'}</Tag>
+              )}
+              {response && (
+                <Typography.Text type="secondary">{response.time} ms</Typography.Text>
+              )}
+              {response && (
+                <Segmented
+                  size="small"
+                  value={responseView}
+                  onChange={(value) => setResponseView(value as 'Body' | 'Headers')}
+                  options={['Body', 'Headers']}
+                />
+              )}
+            </div>
+          }
+          extra={response && (
+            <Space size={4}>
+              <Button size="small" type="text" onClick={() => {
+                setResponse(null);
+                setResponseError(null);
+                setResponseView('Body');
+              }}>
+                Clear
+              </Button>
+              <Button size="small" type="text" onClick={async () => {
+                const value = responseView === 'Body' ? response.data : response.headers;
+                try { await navigator.clipboard.writeText(value); message.success('Copied'); }
+                catch { message.error('Failed'); }
+              }}>Copy {responseView.toLowerCase()}</Button>
+            </Space>
+          )}
+          styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
+        >
+          {responseError && !response?.data && (
+            <div className={classes.responseError}>
+              <Typography.Text type="danger">{responseError}</Typography.Text>
+            </div>
+          )}
+          {response && (responseView === 'Headers' || response.data) ? (
+            <JsonCodeEditor
+              height="100%"
+              value={responseView === 'Body' ? response.data : response.headers}
+              readOnly
+              variant="flush"
+            />
+          ) : !responseError && (
+            <div className={classes.emptyResponse}>
+              <div className={classes.emptyResponseMark} aria-hidden="true">&gt;_</div>
+              <Typography.Text strong>Ready for a request</Typography.Text>
+              <Typography.Text type="secondary">
+                Send {method} to inspect the status, timing, and response body.
+              </Typography.Text>
+            </div>
+          )}
+        </Card>
+      </div>
+
+      <Drawer
+        title="Request history"
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        styles={{ wrapper: { width: 440 } }}
+        extra={
+          <Button
+            size="small"
+            type="text"
+            danger
+            disabled={!requestHistory.length}
+            onClick={clearHistory}
+          >
+            Clear all
+          </Button>
+        }
+      >
+        {requestHistory.length ? (
+          <div className={classes.historyList}>
+            {requestHistory.map((entry) => (
+              <button
+                key={entry.id}
+                type="button"
+                className={classes.historyItem}
+                onClick={() => restoreHistoryEntry(entry)}
+              >
+                <div className={classes.historyHeading}>
+                  <Tag color={METHOD_COLORS[entry.method]}>{entry.method}</Tag>
+                  <Typography.Text code ellipsis>{entry.endpoint}</Typography.Text>
+                </div>
+                <div className={classes.historyMeta}>
+                  <Typography.Text
+                    type={entry.status >= 400 || entry.status === 0 ? 'danger' : 'secondary'}
+                  >
+                    {entry.status || 'Network error'}
+                  </Typography.Text>
+                  <Typography.Text type="secondary">{entry.time} ms</Typography.Text>
+                  <Typography.Text type="secondary">
+                    {new Date(entry.createdAt).toLocaleString()}
+                  </Typography.Text>
+                </div>
+              </button>
+            ))}
+          </div>
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Executed requests will appear here."
+          />
+        )}
+      </Drawer>
+
+      <Drawer
+        title="Session presets"
+        open={presetsOpen}
+        onClose={() => setPresetsOpen(false)}
+        styles={{ wrapper: { width: 440 } }}
+      >
+        <Typography.Paragraph type="secondary" className={classes.drawerIntro}>
+          Presets are stored only in this browser tab and are removed when the
+          session ends.
+        </Typography.Paragraph>
+        {requestPresets.length ? (
+          <div className={classes.historyList}>
+            {requestPresets.map((preset) => (
+              <div key={preset.id} className={classes.presetItem}>
+                <button
+                  type="button"
+                  className={classes.presetRestore}
+                  onClick={() => restorePreset(preset)}
+                >
+                  <div className={classes.presetName}>{preset.name}</div>
+                  <div className={classes.historyHeading}>
+                    <Tag color={METHOD_COLORS[preset.method]}>{preset.method}</Tag>
+                    <Typography.Text code ellipsis>{preset.endpoint}</Typography.Text>
+                  </div>
+                </button>
+                <Button
+                  size="small"
+                  type="text"
+                  danger
+                  onClick={() => deletePreset(preset.id)}
+                  aria-label={`Delete preset ${preset.name}`}
+                >
+                  Delete
+                </Button>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <Empty
+            image={Empty.PRESENTED_IMAGE_SIMPLE}
+            description="Save the current request to create a session preset."
+          />
+        )}
+      </Drawer>
+
+      <Modal
+        title="Save session preset"
+        open={savePresetOpen}
+        okText="Save preset"
+        okButtonProps={{ disabled: !presetName.trim() }}
+        onOk={savePreset}
+        onCancel={() => {
+          setSavePresetOpen(false);
+          setPresetName('');
+        }}
+      >
+        <Typography.Paragraph type="secondary">
+          The current method, path, query, and request body will be stored only
+          for this browser tab.
+        </Typography.Paragraph>
+        <Input
+          value={presetName}
+          onChange={(event) => setPresetName(event.target.value)}
+          onPressEnter={savePreset}
+          placeholder="Preset name"
+          autoFocus
+        />
+      </Modal>
+    </div>
+  );
+}
+
+export const Route = createFileRoute('/raw_api/')({
+  component: RawApiPage,
+});

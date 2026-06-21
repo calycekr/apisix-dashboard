@@ -1,0 +1,600 @@
+:root {
+  --app-font-family:
+    'Inter Variable', ui-sans-serif, -apple-system, BlinkMacSystemFont,
+    'Segoe UI', sans-serif;
+  --app-font-monospace:
+    'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo,
+    monospace;
+  --app-font-size-2xs: 10px;
+  --app-font-size-xs: 11px;
+  --app-font-size-sm: 12px;
+  --app-font-size-md: 13px;
+  --app-font-size-base: 14px;
+  --app-font-size-lg: 16px;
+  --app-font-size-xl: 20px;
+  --app-font-size-resource-title: 22px;
+  --app-font-size-page-title: 26px;
+  --app-font-size-metric: 26px;
+  --app-line-height-tight: 1.25;
+  --app-line-height-base: 1.45;
+  --app-line-height-relaxed: 1.55;
+  --app-font-weight-label: 560;
+  --app-font-weight-strong: 620;
+  --app-font-weight-heading: 680;
+  --app-scrollbar-thumb: rgb(15 23 42 / 18%);
+  --app-scrollbar-thumb-hover: rgb(15 23 42 / 34%);
+  --app-scrollbar-thumb-active: rgb(37 99 235 / 78%);
+}
+
+:root[data-theme='dark'] {
+  --app-scrollbar-thumb: rgb(255 255 255 / 18%);
+  --app-scrollbar-thumb-hover: rgb(255 255 255 / 34%);
+  --app-scrollbar-thumb-active: rgb(96 165 250 / 82%);
+}
+
+html {
+  background: var(--ant-color-bg-layout);
+}
+
+body {
+  margin: 0;
+  background: var(--ant-color-bg-layout);
+  color: var(--ant-color-text);
+  font-family: var(--app-font-family);
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-base);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+}
+
+.app-shell-content {
+  min-height: calc(100vh - var(--appshell-header-height, 60px));
+  padding: 26px 28px 40px;
+  background: var(--ant-color-bg-layout);
+}
+
+.app-shell-content > * {
+  width: 100%;
+  max-width: 1680px;
+  margin-inline: auto;
+}
+
+/* Shared data surface for Ant Design Pro resource tables. */
+.ant-pro-table .ant-pro-card {
+  overflow: hidden;
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 12px;
+  background: var(--ant-color-bg-container);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.035);
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar {
+  min-height: 68px;
+  padding-inline: 20px;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-container {
+  gap: 16px;
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-left {
+  min-width: 0;
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-right {
+  flex: 1;
+  justify-content: flex-end;
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-extra-line {
+  width: 100%;
+}
+
+.ant-pro-table .ant-pro-table-list-toolbar-title {
+  color: var(--ant-color-text);
+  font-size: var(--app-font-size-lg);
+  font-weight: var(--app-font-weight-heading);
+  letter-spacing: 0;
+}
+
+.ant-pro-table .ant-table-thead > tr > th {
+  height: 44px;
+  font-size: var(--app-font-size-sm);
+  font-weight: var(--app-font-weight-strong);
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.ant-pro-table .ant-table-tbody > tr > td {
+  color: var(--ant-color-text);
+  font-size: var(--app-font-size-base);
+  line-height: var(--app-line-height-base);
+  vertical-align: middle;
+}
+
+
+
+.ant-pro-table .ant-table-tbody > tr:last-child > td {
+  border-bottom: 0;
+}
+
+.ant-pro-table .ant-pagination {
+  margin: 18px 20px !important;
+}
+
+.ant-pro-table .ant-table-expanded-row > td {
+  padding: 18px 24px !important;
+  background: color-mix(in srgb, var(--ant-color-fill-quaternary) 55%, transparent) !important;
+}
+
+.ant-pro-table .ant-btn-link {
+  padding-inline: 4px;
+  font-weight: var(--app-font-weight-strong);
+}
+
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-input-number,
+.ant-picker,
+.ant-select-selector {
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+}
+
+.ant-form-item-label > label,
+.ant-checkbox-wrapper,
+.ant-radio-wrapper {
+  font-weight: var(--app-font-weight-label);
+}
+
+@media (max-width: 800px) {
+  .app-shell-content {
+    padding: 20px 16px 32px;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar {
+    min-height: auto;
+    padding-block: 14px;
+    padding-inline: 14px;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-container,
+  .ant-pro-table .ant-pro-table-list-toolbar-right {
+    width: 100%;
+    align-items: stretch;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-right {
+    justify-content: flex-start;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-right > * {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 640px) {
+  .ant-pro-table .ant-pro-table-list-toolbar-right > div:first-child {
+    display: flex;
+    width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-right > div:first-child > :first-child {
+    width: 100% !important;
+    flex: 1 1 100%;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-right > div:first-child > :nth-child(2) {
+    width: auto !important;
+    min-width: 120px;
+    flex: 1 1 40%;
+  }
+
+  .ant-pro-table .ant-pro-table-list-toolbar-right > div:first-child > .ant-select {
+    width: 100% !important;
+    min-width: 0 !important;
+    flex: 1 1 100%;
+  }
+}
+
+/* Theme-aware scrollbars for page and component overflow surfaces. */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--app-scrollbar-thumb);
+  background-clip: padding-box;
+  border: 2px solid transparent;
+  border-radius: 999px;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: var(--app-scrollbar-thumb-hover);
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: var(--app-scrollbar-thumb-active);
+  background-clip: padding-box;
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--app-scrollbar-thumb) transparent;
+}
+
+*:hover {
+  scrollbar-color: var(--app-scrollbar-thumb-hover) transparent;
+}
+
+.monaco-editor,
+.monaco-editor .overflow-guard {
+  border-radius: 6px;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider {
+  background: var(--app-scrollbar-thumb) !important;
+  border-radius: 999px;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar:hover > .slider {
+  background: var(--app-scrollbar-thumb-hover) !important;
+}
+
+.monaco-editor .monaco-scrollable-element > .scrollbar > .slider.active {
+  background: var(--app-scrollbar-thumb-active) !important;
+}
+
+/* This is to fix the suggest widget offset problem */
+.monaco-editor .suggest-widget {
+  width: 200px !important;
+  left: 60px !important;
+}
+
+.editor-wrapper {
+  border: 1px solid var(--ant-color-border);
+  border-radius: 6px;
+  position: relative;
+  height: 100%;
+
+  &:focus-within {
+    border-color: var(--ant-color-primary);
+  }
+}
+
+.editor-wrapper--disabled {
+  background-color: var(--ant-color-bg-container-disabled);
+  border-color: var(--ant-color-border);
+  cursor: not-allowed !important;
+
+  &:focus-within {
+    border-color: var(--ant-color-border);
+  }
+
+  & * {
+    cursor: not-allowed !important;
+    pointer-events: none !important;
+  }
+
+  .monaco-editor,
+  .monaco-editor .monaco-editor-background,
+  .monaco-editor .overflow-guard,
+  .monaco-editor .margin-view-overlays {
+    background-color: var(--ant-color-bg-container-disabled) !important;
+  }
+
+  .monaco-editor .view-lines,
+  .monaco-editor .view-line * {
+    color: var(--ant-color-text-disabled) !important;
+  }
+}
+
+/* 1. Pulsing Dot Styles for Status */
+.pulsing-dot-success,
+.pulsing-dot-inactive {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pulsing-dot-success {
+  background-color: var(--ant-color-success);
+}
+
+.pulsing-dot-inactive {
+  background-color: var(--ant-color-text-quaternary);
+}
+
+/* 2. Floating Bulk Actions Bar Styling */
+.bulk-delete-bar-floating {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 12px 24px;
+  width: max-content;
+  min-width: 480px;
+  max-width: 90vw;
+  background: color-mix(in srgb, var(--ant-color-bg-container) 90%, transparent) !important;
+  backdrop-filter: blur(12px) !important;
+  -webkit-backdrop-filter: blur(12px) !important;
+  border: 1px solid var(--ant-color-border-secondary) !important;
+  border-radius: 12px !important;
+  box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.18), 0 1px 4px rgba(0, 0, 0, 0.06) !important;
+  animation: slideUpBulk 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes slideUpBulk {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0);
+  }
+}
+
+/* 3. Smooth Table Row Hover & Transitions */
+.ant-table-row {
+  transition: background-color 0.18s ease !important;
+}
+
+.ant-table-expanded-row {
+  animation: expandFadeIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes expandFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 4. Plugin Card Hover Lift Styling */
+.premium-plugin-card {
+  border-radius: 10px !important;
+  border: 1px solid var(--ant-color-border-secondary) !important;
+  transition: border-color 0.18s ease, box-shadow 0.18s ease !important;
+  height: 100%;
+}
+
+.premium-plugin-card:hover {
+  box-shadow: 0 3px 12px rgba(0, 0, 0, 0.06) !important;
+  border-color: var(--ant-color-primary-border-hover) !important;
+}
+
+.premium-plugin-card .ant-card-head {
+  min-height: 40px !important;
+  padding: 0 12px !important;
+}
+
+.premium-plugin-card .ant-card-head-title {
+  padding: 10px 0 !important;
+}
+
+.premium-plugin-card .ant-card-extra {
+  padding: 8px 0 !important;
+}
+
+.premium-plugin-card .ant-card-body {
+  padding: 12px !important;
+}
+
+.plugin-list-search {
+  height: 36px;
+  flex: 1 1 260px;
+  min-width: 220px;
+}
+
+.plugin-list-search .ant-input-prefix {
+  color: var(--ant-color-text-quaternary);
+}
+
+.plugin-list-result-count {
+  display: block;
+  font-size: var(--app-font-size-sm);
+  margin-bottom: 8px;
+}
+
+.plugin-picker-summary {
+  margin-bottom: 10px;
+}
+
+.plugin-picker-search {
+  display: flex;
+  flex: 0 0 auto;
+}
+
+.plugin-config-section {
+  margin-bottom: 18px;
+}
+
+.plugin-direct-section {
+  border-top: 1px solid var(--ant-color-border-secondary);
+  padding-top: 18px;
+}
+
+.plugin-direct-header,
+.plugin-selected-summary {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.plugin-direct-header {
+  margin-bottom: 10px;
+}
+
+.plugin-direct-header > div:first-child {
+  min-width: 0;
+}
+
+.plugin-direct-subtitle {
+  display: block;
+  font-size: var(--app-font-size-sm);
+  margin-top: 2px;
+}
+
+.plugin-selected-summary {
+  color: var(--ant-color-text-secondary);
+  font-size: var(--app-font-size-sm);
+  margin-bottom: 8px;
+}
+
+.plugin-selected-count {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.plugin-count-badge {
+  background: var(--ant-color-fill-secondary);
+  border: 1px solid var(--ant-color-border-secondary);
+  border-radius: 4px;
+  color: var(--ant-color-text-secondary);
+  font-size: var(--app-font-size-sm);
+  line-height: 1.4;
+  padding: 0 7px;
+}
+
+.plugin-count-badge-active {
+  background: var(--ant-blue-1);
+  color: var(--ant-blue-7);
+}
+
+.plugin-available-count {
+  white-space: nowrap;
+}
+
+.plugin-selected-search {
+  display: flex;
+  margin-bottom: 10px;
+}
+
+.plugin-list-empty-compact {
+  margin: 10px 0 0 !important;
+  padding: 16px 12px !important;
+  background: var(--ant-color-fill-quaternary);
+  border: 1px dashed var(--ant-color-border-secondary);
+  border-radius: 8px;
+}
+
+.plugin-list-empty-compact .ant-empty-image {
+  height: 34px;
+  margin-bottom: 6px;
+}
+
+.plugin-list-empty-compact .ant-empty-description {
+  color: var(--ant-color-text-secondary);
+  font-size: var(--app-font-size-sm);
+}
+
+/* 5. Plugin Category Filter */
+.plugin-category-filter {
+  align-items: center;
+  border-bottom: 1px solid var(--ant-color-border-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+}
+
+.plugin-category-filter .ant-btn {
+  border-radius: 6px;
+}
+
+.plugin-category-filter .ant-btn-text:not(.plugin-category-filter-active):hover {
+  background-color: var(--ant-color-fill-quaternary);
+  color: var(--ant-color-primary);
+}
+
+@media (max-width: 640px) {
+  .plugin-direct-header,
+  .plugin-selected-summary {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .plugin-direct-header .ant-btn {
+    width: 100%;
+  }
+
+  .plugin-available-count {
+    white-space: normal;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* 6. Form Field Error Shake & Glow */
+@keyframes errorShakeGlow {
+  0%, 100% {
+    transform: translateX(0);
+    box-shadow: 0 0 0 0 rgba(255, 77, 79, 0);
+  }
+  15%, 45%, 75% {
+    transform: translateX(-4px);
+    box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.3);
+  }
+  30%, 60%, 90% {
+    transform: translateX(4px);
+    box-shadow: 0 0 0 4px rgba(255, 77, 79, 0.3);
+  }
+}
+
+.form-field-error-shake {
+  animation: errorShakeGlow 0.6s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+  border-radius: 6px;
+}
+
+/* 7. React Flow Edge & Node Modernizations */
+.dashed-flow-edge-hovered path {
+  stroke-dasharray: 6 4;
+  animation: dash-flow 0.5s linear infinite;
+  filter: drop-shadow(0 0 3px var(--ant-color-primary));
+}
+
+@keyframes dash-flow {
+  from {
+    stroke-dashoffset: 10;
+  }
+  to {
+    stroke-dashoffset: 0;
+  }
+}
