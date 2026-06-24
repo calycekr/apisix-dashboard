@@ -14,7 +14,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert } from 'antd';
+import { Alert, Button } from 'antd';
+import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { FormItemJsonInput } from '@/components/form/JsonInput';
@@ -84,39 +85,79 @@ const FormSectionStreamRouteBasic = () => {
   );
 };
 
+const hasProtocolValue = (value: unknown): boolean => {
+  if (value === undefined || value === null || value === '') return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') {
+    return Object.values(value).some(hasProtocolValue);
+  }
+  return true;
+};
+
 const FormSectionStreamRouteProtocol = () => {
-  const { control } = useFormContext<StreamRoutePostType>();
+  const { control, setValue, unregister } = useFormContext<StreamRoutePostType>();
+  const protocol = useWatch({ control, name: 'protocol' });
+  const [enabled, setEnabled] = useState(() => hasProtocolValue(protocol));
+
+  useEffect(() => {
+    if (hasProtocolValue(protocol)) {
+      setEnabled(true);
+    }
+  }, [protocol]);
+
+  const enableProtocol = () => {
+    setEnabled(true);
+  };
+
+  const removeProtocol = () => {
+    unregister('protocol');
+    setValue('protocol', undefined, { shouldDirty: true });
+    setEnabled(false);
+  };
+
+  if (!enabled) {
+    return (
+      <FormSection legend="Protocol Information" collapsible>
+        <Button onClick={enableProtocol}>Configure protocol information</Button>
+      </FormSection>
+    );
+  }
 
   return (
-    <FormSection legend="Protocol Information" collapsible defaultOpen>
-      <FormItemTextInput
-        control={control}
-        name="protocol.name"
-        label="Protocol Name"
-        description="Optional stream protocol extension name."
-      />
-      <FormItemTextInput
-        control={control}
-        name="protocol.superior_id"
-        label="Superior ID"
-        description="Optional parent protocol resource ID."
-      />
-      <FormItemJsonInput
-        control={control}
-        name="protocol.conf"
-        label="Conf"
-        toObject
-        description="Optional protocol configuration JSON object."
-      />
-      <FormItemJsonInput
-        control={control}
-        name="protocol.logger"
-        label="Logger"
-        toObject
-        objValue={[]}
-        description="Optional logger array for protocol-specific logging."
-      />
-    </FormSection>
+    <>
+      <FormSection legend="Protocol Information" collapsible defaultOpen>
+        <FormItemTextInput
+          control={control}
+          name="protocol.name"
+          label="Protocol Name"
+          description="Optional stream protocol extension name."
+        />
+        <FormItemTextInput
+          control={control}
+          name="protocol.superior_id"
+          label="Superior ID"
+          description="Optional parent protocol resource ID."
+        />
+        <FormItemJsonInput
+          control={control}
+          name="protocol.conf"
+          label="Conf"
+          toObject
+          description="Optional protocol configuration JSON object."
+        />
+        <FormItemJsonInput
+          control={control}
+          name="protocol.logger"
+          label="Logger"
+          toObject
+          objValue={[]}
+          description="Optional logger array for protocol-specific logging."
+        />
+      </FormSection>
+      <Button danger onClick={removeProtocol}>
+        Remove protocol information
+      </Button>
+    </>
   );
 };
 

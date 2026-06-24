@@ -36,7 +36,7 @@ export type FormItemSwitchProps<T extends FieldValues> = Omit<
 export const FormItemSwitch = <T extends FieldValues>(
   props: FormItemSwitchProps<T>
 ) => {
-  const { controllerProps, restProps } = genControllerProps(props, false);
+  const { controllerProps, restProps } = genControllerProps(props);
   const { label, description, ...switchProps } = restProps;
   const {
     field: { value, onChange: fOnChange, ...restField },
@@ -45,7 +45,7 @@ export const FormItemSwitch = <T extends FieldValues>(
     <div className={classes.switchWrapper}>
       <div className={classes.switchRow}>
         <Switch
-          checked={value}
+          checked={!!value}
           onChange={(checked, e) => {
             fOnChange(checked);
             switchProps.onChange?.(checked, e);

@@ -31,6 +31,7 @@ import { useThemeMode } from '@/stores/global';
 import {
   isRecord,
   mergeEditablePayload,
+  mergeEditablePayloadByDirty,
   sortJsonKeys,
   stripSystemReadonlyFields,
   stripSystemTimestamps,
@@ -359,11 +360,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   }, [form, activeTab, rawData]);
 
   const doSubmit = useCallback(
-    async (data: unknown) => {
+    async (payload: unknown) => {
       if (isSaving) return;
-      const payload = rawData === undefined
-        ? data
-        : mergeEditablePayload(rawData, data);
       setApiError(null);
       setIsSaving(true);
       try {
@@ -385,15 +383,21 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   // Show diff modal before saving when rawData is available (edit mode)
   const safeSubmit = useCallback(
-    async (data: unknown) => {
+    async (data: unknown, source: 'form' | 'json' = 'form') => {
+      const payload = rawData === undefined
+        ? data
+        : source === 'form'
+          ? mergeEditablePayloadByDirty(rawData, data, form.formState.dirtyFields)
+          : mergeEditablePayload(rawData, data);
+
       if (rawData) {
-        pendingSubmitRef.current = mergeEditablePayload(rawData, data);
+        pendingSubmitRef.current = payload;
         setDiffModalOpen(true);
       } else {
-        await doSubmit(data);
+        await doSubmit(payload);
       }
     },
-    [rawData, doSubmit]
+    [doSubmit, form.formState.dirtyFields, rawData]
   );
 
   const confirmDiffAndSave = useCallback(async () => {
@@ -465,7 +469,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     setIsSubmitting(true);
     try {
       await form.handleSubmit(
-        safeSubmit,
+        (data) => safeSubmit(data, 'json'),
         (errors) => {
           const flat = flattenErrors(errors);
           if (flat.length > 0) {
@@ -489,7 +493,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     label: rawData === undefined ? 'Visual Editor' : 'Configuration',
     children: (
       <form
-        onSubmit={form.handleSubmit(safeSubmit, (errors) => {
+        onSubmit={form.handleSubmit((data) => safeSubmit(data, 'form'), (errors) => {
           const firstError = flattenErrors(errors)[0];
           if (firstError) {
             focusFormError(firstError.path);
