@@ -172,6 +172,40 @@ export const mergeEditablePayload = (
   return merged;
 };
 
+export const mergeEditablePayloadByDirty = (
+  originalValue: unknown,
+  formValue: unknown,
+  dirtyFields: unknown
+): unknown => {
+  if (!isRecord(originalValue) || !isRecord(formValue)) {
+    return dirtyFields ? formValue : originalValue;
+  }
+
+  const dirtyRecord = isRecord(dirtyFields) ? dirtyFields : {};
+  const merged: Record<string, unknown> = { ...originalValue };
+
+  for (const [key, value] of Object.entries(formValue)) {
+    if (value === undefined) continue;
+
+    const keyDirty = dirtyRecord[key];
+    if (keyDirty === true) {
+      merged[key] = value;
+      continue;
+    }
+
+    if (isRecord(keyDirty) && isRecord(value)) {
+      const previous = merged[key];
+      const base = isRecord(previous) ? previous : {};
+      const nested = mergeEditablePayloadByDirty(base, value, keyDirty);
+      if (Object.keys(nested as Record<string, unknown>).length > 0) {
+        merged[key] = nested;
+      }
+    }
+  }
+
+  return merged;
+};
+
 export const buildPatchPayload = (
   current: Record<string, unknown>,
   previous: Record<string, unknown>,

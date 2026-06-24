@@ -14,7 +14,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Divider } from 'antd';
+import { Button, Divider } from 'antd';
+import type { ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
 import { FormItemNumberInput } from '@/components/form/NumberInput';
@@ -32,6 +34,64 @@ import { FormItemNodes } from './FormItemNodes';
 import { FormSectionChecks } from './FormSectionChecks';
 import { FormSectionDiscovery } from './FormSectionDiscovery';
 import type { FormPartUpstreamType } from './schema';
+
+const hasFieldValue = (value: unknown): boolean => {
+  if (value === undefined || value === null || value === '') return false;
+  if (Array.isArray(value)) return value.length > 0;
+  if (typeof value === 'object') {
+    return Object.values(value).some(hasFieldValue);
+  }
+  return true;
+};
+
+const OptionalNestedSection = ({
+  name,
+  legend,
+  children,
+}: {
+  name: 'timeout' | 'keepalive_pool' | 'tls';
+  legend: string;
+  children: ReactNode;
+}) => {
+  const { control, setValue, unregister } = useFormContext<FormPartUpstreamType>();
+  const np = useNamePrefix();
+  const fieldName = np(name);
+  const fieldValue = useWatch({ control, name: fieldName });
+  const [enabled, setEnabled] = useState(() => hasFieldValue(fieldValue));
+
+  useEffect(() => {
+    if (hasFieldValue(fieldValue)) {
+      setEnabled(true);
+    }
+  }, [fieldValue]);
+
+  const enableSection = () => {
+    setEnabled(true);
+  };
+
+  const removeSection = () => {
+    unregister(fieldName);
+    setValue(fieldName, undefined, { shouldDirty: true });
+    setEnabled(false);
+  };
+
+  if (!enabled) {
+    return (
+      <FormSection legend={legend} collapsible>
+        <Button onClick={enableSection}>Configure {legend}</Button>
+      </FormSection>
+    );
+  }
+
+  return (
+    <>
+      {children}
+      <Button danger onClick={removeSection}>
+        Remove {legend}
+      </Button>
+    </>
+  );
+};
 
 export const FormSectionTLS = () => {
   const { control } = useFormContext<FormPartUpstreamType>();
@@ -76,7 +136,6 @@ export const FormItemScheme = () => {
       control={control}
       name={np('scheme')}
       label="Scheme"
-      defaultValue={APISIX.UpstreamSchemeL7.options[0].value}
       data={[
         {
           group: 'L7',
@@ -100,7 +159,6 @@ export const FormSectionLoadbalancing = () => {
         control={control}
         name={np('type')}
         label="Type"
-        defaultValue={APISIX.UpstreamBalancer.options[0].value}
         data={APISIX.UpstreamBalancer.options.map((v) => v.value)}
         description="roundrobin: weighted round-robin. chash: consistent hashing. least_conn: least connections. ewma: exponentially weighted moving average latency."
       />
@@ -108,7 +166,6 @@ export const FormSectionLoadbalancing = () => {
         control={control}
         name={np('hash_on')}
         label="Hash On"
-        defaultValue={APISIX.UpstreamHashOn.options[0].value}
         data={APISIX.UpstreamHashOn.options.map((v) => v.value)}
         description="Only used when type is chash. Determines what to hash on: vars (Nginx variables), header, cookie, or consumer."
       />
@@ -132,7 +189,6 @@ export const FormSectionPassHost = () => {
         control={control}
         name={np('pass_host')}
         label="Pass Host"
-        defaultValue={APISIX.UpstreamPassHost.options[0].value}
         data={APISIX.UpstreamPassHost.options.map((v) => v.value)}
         description="pass: forward the client Host header. node: use the host from the upstream node. rewrite: use the custom Upstream Host value below."
       />
@@ -261,9 +317,15 @@ export const FormPartUpstream = ({
         <FormSectionLoadbalancing />
         <FormSectionPassHost />
         <FormSectionRetry />
-        <FormSectionTimeout />
-        <FormSectionKeepAlive />
-        <FormSectionTLS />
+        <OptionalNestedSection name="timeout" legend="Timeout">
+          <FormSectionTimeout />
+        </OptionalNestedSection>
+        <OptionalNestedSection name="keepalive_pool" legend="Keepalive Pool">
+          <FormSectionKeepAlive />
+        </OptionalNestedSection>
+        <OptionalNestedSection name="tls" legend="TLS">
+          <FormSectionTLS />
+        </OptionalNestedSection>
       </FormSection>
 
       <FormSectionChecks />

@@ -42,7 +42,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
   const {
     controllerProps: rawControllerProps,
     restProps: { toObject, label, description, ...restProps },
-  } = genControllerProps(props, props.toObject ? objValue : '');
+  } = genControllerProps(props, props.toObject ? undefined : '');
   const controllerProps = useMemo(() => {
     if (!toObject) return rawControllerProps;
     return {

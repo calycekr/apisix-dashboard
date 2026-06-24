@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, Collapse, Divider, Segmented } from 'antd';
+import { Alert, Button, Collapse, Divider, Segmented } from 'antd';
 import { useEffect, useState } from 'react';
 import { useFormContext, useWatch } from 'react-hook-form';
 
@@ -366,13 +366,56 @@ export const FormSectionScript = () => {
   );
 };
 
+const hasTimeoutValue = (timeout: RoutePostType['timeout']) =>
+  !!timeout &&
+  Object.values(timeout).some((value) => value !== undefined);
+
+const FormSectionRouteTimeout = () => {
+  const { control, setValue, unregister } = useFormContext<RoutePostType>();
+  const timeout = useWatch({ control, name: 'timeout' });
+  const [enabled, setEnabled] = useState(() => hasTimeoutValue(timeout));
+
+  useEffect(() => {
+    if (hasTimeoutValue(timeout)) {
+      setEnabled(true);
+    }
+  }, [timeout]);
+
+  const enableTimeout = () => {
+    setEnabled(true);
+  };
+
+  const disableTimeout = () => {
+    unregister('timeout');
+    setValue('timeout', undefined, { shouldDirty: true });
+    setEnabled(false);
+  };
+
+  if (!enabled) {
+    return (
+      <FormSection legend="Timeout" collapsible>
+        <Button onClick={enableTimeout}>Configure route timeout</Button>
+      </FormSection>
+    );
+  }
+
+  return (
+    <>
+      <FormSectionTimeout />
+      <Button danger onClick={disableTimeout}>
+        Remove route timeout
+      </Button>
+    </>
+  );
+};
+
 export const FormPartRoute = ({ showID = true }: { showID?: boolean } = {}) => {
   return (
     <>
       <FormPartBasicWithPriority showID={showID} />
       <FormSectionMatchRules />
       <FormSectionUpstream />
-      <FormSectionTimeout />
+      <FormSectionRouteTimeout />
       <FormSectionPlugins />
       <FormSectionScript />
     </>
