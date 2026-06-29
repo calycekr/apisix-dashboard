@@ -178,6 +178,7 @@ const FormActionBar = ({
   children,
   errorCount,
   hasUnsavedChanges,
+  idleText = 'No pending changes',
   isSaving,
   onFocusFirstError,
   onRevert,
@@ -185,12 +186,13 @@ const FormActionBar = ({
   children: React.ReactNode;
   errorCount: number;
   hasUnsavedChanges: boolean;
+  idleText?: string;
   isSaving: boolean;
   onFocusFirstError: () => void;
   onRevert?: () => void;
 }) => {
   let dotClass = classes.statusDotSuccess;
-  let statusText = 'No pending changes';
+  let statusText = idleText;
 
   if (isSaving) {
     dotClass = classes.statusDotWarning;
@@ -269,6 +271,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     (formHasUnsavedChanges || jsonTabDirty) && !disabled;
   const saveInProgress = isSaving || rawTabSaving;
   const validationErrors = flattenErrors(form.formState.errors);
+  const idleStatusText =
+    rawData === undefined ? 'Fill required fields, then submit' : 'No pending changes';
 
   const focusFormError = useCallback(
     (path: string) => {
@@ -507,6 +511,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           <FormActionBar
             errorCount={validationErrors.length}
             hasUnsavedChanges={formHasUnsavedChanges}
+            idleText={idleStatusText}
             isSaving={isSaving}
             onFocusFirstError={focusFirstFormError}
             onRevert={handleRevert}
@@ -577,6 +582,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
             <FormActionBar
               errorCount={validationErrors.length}
               hasUnsavedChanges={jsonHasUnsavedChanges}
+              idleText={idleStatusText}
               isSaving={isSaving}
               onFocusFirstError={focusFirstFormError}
               onRevert={handleRevert}
