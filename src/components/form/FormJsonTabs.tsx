@@ -27,6 +27,10 @@ import { JsonCodeEditor } from '@/components/form/JsonCodeEditor';
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { ResourceOverview } from '@/components/page/ResourceOverview';
 import { queryClient } from '@/config/global';
+import {
+  APP_CODE_EDITOR_FONT_SIZE,
+  APP_MONOSPACE_FONT_FAMILY,
+} from '@/config/typography';
 import { useThemeMode } from '@/stores/global';
 import {
   isRecord,
@@ -665,8 +669,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               minimap: { enabled: false },
               renderSideBySide: true,
               automaticLayout: true,
-              fontFamily: "'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
-              fontSize: 12.5,
+              fontFamily: APP_MONOSPACE_FONT_FAMILY,
+              fontSize: APP_CODE_EDITOR_FONT_SIZE,
             }}
           />
         </div>

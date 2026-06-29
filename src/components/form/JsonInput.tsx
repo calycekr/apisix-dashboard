@@ -24,6 +24,8 @@ import {
   type UseControllerProps,
 } from 'react-hook-form';
 
+import { APP_CODE_EDITOR_FONT_SIZE } from '@/config/typography';
+
 import { InputWrapper } from './InputWrapper';
 import { genControllerProps } from './util';
 
@@ -130,7 +132,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
         autoSize
         style={{
           fontFamily: 'var(--app-font-monospace)',
-          fontSize: 12.5,
+          fontSize: APP_CODE_EDITOR_FONT_SIZE,
           resize: 'vertical',
         }}
         {...restField}

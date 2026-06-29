@@ -25,6 +25,10 @@ import {
   useFormContext,
 } from 'react-hook-form';
 
+import {
+  APP_CODE_EDITOR_FONT_SIZE,
+  APP_MONOSPACE_FONT_FAMILY,
+} from '@/config/typography';
 import { useThemeMode } from '@/stores/global';
 import { monaco, setupMonacoEditor } from '@/utils/monaco';
 
@@ -43,8 +47,8 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
   // auto adjust width and height to parent
   // see: https://github.com/Microsoft/monaco-editor/issues/543#issuecomment-321767059
   automaticLayout: true,
-  fontFamily: "'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
-  fontSize: 12.5,
+  fontFamily: APP_MONOSPACE_FONT_FAMILY,
+  fontSize: APP_CODE_EDITOR_FONT_SIZE,
 };
 
 type FormItemEditorWrapperProps = {

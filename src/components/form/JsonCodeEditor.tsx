@@ -17,6 +17,10 @@
 import { Editor, type EditorProps } from '@monaco-editor/react';
 import { clsx } from 'clsx';
 
+import {
+  APP_CODE_EDITOR_FONT_SIZE,
+  APP_MONOSPACE_FONT_FAMILY,
+} from '@/config/typography';
 import { useThemeMode } from '@/stores/global';
 
 import classes from './JsonCodeEditor.module.css';
@@ -34,8 +38,8 @@ const jsonEditorOptions: NonNullable<EditorProps['options']> = {
   detectIndentation: false,
   formatOnPaste: true,
   padding: { top: 12, bottom: 12 },
-  fontFamily: "'IBM Plex Mono', 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace",
-  fontSize: 12.5,
+  fontFamily: APP_MONOSPACE_FONT_FAMILY,
+  fontSize: APP_CODE_EDITOR_FONT_SIZE,
 };
 
 type JsonCodeEditorProps = Pick<
