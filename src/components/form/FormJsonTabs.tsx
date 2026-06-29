@@ -30,8 +30,7 @@ import { queryClient } from '@/config/global';
 import { useThemeMode } from '@/stores/global';
 import {
   isRecord,
-  mergeEditablePayload,
-  mergeEditablePayloadByDirty,
+  mergeIdentityPayload,
   sortJsonKeys,
   stripSystemReadonlyFields,
   stripSystemTimestamps,
@@ -383,12 +382,10 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
 
   // Show diff modal before saving when rawData is available (edit mode)
   const safeSubmit = useCallback(
-    async (data: unknown, source: 'form' | 'json' = 'form') => {
+    async (data: unknown) => {
       const payload = rawData === undefined
         ? data
-        : source === 'form'
-          ? mergeEditablePayloadByDirty(rawData, data, form.formState.dirtyFields)
-          : mergeEditablePayload(rawData, data);
+        : mergeIdentityPayload(rawData, data);
 
       if (rawData) {
         pendingSubmitRef.current = payload;
@@ -397,7 +394,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         await doSubmit(payload);
       }
     },
-    [doSubmit, form.formState.dirtyFields, rawData]
+    [doSubmit, rawData]
   );
 
   const confirmDiffAndSave = useCallback(async () => {
@@ -469,7 +466,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     setIsSubmitting(true);
     try {
       await form.handleSubmit(
-        (data) => safeSubmit(data, 'json'),
+        safeSubmit,
         (errors) => {
           const flat = flattenErrors(errors);
           if (flat.length > 0) {
@@ -493,7 +490,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     label: rawData === undefined ? 'Visual Editor' : 'Configuration',
     children: (
       <form
-        onSubmit={form.handleSubmit((data) => safeSubmit(data, 'form'), (errors) => {
+        onSubmit={form.handleSubmit(safeSubmit, (errors) => {
           const firstError = flattenErrors(errors)[0];
           if (firstError) {
             focusFormError(firstError.path);

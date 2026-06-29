@@ -206,6 +206,24 @@ export const mergeEditablePayloadByDirty = (
   return merged;
 };
 
+export const mergeIdentityPayload = (
+  originalValue: unknown,
+  formValue: unknown
+): unknown => {
+  if (!isRecord(originalValue) || !isRecord(formValue)) return formValue;
+
+  const merged: Record<string, unknown> = { ...formValue };
+  PATCH_READONLY_KEYS.forEach((key) => {
+    if (
+      merged[key] === undefined &&
+      Object.prototype.hasOwnProperty.call(originalValue, key)
+    ) {
+      merged[key] = originalValue[key];
+    }
+  });
+  return merged;
+};
+
 export const buildPatchPayload = (
   current: Record<string, unknown>,
   previous: Record<string, unknown>,
