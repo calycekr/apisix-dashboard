@@ -258,14 +258,15 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [diffModalOpen, setDiffModalOpen] = useState(false);
   const [jsonTabDirty, setJsonTabDirty] = useState<boolean>(false);
-  const [rawTabDirty, setRawTabDirty] = useState<boolean>(false);
+  const [, setRawTabDirty] = useState<boolean>(false);
   const [rawTabSaving, setRawTabSaving] = useState<boolean>(false);
   const pendingSubmitRef = useRef<unknown>(null);
   const formTabInitializedRef = useRef(false);
 
-  const hasUnsavedChanges =
-    (hasAnyDirtyField(form.formState.dirtyFields) || jsonTabDirty || rawTabDirty) &&
-    !disabled;
+  const formHasUnsavedChanges =
+    hasAnyDirtyField(form.formState.dirtyFields) && !disabled;
+  const jsonHasUnsavedChanges =
+    (formHasUnsavedChanges || jsonTabDirty) && !disabled;
   const saveInProgress = isSaving || rawTabSaving;
   const validationErrors = flattenErrors(form.formState.errors);
 
@@ -505,14 +506,14 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         {!disabled && (
           <FormActionBar
             errorCount={validationErrors.length}
-            hasUnsavedChanges={hasUnsavedChanges}
+            hasUnsavedChanges={formHasUnsavedChanges}
             isSaving={isSaving}
             onFocusFirstError={focusFirstFormError}
             onRevert={handleRevert}
           >
             <FormSubmitBtn
               loading={isSaving}
-              disabled={isSaving || (rawData !== undefined && !hasUnsavedChanges)}
+              disabled={isSaving || (rawData !== undefined && !formHasUnsavedChanges)}
             >
               {submitLabel}
             </FormSubmitBtn>
@@ -575,7 +576,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           {!disabled && (
             <FormActionBar
               errorCount={validationErrors.length}
-              hasUnsavedChanges={hasUnsavedChanges}
+              hasUnsavedChanges={jsonHasUnsavedChanges}
               isSaving={isSaving}
               onFocusFirstError={focusFirstFormError}
               onRevert={handleRevert}
