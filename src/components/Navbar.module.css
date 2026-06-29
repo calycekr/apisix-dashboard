@@ -148,7 +148,7 @@
 
 .menu :global(.ant-menu-item .ant-menu-item-icon) {
   color: var(--ant-color-text-tertiary);
-  font-size: 17px;
+  font-size: var(--app-font-size-icon-md);
   transition: color 0.16s ease;
 }
 
@@ -223,7 +223,7 @@
 .sidebar:global(.ant-layout-sider-collapsed) .menu :global(.ant-menu-item .ant-menu-item-icon) {
   align-items: center;
   justify-content: center;
-  font-size: 18px;
+  font-size: var(--app-font-size-icon-lg);
   line-height: 40px;
 }
 

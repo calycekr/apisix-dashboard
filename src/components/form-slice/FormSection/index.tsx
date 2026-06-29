@@ -198,7 +198,7 @@ export const FormSection = (props: FormSectionProps) => {
         {...(restProps as React.HTMLAttributes<HTMLDivElement>)}
       >
         {(legend || extra) && (
-          <div style={{ marginBottom: 8, color: token.colorTextSecondary, fontWeight: 500, fontSize: token.fontSizeSM }}>
+          <div style={{ marginBottom: 8, color: token.colorTextSecondary, fontWeight: 'var(--app-font-weight-label)', fontSize: token.fontSizeSM }}>
             <LegendGroup legend={legend} extra={extra} />
           </div>
         )}

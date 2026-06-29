@@ -93,7 +93,7 @@ const inputWrapper = forwardRef<HTMLDivElement, InputWrapperProps>(
             {activeTooltip && (
               <Tooltip title={activeTooltip}>
                 <span className={classes.tooltipIcon}>
-                  <IconInfo style={{ fontSize: 14 }} />
+                  <IconInfo style={{ fontSize: 'var(--app-font-size-base)' }} />
                 </span>
               </Tooltip>
             )}

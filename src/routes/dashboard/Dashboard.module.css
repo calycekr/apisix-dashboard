@@ -101,7 +101,7 @@
   display: inline-flex;
   margin-top: 2px;
   color: var(--ant-color-warning);
-  font-size: 18px;
+  font-size: var(--app-font-size-icon-lg);
 }
 
 .section {
@@ -178,7 +178,7 @@
   height: 38px;
   flex: 0 0 38px;
   border-radius: 6px;
-  font-size: 20px;
+  font-size: var(--app-font-size-xl);
 }
 
 .resourceContent {
@@ -215,7 +215,7 @@
 .resourceArrow {
   display: inline-flex;
   color: var(--ant-color-text-quaternary);
-  font-size: 17px;
+  font-size: var(--app-font-size-icon-md);
   transition:
     color 160ms ease,
     transform 160ms ease;
@@ -337,7 +337,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   color: var(--ant-color-warning);
-  font-size: 18px;
+  font-size: var(--app-font-size-icon-lg);
 }
 
 .statusRowContent {
@@ -377,7 +377,7 @@
 .healthyIcon {
   display: inline-flex;
   color: var(--ant-color-success);
-  font-size: 20px;
+  font-size: var(--app-font-size-xl);
 }
 
 .unavailableState {
@@ -403,7 +403,7 @@
   display: inline-flex;
   flex: 0 0 auto;
   color: var(--ant-color-warning);
-  font-size: 20px;
+  font-size: var(--app-font-size-xl);
 }
 
 .pluginList {

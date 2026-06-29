@@ -33,7 +33,7 @@
 .code {
   flex: 0 0 auto;
   color: var(--ant-color-primary);
-  font-size: 36px;
+  font-size: var(--app-font-size-error-code);
   font-weight: var(--app-font-weight-heading);
   letter-spacing: 0;
   line-height: 1;

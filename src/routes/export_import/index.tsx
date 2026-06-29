@@ -108,7 +108,7 @@ function ExportSection() {
     <Card
       title={
         <Space>
-          <IconDownload style={{ fontSize: 18 }} />
+          <IconDownload style={{ fontSize: 'var(--app-font-size-icon-lg)' }} />
           <span>Export Configuration</span>
         </Space>
       }
@@ -281,7 +281,7 @@ function ImportSection() {
     <Card
       title={
         <Space>
-          <IconUpload style={{ fontSize: 18 }} />
+          <IconUpload style={{ fontSize: 'var(--app-font-size-icon-lg)' }} />
           <span>Import Configuration</span>
         </Space>
       }
@@ -297,7 +297,7 @@ function ImportSection() {
         beforeUpload={handleFile}
         style={{ marginBottom: 16 }}
       >
-        <p style={{ fontSize: 36, color: 'var(--ant-color-text-quaternary)', margin: '8px 0' }}>
+        <p style={{ fontSize: 'var(--app-font-size-error-code)', color: 'var(--ant-color-text-quaternary)', margin: '8px 0' }}>
           <IconUpload />
         </p>
         <p>Click or drag a JSON file to upload</p>

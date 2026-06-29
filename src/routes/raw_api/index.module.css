@@ -48,12 +48,12 @@
 
 .cardTitle > span:first-child,
 .panelTitle > span:first-child {
-  font-weight: 650;
+  font-weight: var(--app-font-weight-emphasis);
 }
 
 .cardTitle :global(.ant-typography) {
   font-size: var(--app-font-size-sm);
-  font-weight: 400;
+  font-weight: var(--app-font-weight-regular);
 }
 
 .requestFields {
@@ -217,7 +217,7 @@
 .panelTitle :global(.ant-typography),
 .responseTitle :global(.ant-typography) {
   font-size: var(--app-font-size-sm);
-  font-weight: 400;
+  font-weight: var(--app-font-weight-regular);
 }
 
 .responseTitle {

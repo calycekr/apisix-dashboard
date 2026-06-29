@@ -83,7 +83,7 @@ const FieldLabel = ({
         {label}
         {description && (
           <Tooltip title={description}>
-            <IconInfo style={{ marginLeft: 6, color: token.colorTextSecondary, cursor: 'help', fontSize: 14 }} />
+            <IconInfo style={{ marginLeft: 6, color: token.colorTextSecondary, cursor: 'help', fontSize: 'var(--app-font-size-base)' }} />
           </Tooltip>
         )}
       </Typography.Text>

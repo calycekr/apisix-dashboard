@@ -20,6 +20,14 @@ import { type PropsWithChildren, useEffect } from 'react';
 
 import { useThemeMode } from '@/stores/global';
 
+import {
+  APP_FONT_SIZE_BASE,
+  APP_FONT_SIZE_LG,
+  APP_FONT_SIZE_SM,
+  APP_FONT_SIZE_XL,
+  APP_FONT_WEIGHT_STRONG,
+} from './typography';
+
 export const AntdConfigProvider = (props: PropsWithChildren) => {
   const { children } = props;
   const { mode } = useThemeMode();
@@ -53,11 +61,11 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
           controlHeight: 38,
           fontFamily: 'var(--app-font-family)',
           fontFamilyCode: 'var(--app-font-monospace)',
-          fontSize: 14,
-          fontSizeSM: 12,
-          fontSizeLG: 16,
-          fontSizeXL: 20,
-          fontWeightStrong: 620,
+          fontSize: APP_FONT_SIZE_BASE,
+          fontSizeSM: APP_FONT_SIZE_SM,
+          fontSizeLG: APP_FONT_SIZE_LG,
+          fontSizeXL: APP_FONT_SIZE_XL,
+          fontWeightStrong: APP_FONT_WEIGHT_STRONG,
           lineHeight: 1.45,
           lineHeightSM: 1.4,
           lineHeightLG: 1.5,
@@ -67,7 +75,7 @@ export const AntdConfigProvider = (props: PropsWithChildren) => {
         },
         components: {
           Button: {
-            fontWeight: 600,
+            fontWeight: APP_FONT_WEIGHT_STRONG,
             primaryShadow: 'none',
           },
           Card: {

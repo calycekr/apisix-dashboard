@@ -724,7 +724,7 @@ function RawApiPage() {
               }}
               className={classes.methodSelect}
               labelRender={({ value }) => (
-                <span style={{ color: METHOD_COLORS[value as string], fontWeight: 700 }}>
+                <span style={{ color: METHOD_COLORS[value as string], fontWeight: 'var(--app-font-weight-heading)' }}>
                   {value as string}
                 </span>
               )}

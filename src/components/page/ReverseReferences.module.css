@@ -21,7 +21,7 @@
 
 .summary {
   font-size: var(--app-font-size-sm);
-  font-weight: 400;
+  font-weight: var(--app-font-weight-regular);
 }
 
 .count {

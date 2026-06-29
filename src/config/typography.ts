@@ -17,4 +17,11 @@
 export const APP_MONOSPACE_FONT_FAMILY =
   'var(--app-font-monospace)';
 
+export const APP_FONT_SIZE_SM = 12;
+export const APP_FONT_SIZE_BASE = 14;
+export const APP_FONT_SIZE_LG = 16;
+export const APP_FONT_SIZE_XL = 20;
+
+export const APP_FONT_WEIGHT_STRONG = 620;
+
 export const APP_CODE_EDITOR_FONT_SIZE = 12.5;

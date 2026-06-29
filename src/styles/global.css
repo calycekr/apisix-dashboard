@@ -15,11 +15,16 @@
   --app-font-size-resource-title: 22px;
   --app-font-size-page-title: 26px;
   --app-font-size-metric: 26px;
+  --app-font-size-icon-md: 17px;
+  --app-font-size-icon-lg: 18px;
+  --app-font-size-error-code: 36px;
   --app-line-height-tight: 1.25;
   --app-line-height-base: 1.45;
   --app-line-height-relaxed: 1.55;
+  --app-font-weight-regular: 400;
   --app-font-weight-label: 560;
   --app-font-weight-strong: 620;
+  --app-font-weight-emphasis: 650;
   --app-font-weight-heading: 680;
   --app-scrollbar-thumb: rgb(15 23 42 / 18%);
   --app-scrollbar-thumb-hover: rgb(15 23 42 / 34%);
