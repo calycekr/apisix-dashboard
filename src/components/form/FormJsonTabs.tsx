@@ -533,11 +533,6 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     ? [configurationTab]
     : [
         configurationTab,
-        {
-          key: 'overview',
-          label: 'Overview',
-          children: <ResourceOverview data={rawData} referenceContext={overviewReferenceContext} />,
-        },
         ...detailTabs,
       ];
 
@@ -619,6 +614,11 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
           onSavingChange={setRawTabSaving}
         />
       ),
+    });
+    tabItems.push({
+      key: 'overview',
+      label: 'Overview',
+      children: <ResourceOverview data={rawData} referenceContext={overviewReferenceContext} />,
     });
   }
 
