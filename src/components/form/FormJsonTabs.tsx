@@ -250,9 +250,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   } = props;
   const { mode } = useThemeMode();
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState<string>(
-    rawData === undefined ? 'form' : 'overview'
-  );
+  const [activeTab, setActiveTab] = useState<string>('form');
   const [jsonStr, setJsonStr] = useState<string>('');
   const [jsonError, setJsonError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -534,12 +532,12 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   const tabItems: NonNullable<TabsProps['items']> = rawData === undefined
     ? [configurationTab]
     : [
+        configurationTab,
         {
           key: 'overview',
           label: 'Overview',
           children: <ResourceOverview data={rawData} referenceContext={overviewReferenceContext} />,
         },
-        configurationTab,
         ...detailTabs,
       ];
 
