@@ -28,6 +28,8 @@ import classes from './JsonCodeEditor.module.css';
 const jsonEditorOptions: NonNullable<EditorProps['options']> = {
   minimap: { enabled: false },
   automaticLayout: true,
+  wordWrap: 'on',
+  wrappingIndent: 'indent',
   lineNumbers: 'on',
   lineNumbersMinChars: 3,
   lineDecorationsWidth: 0,

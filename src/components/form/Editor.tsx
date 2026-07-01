@@ -47,6 +47,8 @@ const options: monaco.editor.IStandaloneEditorConstructionOptions = {
   // auto adjust width and height to parent
   // see: https://github.com/Microsoft/monaco-editor/issues/543#issuecomment-321767059
   automaticLayout: true,
+  wordWrap: 'on',
+  wrappingIndent: 'indent',
   fontFamily: APP_MONOSPACE_FONT_FAMILY,
   fontSize: APP_CODE_EDITOR_FONT_SIZE,
 };
