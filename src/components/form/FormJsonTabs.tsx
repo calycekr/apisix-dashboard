@@ -669,6 +669,8 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               minimap: { enabled: false },
               renderSideBySide: true,
               automaticLayout: true,
+              wordWrap: 'on',
+              wrappingIndent: 'indent',
               fontFamily: APP_MONOSPACE_FONT_FAMILY,
               fontSize: APP_CODE_EDITOR_FONT_SIZE,
             }}
