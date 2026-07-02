@@ -42,7 +42,7 @@ export async function uiCheckLabels(
 ) {
   for (const [key, value] of Object.entries(labels)) {
     const labelText = `${key}:${value}`;
-    await expect(ctx.getByText(labelText)).toBeVisible();
+    await expect(ctx.getByText(labelText).first()).toBeVisible();
   }
 }
 

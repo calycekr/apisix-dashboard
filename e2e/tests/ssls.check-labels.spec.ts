@@ -39,7 +39,7 @@ test('should support labels functionality in SSL forms', async ({ page }) => {
 
   await test.step('verify labels field is present and functional', async () => {
     // Verify Labels field is present
-    const labelsField = page.getByRole('textbox', { name: 'Labels' });
+    const labelsField = page.getByRole('combobox', { name: 'Labels' });
     await expect(labelsField).toBeVisible();
     await expect(labelsField).toBeEnabled();
   });
@@ -72,7 +72,7 @@ test('should support labels functionality in SSL forms', async ({ page }) => {
 
   await test.step('verify labels field behavior', async () => {
     // Test that labels field clears after adding a label
-    const labelsField = page.getByRole('textbox', { name: 'Labels' });
+    const labelsField = page.getByRole('combobox', { name: 'Labels' });
 
     // Add another label
     await labelsField.click();
@@ -83,6 +83,6 @@ test('should support labels functionality in SSL forms', async ({ page }) => {
     await expect(labelsField).toHaveValue('');
 
     // Verify the new label is displayed
-    await expect(page.getByText('new:label')).toBeVisible();
+    await expect(page.getByText('new:label').first()).toBeVisible();
   });
 });
