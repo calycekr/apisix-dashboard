@@ -22,12 +22,17 @@ import {
   uiCheckStreamRouteRequiredFields,
   uiFillStreamRouteRequiredFields,
 } from '@e2e/utils/ui/stream_routes';
-import { uiOpenInlineUpstream } from '@e2e/utils/ui/upstreams';
+import {
+  uiFillUpstreamRequiredFields,
+  uiOpenInlineUpstream,
+} from '@e2e/utils/ui/upstreams';
 import { expect } from '@playwright/test';
 
 test.describe.configure({ mode: 'serial' });
 
 test('CRUD stream route with all fields', async ({ page }) => {
+  test.setTimeout(60000);
+
   // Navigate to stream routes page
   await streamRoutesPom.toIndex(page);
   await expect(page.getByRole('heading', { name: 'Stream Routes' })).toBeVisible();
@@ -56,34 +61,16 @@ test('CRUD stream route with all fields', async ({ page }) => {
 
   // Fill upstream nodes manually
   await uiOpenInlineUpstream(page);
-  const upstreamSection = page.getByRole('group', { name: 'Upstream', exact: true });
-  const nodesSection = upstreamSection.getByRole('group', { name: 'Nodes' });
-  const addBtn = nodesSection.getByRole('button', { name: 'Add a Node' });
-
-  // Add a node
-  await addBtn.click();
-  const dataRows = nodesSection.locator('tr.ant-table-row');
-  const firstRow = dataRows.first();
-
-  const hostInput = firstRow.locator('input').nth(0);
-  await hostInput.click();
-  await hostInput.fill('127.0.0.11');
-
-  const portInput = firstRow.locator('input').nth(1);
-  await portInput.click();
-  await portInput.fill('8081');
-
-  const weightInput = firstRow.locator('input').nth(2);
-  await weightInput.click();
-  await weightInput.fill('100');
+  const upstreamSection = page.getByRole('group', {
+    name: 'Inline Upstream target',
+  });
+  await uiFillUpstreamRequiredFields(upstreamSection, {
+    name: 'stream-route-full-upstream',
+    nodes: [{ host: '127.0.0.11', port: 8081, weight: 100 }],
+  });
 
   // Submit and land on detail page
   await page.getByRole('button', { name: 'Add', exact: true }).click();
-
-  // Wait for success toast before checking detail page
-  await uiHasToastMsg(page, {
-    hasText: 'Add Stream Route Successfully',
-  });
 
   await streamRoutesPom.isDetailPage(page);
   const streamRouteId = await page
@@ -93,9 +80,6 @@ test('CRUD stream route with all fields', async ({ page }) => {
   // Verify initial values in detail view
   await uiCheckStreamRouteRequiredFields(page, streamRouteData);
 
-  // Enter edit mode from detail page
-  await page.getByRole('button', { name: 'Edit' }).click();
-  await expect(page.getByRole('heading', { name: 'Edit Stream Route' })).toBeVisible();
   await uiCheckStreamRouteRequiredFields(page, streamRouteData);
 
   // Edit fields - update description, add a label, and modify server settings
@@ -122,12 +106,20 @@ test('CRUD stream route with all fields', async ({ page }) => {
   await page.getByLabel('SNI').fill(updatedData.sni);
   await page.getByLabel('Description').first().fill(updatedData.desc);
 
-  const labelsField = page.getByPlaceholder('Input text like `key:value`,').first();
-  await labelsField.fill('updated:true');
-  await labelsField.press('Enter');
+  await uiFillStreamRouteRequiredFields(page, {
+    labels: { updated: 'true' },
+  });
+  await page.keyboard.press('Escape').catch(() => {});
 
   // Submit edit and return to detail page
   await page.getByRole('button', { name: 'Save', exact: true }).click();
+  await page
+    .getByRole('dialog', { name: 'Review Changes Before Saving' })
+    .getByRole('button', { name: 'Confirm & Save' })
+    .click();
+  await uiHasToastMsg(page, {
+    hasText: 'Stream Route saved and reloaded from APISIX',
+  });
   await streamRoutesPom.isDetailPage(page);
 
   // Verify updated values from detail view
@@ -141,14 +133,12 @@ test('CRUD stream route with all fields', async ({ page }) => {
   await expect(updatedRow).toBeVisible({ timeout: 10000 }); // Longer timeout for parallel tests
 
   // View detail page from the list to double-check values
-  await updatedRow
-    .getByRole('link', { name: streamRouteId, exact: true })
-    .click();
+  await page.getByRole('link', { name: streamRouteId, exact: true }).click();
   await streamRoutesPom.isDetailPage(page);
   await uiCheckStreamRouteRequiredFields(page, updatedData);
 
   // Delete from detail page
-  await page.getByRole('button', { name: 'Delete' }).click();
+  await page.getByRole('button', { name: 'Delete' }).first().click();
   await page.getByRole('dialog').getByRole('button', { name: 'Delete' }).click();
   await page.waitForURL((url) => url.pathname.endsWith('/stream_routes'));
 

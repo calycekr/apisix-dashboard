@@ -19,6 +19,8 @@ import { expect } from '@playwright/test';
 
 import type { APISIXType } from '@/types/schema/apisix';
 
+import { uiSelectByLabel } from '.';
+
 export const uiFillStreamRouteRequiredFields = async (
   page: Page,
   data: Partial<APISIXType['StreamRoute']>
@@ -46,11 +48,10 @@ export const uiFillStreamRouteRequiredFields = async (
   }
 
   if (data.labels) {
-    const labelsField = page.getByPlaceholder('Input text like `key:value`,').first();
     for (const [key, value] of Object.entries(data.labels)) {
-      await labelsField.fill(`${key}:${value}`);
-      await labelsField.press('Enter');
+      await uiSelectByLabel(page, 'Labels', `${key}:${value}`);
     }
+    await page.keyboard.press('Escape').catch(() => {});
   }
 };
 
@@ -87,8 +88,14 @@ export const uiCheckStreamRouteRequiredFields = async (
   if (data.labels) {
     // Labels are displayed as tags, check if the tags exist
     for (const [key, value] of Object.entries(data.labels)) {
-      const labelTag = page.getByText(`${key}:${value}`, { exact: true });
-      await expect(labelTag).toBeVisible();
+      await expect(
+        page
+          .getByRole('combobox', { name: 'Labels' })
+          .locator(
+            'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+          )
+          .first()
+      ).toContainText(`${key}:${value}`);
     }
   }
 };

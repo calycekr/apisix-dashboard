@@ -34,14 +34,18 @@ test('should navigate to stream routes page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
     await expect(
-      table.getByText('Server Address', { exact: true })
+      table.getByRole('columnheader', { name: 'ID' })
     ).toBeVisible();
     await expect(
-      table.getByText('Server Port', { exact: true })
+      table.getByRole('columnheader', { name: 'Server Address' })
     ).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'Server Port' })
+    ).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'RAW' })
+    ).toBeVisible();
   });
 });
 
