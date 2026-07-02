@@ -204,8 +204,25 @@ test('should display routes list under service', async ({ page }) => {
     await expect(nameField).toHaveValue(routes[0].name);
 
     // Verify service_id is correct
-    const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
+    await nameField.fill(`${routes[0].name}-service-scope`);
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`/apisix/admin/routes/${createdRoutes[0]}`)
+    );
+    await page.getByRole('button', { name: 'Save' }).click();
+    await page
+      .getByRole('dialog', { name: 'Review changes before saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload.service_id).toBe(testServiceId);
+    expect(requestPayload).not.toHaveProperty('upstream');
+    expect(requestPayload).not.toHaveProperty('upstream_id');
   });
 
   await test.step('should have Add Route button', async () => {
@@ -221,9 +238,9 @@ test('should display routes list under service', async ({ page }) => {
     await servicesPom.isServiceRouteAddPage(page);
 
     // Verify service_id is pre-filled
-    const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
-    await expect(serviceIdField).toBeDisabled();
+    const serviceIdField = page.locator('[data-form-field="service_id"]');
+    await expect(serviceIdField).toContainText(testServiceId);
+    await expect(page.getByLabel('Service ID', { exact: true })).toBeDisabled();
   });
 
   await test.step('should show correct route count', async () => {
@@ -231,9 +248,18 @@ test('should display routes list under service', async ({ page }) => {
     await servicesPom.toServiceRoutes(page, testServiceId);
     await servicesPom.isServiceRoutesPage(page);
 
-    // Check that all 3 routes are displayed in the table
-    const tableRows = page.locator('tbody tr');
-    await expect(tableRows).toHaveCount(routes.length);
+    await expect(
+      page.getByRole('cell', { name: `${routes[0].name}-service-scope` })
+    ).toBeVisible();
+    for (const route of routes.slice(1)) {
+      await expect(page.getByRole('cell', { name: route.name })).toBeVisible();
+    }
+    await expect(
+      page.getByRole('cell', { name: anotherServiceRoute.name })
+    ).toBeHidden();
+    await expect(
+      page.getByRole('cell', { name: upstreamRoute.name })
+    ).toBeHidden();
   });
 });
 

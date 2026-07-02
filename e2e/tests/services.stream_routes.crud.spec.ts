@@ -23,6 +23,7 @@ import { expect, type Page } from '@playwright/test';
 
 import { deleteAllServices, postServiceReq } from '@/apis/services';
 import { deleteAllStreamRoutes } from '@/apis/stream_routes';
+import { API_STREAM_ROUTES } from '@/config/constant';
 
 test.describe.configure({ mode: 'serial' });
 
@@ -42,6 +43,16 @@ const getServiceIdSelect = (page: Page) =>
       'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
     )
     .first();
+
+const fillServerPort = async (page: Page, port: number) => {
+  const serverPortField = page.getByLabel('Server Port', { exact: true });
+  await serverPortField.click();
+  await serverPortField.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+  await serverPortField.press('Backspace');
+  await serverPortField.pressSequentially(port.toString());
+  await serverPortField.blur();
+  return serverPortField;
+};
 
 test.beforeAll(async () => {
   await deleteAllStreamRoutes(e2eReq);
@@ -131,16 +142,25 @@ test('should CRUD stream route under service', async ({ page }) => {
     // Fill in some fields
     await serverAddrField.fill(streamRouteServerAddr);
 
-    const serverPortField = page.getByLabel('Server Port', { exact: true });
-    await serverPortField.fill(streamRouteServerPort.toString());
+    await fillServerPort(page, streamRouteServerPort);
 
     // Click the Save button to save changes
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_STREAM_ROUTES}/${streamRouteId}`)
+    );
     const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
     await page
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as {
+      server_port?: number;
+    };
+    expect(requestPayload.server_port).toBe(streamRouteServerPort);
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
@@ -164,16 +184,25 @@ test('should CRUD stream route under service', async ({ page }) => {
     const serverAddrField = page.getByLabel('Server Address', { exact: true });
     await serverAddrField.fill(updatedStreamRouteServerAddr);
 
-    const serverPortField = page.getByLabel('Server Port', { exact: true });
-    await serverPortField.fill(updatedStreamRouteServerPort.toString());
+    await fillServerPort(page, updatedStreamRouteServerPort);
 
     // Click the Save button
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_STREAM_ROUTES}/${streamRouteId}`)
+    );
     const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
     await page
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as {
+      server_port?: number;
+    };
+    expect(requestPayload.server_port).toBe(updatedStreamRouteServerPort);
 
     // Verify the update was successful
     await uiHasToastMsg(page, {

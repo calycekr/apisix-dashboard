@@ -101,12 +101,22 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     await firstRowHost.blur();
 
     // Click the Save button to save changes
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes('/apisix/admin/upstreams/')
+    );
     const saveBtn = page.getByRole('button', { name: 'Save' });
     await saveBtn.click();
     await page
       .getByRole('dialog', { name: 'Review changes before saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as {
+      nodes?: Array<{ host?: string }>;
+    };
+    expect(requestPayload.nodes?.[0]?.host).toBe('updated-test.com');
 
     // Verify the update was successful
     await uiHasToastMsg(page, {

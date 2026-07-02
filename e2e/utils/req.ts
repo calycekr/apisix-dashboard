@@ -40,7 +40,22 @@ export const getPlaywrightRequestAdapter = (
       data,
     };
     const urlWithBase = `${baseURL}${url}`;
-    const res = await ctx.fetch(urlWithBase, payload);
+    const method = config.method?.toUpperCase();
+    const canRetry = method === 'GET' || method === 'HEAD' || method === 'DELETE';
+    const res = await (async () => {
+      let lastError: unknown;
+      for (let attempt = 0; attempt < (canRetry ? 3 : 1); attempt++) {
+        try {
+          return await ctx.fetch(urlWithBase, payload);
+        } catch (e) {
+          lastError = e;
+          const message = e instanceof Error ? e.message : String(e);
+          if (!canRetry || !message.includes('502 Bad Gateway')) throw e;
+          await new Promise((resolve) => setTimeout(resolve, 250 * (attempt + 1)));
+        }
+      }
+      throw lastError;
+    })();
 
     try {
       return {

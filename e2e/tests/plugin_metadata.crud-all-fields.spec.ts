@@ -150,11 +150,13 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await expect(editPluginDialog).toBeVisible();
     await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
-    await expect(editPluginDialog.getByText('"log_format": {').last()).toBeVisible();
+    const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog, false);
+
+    await expect(pluginEditor.getByText('"log_format": {')).toBeVisible();
     await expect(
-      editPluginDialog.getByText('"client_ip": "$remote_addr",').last()
+      pluginEditor.getByText('"client_ip": "$remote_addr",')
     ).toBeVisible();
-    await expect(editPluginDialog.getByText('"host": "$host",').last()).toBeVisible();
+    await expect(pluginEditor.getByText('"host": "$host"')).toBeVisible();
 
     await editPluginDialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(editPluginDialog).toBeHidden();

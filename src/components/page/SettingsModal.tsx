@@ -40,7 +40,7 @@ const AdminKey = () => {
     setStatus('testing');
     setErrorMsg('');
     try {
-      // Use raw axios to bypass global interceptors — test the key directly
+      // Use raw axios to bypass global interceptors and test the key directly.
       await axios.get(`${API_PREFIX}/routes`, {
         params: { page: 1, page_size: 10 },
         headers: { [API_HEADER_KEY]: adminKey },
@@ -51,11 +51,11 @@ const AdminKey = () => {
     } catch (e) {
       setStatus('error');
       if (axios.isAxiosError(e) && e.response?.status === 401) {
-        setErrorMsg('Authentication failed — the Admin Key is incorrect');
+        setErrorMsg('Authentication failed - the Admin Key is incorrect');
       } else if (axios.isAxiosError(e) && !e.response) {
-        setErrorMsg('Cannot reach APISIX Admin API — check that APISIX is running');
+        setErrorMsg('Cannot reach APISIX Admin API - check that APISIX is running');
       } else {
-        setErrorMsg('Connection failed — check Admin Key and APISIX status');
+        setErrorMsg('Connection failed - check Admin Key and APISIX status');
       }
     }
   }, [adminKey]);

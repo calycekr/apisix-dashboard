@@ -131,6 +131,24 @@ const FormItemNodesInner = <T extends FieldValues>(
     },
     [fOnChange, restProps]
   );
+  const { label, required, withAsterisk } = props;
+  const [values, setValues] = useState<DataSource[]>([]);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const setNodeValues = useCallback((data: DataSource[]) => {
+    setValues((prev) => (equals(prev, data) ? prev : data));
+  }, []);
+  const syncNodeField = useCallback(
+    (rowIndex: number, field: keyof APISIXType['UpstreamNode'], value: unknown) => {
+      setValues((prev) => {
+        const next = prev.map((item, index) =>
+          index === rowIndex ? { ...item, [field]: value } : item
+        );
+        syncFormValue(next);
+        return next;
+      });
+    },
+    [syncFormValue]
+  );
   const columns = useMemo<ProColumns<DataSource>[]>(
     () => [
       {
@@ -142,14 +160,22 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Host',
         dataIndex: 'host',
         valueType: 'text',
-        fieldProps: { 'aria-label': 'Host' },
+        fieldProps: (_, config) => ({
+          'aria-label': 'Host',
+          onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
+            syncNodeField(config.rowIndex, 'host', event.currentTarget.value),
+        }),
         formItemProps: genProps('host'),
       },
       {
         title: 'Port',
         dataIndex: 'port',
         valueType: 'digit',
-        fieldProps: { 'aria-label': 'Port' },
+        fieldProps: (_, config) => ({
+          'aria-label': 'Port',
+          onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
+            syncNodeField(config.rowIndex, 'port', event.currentTarget.value),
+        }),
         formItemProps: genProps('port'),
         render: (_, entity) => {
           return entity.port.toString();
@@ -159,7 +185,11 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Weight',
         dataIndex: 'weight',
         valueType: 'digit',
-        fieldProps: { 'aria-label': 'Weight' },
+        fieldProps: (_, config) => ({
+          'aria-label': 'Weight',
+          onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
+            syncNodeField(config.rowIndex, 'weight', event.currentTarget.value),
+        }),
         formItemProps: genProps('weight'),
         render: (_, entity) => {
           return entity.weight.toString();
@@ -169,7 +199,11 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Priority',
         dataIndex: 'priority',
         valueType: 'digit',
-        fieldProps: { 'aria-label': 'Priority' },
+        fieldProps: (_, config) => ({
+          'aria-label': 'Priority',
+          onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
+            syncNodeField(config.rowIndex, 'priority', event.currentTarget.value),
+        }),
         formItemProps: genProps('priority'),
         render: (_, entity) => {
           return entity.priority?.toString() || '-';
@@ -183,14 +217,8 @@ const FormItemNodesInner = <T extends FieldValues>(
         render: () => null,
       },
     ],
-    [disabled]
+    [disabled, syncNodeField]
   );
-  const { label, required, withAsterisk } = props;
-  const [values, setValues] = useState<DataSource[]>([]);
-  const [isDisabled, setIsDisabled] = useState(false);
-  const setNodeValues = useCallback((data: DataSource[]) => {
-    setValues((prev) => (equals(prev, data) ? prev : data));
-  }, []);
   useEffect(() => {
     setNodeValues(parseToDataSource(value));
   }, [setNodeValues, value]);
@@ -232,14 +260,24 @@ const FormItemNodesInner = <T extends FieldValues>(
           bordered
           controlled
           value={values}
+          onChange={(dataSource) => {
+            const next = [...dataSource];
+            setNodeValues(next);
+            syncFormValue(next);
+          }}
           recordCreatorProps={false}
           columns={columns}
           editable={{
             type: 'multiple',
             editableKeys,
-            onValuesChange(_, dataSource) {
-              setNodeValues(dataSource);
-              syncFormValue(dataSource);
+            onValuesChange(changedRecord, dataSource) {
+              const next = dataSource.map((item) =>
+                item.id === changedRecord.id
+                  ? { ...item, ...changedRecord }
+                  : item
+              );
+              setNodeValues(next);
+              syncFormValue(next);
             },
             actionRender: (row) => {
               return [

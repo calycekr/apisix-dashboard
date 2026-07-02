@@ -23,12 +23,11 @@ import { expect } from '@playwright/test';
 test.use({ storageState: { cookies: [], origins: [] } });
 
 test('can auth with admin key', { tag: '@auth' }, async ({ page }) => {
-  const settingsModal = page.getByRole('dialog', { name: 'Settings' });
-  const adminKeyInput = page.getByLabel('Admin Key');
-  const failedMsg = page.getByText('failed to check token');
+  const settingsModal = page.getByRole('dialog').filter({ hasText: 'Admin Key' });
+  const adminKeyInput = page.getByPlaceholder('Enter your APISIX Admin Key');
+  const failedMsg = page.getByText('Authentication failed - the Admin Key is incorrect');
 
   const checkSettingsModal = async () => {
-    await expect(failedMsg).toBeVisible();
     await expect(settingsModal).toBeVisible();
     await expect(page.getByText('UI Commit SHA')).toBeVisible();
   };
@@ -39,11 +38,18 @@ test('can auth with admin key', { tag: '@auth' }, async ({ page }) => {
     await expect(adminKeyInput).toBeEmpty();
     await adminKeyInput.fill('wrong-admin-key');
     await page
-      .getByRole('dialog', { name: 'Settings' })
-      .getByRole('button')
+      .getByRole('dialog')
+      .filter({ hasText: 'Admin Key' })
+      .getByRole('button', { name: 'Test' })
       .click();
 
     await page.reload();
+    await checkSettingsModal();
+    await page
+      .getByRole('dialog')
+      .filter({ hasText: 'Admin Key' })
+      .getByRole('button', { name: 'Test' })
+      .click();
     await expect(failedMsg).toBeVisible();
     await expect(settingsModal).toBeVisible();
   });
@@ -56,8 +62,9 @@ test('can auth with admin key', { tag: '@auth' }, async ({ page }) => {
     await adminKeyInput.clear();
     await adminKeyInput.fill(adminKey);
     await page
-      .getByRole('dialog', { name: 'Settings' })
-      .getByRole('button')
+      .getByRole('dialog')
+      .filter({ hasText: 'Admin Key' })
+      .getByRole('button', { name: 'Test' })
       .click();
 
     await page.reload();
@@ -66,8 +73,8 @@ test('can auth with admin key', { tag: '@auth' }, async ({ page }) => {
 });
 
 test('password input can toggle visibility', { tag: '@auth' }, async ({ page }) => {
-  const settingsModal = page.getByRole('dialog', { name: 'Settings' });
-  const adminKeyInput = page.getByLabel('Admin Key');
+  const settingsModal = page.getByRole('dialog').filter({ hasText: 'Admin Key' });
+  const adminKeyInput = page.getByPlaceholder('Enter your APISIX Admin Key');
   const testPassword = 'test-admin-key-12345';
 
   await expect(settingsModal).toBeVisible();
@@ -79,10 +86,7 @@ test('password input can toggle visibility', { tag: '@auth' }, async ({ page }) 
   });
 
   await test.step('reveal password by clicking visibility toggle', async () => {
-    // Mantine PasswordInput has a button with class mantine-PasswordInput-visibilityToggle
-    const toggleButton = settingsModal.locator(
-      '.mantine-PasswordInput-visibilityToggle'
-    );
+    const toggleButton = settingsModal.locator('.ant-input-password-icon');
 
     await toggleButton.click();
 
@@ -91,9 +95,7 @@ test('password input can toggle visibility', { tag: '@auth' }, async ({ page }) 
   });
 
   await test.step('hide password by clicking visibility toggle again', async () => {
-    const toggleButton = settingsModal.locator(
-      '.mantine-PasswordInput-visibilityToggle'
-    );
+    const toggleButton = settingsModal.locator('.ant-input-password-icon');
 
     await toggleButton.click();
 
