@@ -60,27 +60,20 @@ test.describe('CRUD proto with all fields', () => {
     await test.step('submit the form', async () => {
       await page.getByRole('button', { name: 'Add', exact: true }).click();
 
-      // Should redirect to list page after successful creation
-      await protosPom.isIndexPage(page);
+      await protosPom.isDetailPage(page);
+      createdProtoId = new URL(page.url()).pathname.split('/').pop() ?? '';
+      expect(createdProtoId).toBeTruthy();
     });
 
     await test.step('verify proto was created via API', async () => {
-      // Get the list of protos to find the created one
-      const protos = await e2eReq
-        .get<unknown, APISIXType['RespProtoList']>(API_PROTOS)
+      const proto = await e2eReq
+        .get<unknown, APISIXType['RespProtoDetail']>(
+          `${API_PROTOS}/${createdProtoId}`
+        )
         .then((v) => v.data);
 
-      // Find the proto with our content (search for exact package name)
-      const createdProto = protos.list.find((p) =>
-        p.value.content?.includes('package test;')
-      );
-      expect(createdProto).toBeDefined();
-      expect(createdProto?.value.id).toBeDefined();
-      // eslint-disable-next-line playwright/no-conditional-in-test
-      createdProtoId = createdProto?.value.id || '';
-
-      // Verify content matches
-      expect(createdProto?.value.content).toBe(protoContent);
+      expect(proto.value?.id).toBe(createdProtoId);
+      expect(proto.value?.content).toBe(protoContent);
     });
   });
 
@@ -139,20 +132,34 @@ message UpdatedTestMessage {
     });
 
     await test.step('enter edit mode and update content', async () => {
-      // Click Edit button to enter edit mode
-      await page.getByRole('button', { name: 'Edit' }).click();
-
-      // Clear and fill the content field
       const contentField = page.getByLabel('Content');
       await contentField.clear();
       await contentField.fill(updatedContent);
     });
 
     await test.step('save the changes', async () => {
-      // Click Save button
+      const saveResponse = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'PUT' &&
+          response.url().includes(`${API_PROTOS}/${createdProtoId}`)
+      );
       await page.getByRole('button', { name: 'Save' }).click();
+      await page
+        .getByRole('dialog', { name: 'Review changes before saving' })
+        .getByRole('button', { name: 'Confirm & Save' })
+        .click();
 
-      // Verify we're back in detail view mode
+      const response = await saveResponse;
+      const requestPayload = response.request().postDataJSON() as Record<
+        string,
+        unknown
+      >;
+      expect(requestPayload).toMatchObject({
+        content: updatedContent,
+      });
+      expect(requestPayload).not.toHaveProperty('id');
+      expect(requestPayload).not.toHaveProperty('create_time');
+      expect(requestPayload).not.toHaveProperty('update_time');
       await protosPom.isDetailPage(page);
     });
 
