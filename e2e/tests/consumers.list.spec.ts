@@ -37,8 +37,12 @@ test('should navigate to consumers page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('Username', { exact: true })).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'Username' })
+    ).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'RAW' })
+    ).toBeVisible();
   });
 });
 

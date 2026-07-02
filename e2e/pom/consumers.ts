@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getConsumerNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Consumers', exact: true }),
+    page.getByRole('menuitem', { name: 'Consumers', exact: true }),
   getAddConsumerBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Consumer', exact: true }),
   getAddBtn: (page: Page) =>

@@ -17,7 +17,7 @@
 import { consumersPom } from '@e2e/pom/consumers';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import { expect } from '@playwright/test';
 import { customAlphabet } from 'nanoid';
 
@@ -44,24 +44,18 @@ test('should CRUD consumer with all fields', async ({ page }) => {
   await test.step('submit with all fields', async () => {
     // Fill username (required)
     await page.getByRole('textbox', { name: 'Username' }).fill(consumerUsername);
-    
+
     // Fill description (optional)
     await page.getByRole('textbox', { name: 'Description' }).fill(description);
 
-    // Add labels using tags input
-    const labelsInput = page.getByPlaceholder('Input text like `key:value`, then enter or blur');
-    await labelsInput.fill('version:v1');
-    await labelsInput.press('Enter');
-    await labelsInput.fill('env:test');
-    await labelsInput.press('Enter');
-    await labelsInput.fill('team:engineering');
-    await labelsInput.press('Enter');
+    await uiSelectByLabel(page, 'Labels', 'version:v1');
+    await uiSelectByLabel(page, 'Labels', 'env:test');
+    await uiSelectByLabel(page, 'Labels', 'team:engineering');
+    await page.keyboard.press('Escape').catch(() => {});
 
     // Submit the form
     await consumersPom.getAddBtn(page).click();
-    await uiHasToastMsg(page, {
-      hasText: 'Add Consumer Successfully',
-    });
+    await consumersPom.isDetailPage(page);
   });
 
   await test.step('auto navigate to consumer detail page', async () => {
@@ -73,34 +67,36 @@ test('should CRUD consumer with all fields', async ({ page }) => {
   });
 
   await test.step('edit and update all fields', async () => {
-    // Enter edit mode
-    await page.getByRole('button', { name: 'Edit' }).click();
-
     // Update description
     await page.getByRole('textbox', { name: 'Description' }).fill('Updated: ' + description);
 
     // Update labels - remove old ones and add new ones
-    // First, remove existing labels by clicking the X button
-    const labelsSection = page.getByRole('group', { name: 'Basic Infomation' });
-    const removeButtons = labelsSection.locator('button[aria-label^="Remove"]');
+    const labelsSelect = page
+      .getByRole('combobox', { name: 'Labels' })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+      .first();
+    const removeButtons = labelsSelect.locator('.ant-select-selection-item-remove');
     const count = await removeButtons.count();
     for (let i = 0; i < count; i++) {
       await removeButtons.first().click();
     }
-    
+
     // Add new labels
-    const labelsInput = page.getByPlaceholder('Input text like `key:value`, then enter or blur');
-    await labelsInput.fill('version:v2');
-    await labelsInput.press('Enter');
-    await labelsInput.fill('env:production');
-    await labelsInput.press('Enter');
-    await labelsInput.fill('team:platform');
-    await labelsInput.press('Enter');
+    await uiSelectByLabel(page, 'Labels', 'version:v2');
+    await uiSelectByLabel(page, 'Labels', 'env:production');
+    await uiSelectByLabel(page, 'Labels', 'team:platform');
+    await page.keyboard.press('Escape').catch(() => {});
 
     // Save changes
     await page.getByRole('button', { name: 'Save' }).click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Consumer saved and reloaded from APISIX',
     });
 
     // Verify updates
@@ -126,7 +122,7 @@ test('should CRUD consumer with all fields', async ({ page }) => {
     await consumersPom.isDetailPage(page);
 
     // Delete
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
     await page
       .getByRole('dialog', { name: 'Delete Consumer' })
       .getByRole('button', { name: 'Delete' })
@@ -134,9 +130,9 @@ test('should CRUD consumer with all fields', async ({ page }) => {
 
     // Verify deletion
     await uiHasToastMsg(page, {
-      hasText: 'Delete Consumer Successfully',
+      hasText: 'Consumer deleted successfully',
     });
-    
+
     // Navigate to consumers list to verify consumer is gone
     await consumersPom.toIndex(page);
     await consumersPom.isIndexPage(page);

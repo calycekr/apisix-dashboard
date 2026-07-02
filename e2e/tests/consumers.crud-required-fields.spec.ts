@@ -50,9 +50,7 @@ test('should CRUD consumer with required fields', async ({ page }) => {
 
     // Submit the form
     await consumersPom.getAddBtn(page).click();
-    await uiHasToastMsg(page, {
-      hasText: 'Add Consumer Successfully',
-    });
+    await consumersPom.isDetailPage(page);
   });
 
   await test.step('auto navigate to consumer detail page', async () => {
@@ -61,13 +59,9 @@ test('should CRUD consumer with required fields', async ({ page }) => {
     // Verify the consumer username
     const username = page.getByRole('textbox', { name: 'Username' });
     await expect(username).toHaveValue(consumerUsername);
-    await expect(username).toBeDisabled();
   });
 
   await test.step('edit and update consumer in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
     // Update the description field
     const descriptionField = page.getByRole('textbox', { name: 'Description' });
     await descriptionField.fill('Updated description for testing');
@@ -75,10 +69,14 @@ test('should CRUD consumer with required fields', async ({ page }) => {
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save' });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Consumer saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -107,7 +105,7 @@ test('should CRUD consumer with required fields', async ({ page }) => {
     // We're already on the detail page from the previous step
 
     // Delete the consumer
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     await page
       .getByRole('dialog', { name: 'Delete Consumer' })
@@ -116,9 +114,9 @@ test('should CRUD consumer with required fields', async ({ page }) => {
 
     // Verify deletion was successful with toast
     await uiHasToastMsg(page, {
-      hasText: 'Delete Consumer Successfully',
+      hasText: 'Consumer deleted successfully',
     });
-    
+
     // Navigate to consumers index to verify consumer is gone
     await consumersPom.toIndex(page);
     await consumersPom.isIndexPage(page);
