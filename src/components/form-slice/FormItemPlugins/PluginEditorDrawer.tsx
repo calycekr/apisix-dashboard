@@ -17,7 +17,7 @@
 import { Alert, Button, Drawer, Space, Tabs, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useCallback, useEffect, useState } from 'react';
-import { FormProvider, useForm, useWatch } from 'react-hook-form';
+import { FormProvider, useForm } from 'react-hook-form';
 
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
@@ -157,11 +157,6 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     disabled: mode === 'view',
     defaultValues: { config: toConfigStr(getEditableConfig(schema, config, mode)) },
   });
-  const watchedConfig = useWatch({
-    control: methods.control,
-    name: 'config',
-  });
-
   const handleClose = () => {
     onClose();
     methods.reset();
@@ -213,7 +208,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       return formValue;
     }
     try {
-      const parsed = JSON.parse(watchedConfig || '{}') as unknown;
+      const parsed = JSON.parse(methods.getValues('config') || '{}') as unknown;
       return isRecord(parsed) ? parsed : formValue;
     } catch {
       return formValue;

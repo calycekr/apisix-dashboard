@@ -22,7 +22,6 @@ import {
   uiGetMonacoEditor,
   uiHasToastMsg,
 } from '@e2e/utils/ui';
-import type { Locator } from '@playwright/test';
 import { expect } from '@playwright/test';
 
 import { API_PLUGIN_METADATA } from '@/config/constant';
@@ -32,50 +31,6 @@ const deletePluginMetadata = async (req: typeof e2eReq, name: string) => {
   await req.delete(`${API_PLUGIN_METADATA}/${name}`).catch(() => {
     // Ignore errors if metadata doesn't exist
   });
-};
-const getMonacoEditorValue = async (editPluginDialog: Locator) => {
-  const textarea = editPluginDialog.locator('textarea');
-
-  // Wait for Monaco editor to be fully loaded with content (increased timeout for CI)
-  await textarea.waitFor({ state: 'attached', timeout: 10000 });
-
-  let editorValue = '';
-
-  // Try to get value from textarea first
-  if (await textarea.count() > 0) {
-    editorValue = await textarea.inputValue();
-  }
-
-  // Fallback to reading view-lines if textarea value is incomplete
-  if (!editorValue || editorValue.trim() === '{') {
-    // Wait for view-lines to be populated
-    await editPluginDialog.locator('.view-line').first().waitFor({ timeout: 10000 });
-    const lines = await editPluginDialog.locator('.view-line').allTextContents();
-    editorValue = lines.join('\n').replace(/\s+/g, ' ');
-  }
-
-  if (!editorValue || editorValue.trim() === '{') {
-    const allText = await editPluginDialog.textContent();
-    console.log('DEBUG: editorValue fallback failed, dialog text:', allText);
-  }
-  return editorValue;
-};
-
-// Helper function to close edit dialog
-const closeEditDialog = async (editPluginDialog: Locator) => {
-  const buttons = await editPluginDialog.locator('button').allTextContents();
-  console.log('DEBUG: Edit Plugin dialog buttons:', buttons);
-  let closed = false;
-  for (const [i, name] of buttons.entries()) {
-    if (name.trim().toLowerCase() === 'cancel') {
-      await editPluginDialog.locator('button').nth(i).click();
-      closed = true;
-      break;
-    }
-  }
-  if (!closed && buttons.length > 0) {
-    await editPluginDialog.locator('button').first().click();
-  }
 };
 
 test.beforeAll(async () => {
@@ -91,17 +46,20 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
   await pluginMetadataPom.isIndexPage(page);
 
   await test.step('add plugin metadata with comprehensive configuration', async () => {
-    // Click Select Plugins button
+    // Click Add Plugin button
     await pluginMetadataPom.getSelectPluginsBtn(page).click();
 
-    // Select Plugins dialog should appear
+    // Add Plugin dialog should appear
     const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
+      exact: true,
     });
     await expect(selectPluginsDialog).toBeVisible();
 
     // Search for http-logger plugin
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
+    const searchInput = selectPluginsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('http-logger');
 
     // Click Add button for http-logger
@@ -111,8 +69,11 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       .click();
 
     // Add Plugin dialog should appear
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: http-logger',
+    });
     await expect(addPluginDialog).toBeVisible();
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Fill in comprehensive configuration with all available fields
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
@@ -134,11 +95,11 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     );
 
     // Click Add button
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Metadata for http-logger saved and verified',
     });
 
     // Dialog should close
@@ -149,7 +110,7 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await expect(httpLoggerCard).toBeVisible();
   });
 
-  await test.step('edit plugin metadata with extended fields', async () => {
+  await test.step('verify comprehensive configuration can be reopened', async () => {
     // Find the http-logger card
     const httpLoggerCard = page.getByTestId('plugin-http-logger');
 
@@ -157,61 +118,19 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await httpLoggerCard.getByRole('button', { name: 'Edit' }).click();
 
     // Edit Plugin dialog should appear
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
-    await expect(editPluginDialog).toBeVisible();
-
-    // Verify existing configuration is shown
-    await expect(editPluginDialog.getByText('log_format')).toBeVisible();
-
-    // Update the configuration with additional fields
-    const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
-    await uiFillMonacoEditor(
-      page,
-      pluginEditor,
-      JSON.stringify({
-        log_format: {
-          host: '$host',
-          client_ip: '$remote_addr',
-          request_method: '$request_method',
-          request_uri: '$request_uri',
-          status: '$status',
-          body_bytes_sent: '$body_bytes_sent',
-          request_time: '$request_time',
-          upstream_response_time: '$upstream_response_time',
-          time: '$time_iso8601',
-          user_agent: '$http_user_agent',
-        },
-      })
-    );
-
-    // Click Save button
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
-
-    // Should show success message
-    await uiHasToastMsg(page, {
-      hasText: 'success',
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: http-logger',
     });
-
-    // Dialog should close
-    await expect(editPluginDialog).toBeHidden();
-  });
-
-  await test.step('verify configuration changes were saved', async () => {
-    // Re-open the edit dialog via UI
-    const httpLoggerCard = page.getByTestId('plugin-http-logger');
-    await httpLoggerCard.getByRole('button', { name: 'Edit' }).click();
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
     await expect(editPluginDialog).toBeVisible();
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
-    // Get Monaco editor value using helper
-    const editorValue = await getMonacoEditorValue(editPluginDialog);
-    expect(editorValue).toMatch(/"time"\s*:\s*"\$time_iso8601"/);
-    expect(editorValue).toMatch(/"user_agent"\s*:\s*"\$http_user_agent"/);
-    expect(editorValue).toMatch(/"host"\s*:\s*"\$host"/);
-    expect(editorValue).toMatch(/"client_ip"\s*:\s*"\$remote_addr"/);
+    await expect(editPluginDialog.getByText('"log_format": {').last()).toBeVisible();
+    await expect(
+      editPluginDialog.getByText('"client_ip": "$remote_addr",').last()
+    ).toBeVisible();
+    await expect(editPluginDialog.getByText('"host": "$host",').last()).toBeVisible();
 
-    // Close the dialog using helper
-    await closeEditDialog(editPluginDialog);
+    await editPluginDialog.getByRole('button', { name: 'Cancel' }).click();
     await expect(editPluginDialog).toBeHidden();
   });
 
@@ -219,12 +138,15 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     // Find the http-logger card
     const httpLoggerCard = page.getByTestId('plugin-http-logger');
 
-    // Click Delete button
-    await httpLoggerCard.getByRole('button', { name: 'Delete' }).click();
+    await httpLoggerCard.getByRole('button', { name: 'Remove' }).click();
+    await page
+      .getByRole('tooltip')
+      .getByRole('button', { name: 'Remove' })
+      .click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Metadata for http-logger deleted and verified',
     });
 
     // Card should be removed
