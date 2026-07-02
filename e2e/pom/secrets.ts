@@ -21,7 +21,7 @@ const locator = {
   getSecretNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Secrets' }),
   getAddSecretBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Secret' }),
+    page.getByRole('link', { name: 'Add Secret' }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

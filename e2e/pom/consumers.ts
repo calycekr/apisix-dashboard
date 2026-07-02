@@ -21,7 +21,7 @@ const locator = {
   getConsumerNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Consumers', exact: true }),
   getAddConsumerBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Consumer', exact: true }),
+    page.getByRole('link', { name: 'Add Consumer', exact: true }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

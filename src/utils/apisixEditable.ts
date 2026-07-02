@@ -58,6 +58,31 @@ export const restorePatchReadonlyFields = (
 export const isRecord = (value: unknown): value is Record<string, unknown> =>
   !!value && typeof value === 'object' && !Array.isArray(value);
 
+export const isDeepEqual = (left: unknown, right: unknown): boolean => {
+  if (Object.is(left, right)) return true;
+
+  if (Array.isArray(left) || Array.isArray(right)) {
+    if (!Array.isArray(left) || !Array.isArray(right)) return false;
+    if (left.length !== right.length) return false;
+    return left.every((item, index) => isDeepEqual(item, right[index]));
+  }
+
+  if (isRecord(left) || isRecord(right)) {
+    if (!isRecord(left) || !isRecord(right)) return false;
+
+    const leftKeys = Object.keys(left);
+    const rightKeys = Object.keys(right);
+    if (leftKeys.length !== rightKeys.length) return false;
+
+    return leftKeys.every((key) =>
+      Object.prototype.hasOwnProperty.call(right, key) &&
+      isDeepEqual(left[key], right[key])
+    );
+  }
+
+  return false;
+};
+
 const KEY_ORDER = [
   // Primary identification
   'id',
@@ -258,7 +283,7 @@ export const buildPatchPayload = (
       continue;
     }
 
-    if (JSON.stringify(currentValue) !== JSON.stringify(previousValue)) {
+    if (!isDeepEqual(currentValue, previousValue)) {
       patch[key] = currentValue;
     }
   }
@@ -272,7 +297,7 @@ export const getChangedTopLevelReadonlyKeys = (
 ) =>
   PATCH_READONLY_KEYS.filter((key) => {
     if (!(key in current) && !(key in previous)) return false;
-    return JSON.stringify(current[key]) !== JSON.stringify(previous[key]);
+    return !isDeepEqual(current[key], previous[key]);
   });
 
 export const getPatchMismatchPaths = (
@@ -301,7 +326,7 @@ export const getPatchMismatchPaths = (
       continue;
     }
 
-    if (!hasActual || JSON.stringify(expected) !== JSON.stringify(actualValue)) {
+    if (!hasActual || !isDeepEqual(expected, actualValue)) {
       mismatches.push(path);
     }
   }

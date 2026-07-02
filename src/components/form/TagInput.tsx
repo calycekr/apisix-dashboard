@@ -24,7 +24,7 @@ import {
 } from 'react-hook-form';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 export type FormItemTagsInputProps<
   T extends FieldValues,
@@ -55,7 +55,7 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
       required = false,
       ...restProps
     },
-  } = genControllerProps(props, []);
+  } = genControllerProps(props);
 
   const {
     field: { value, onChange: fOnChange, onBlur: fOnBlur, ...restField },
@@ -63,12 +63,15 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
   } = useController<T>(controllerProps);
 
   const [searchValue, setSearchValue] = useState('');
+  const selectedValue = Array.isArray(value) ? value : [];
 
   const options = data
     ? (data as Array<string | { value: string; label: string }>).map((item) =>
         typeof item === 'string' ? { value: item, label: item } : item
       )
     : restProps.options;
+  const ariaLabel =
+    restProps['aria-label'] ?? getAccessibleFieldLabel(label);
 
   return (
     <InputWrapper
@@ -81,7 +84,11 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
     >
       <Select
         mode="tags"
-        value={from ? (value as unknown[]).map(from as (v: unknown) => string) : value}
+        value={
+          from
+            ? selectedValue.map(from as (v: unknown) => string)
+            : selectedValue
+        }
         status={fieldState.error ? 'error' : undefined}
         searchValue={searchValue}
         onSearch={setSearchValue}
@@ -89,13 +96,13 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
         options={options}
         onChange={(val) => {
           const mapped = to ? (val as string[]).map(to) : val;
-          fOnChange(mapped);
+          fOnChange((mapped as unknown[]).length > 0 ? mapped : undefined);
           restProps?.onChange?.(val, []);
           setSearchValue('');
         }}
         onBlur={() => {
           if (searchValue.trim()) {
-            const newVal = [...(value as string[]), searchValue.trim()];
+            const newVal = [...(selectedValue as string[]), searchValue.trim()];
             const mapped = to ? newVal.map(to) : newVal;
             fOnChange(mapped);
             setSearchValue('');
@@ -104,6 +111,7 @@ export const FormItemTagsInput = <T extends FieldValues, R>(
         }}
         {...restField}
         {...restProps}
+        aria-label={ariaLabel}
       />
     </InputWrapper>
   );

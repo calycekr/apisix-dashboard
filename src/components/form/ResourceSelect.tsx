@@ -27,7 +27,7 @@ import { PAGE_SIZE_MAX } from '@/config/constant';
 import { req } from '@/config/req';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 type ResourceSelectProps<T extends FieldValues> = UseControllerProps<T> &
   Omit<SelectProps, 'value' | 'defaultValue' | 'options'> & {
@@ -51,6 +51,7 @@ export const ResourceSelect = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   const [open, setOpen] = useState(false);
+  const fieldLabel = label ?? `${resourceLabel} ID`;
 
   const { data: options, isLoading } = useQuery({
     queryKey: ['resource-select', resourceApi],
@@ -130,7 +131,7 @@ export const ResourceSelect = <T extends FieldValues>(
 
   return (
     <InputWrapper
-      label={label ?? `${resourceLabel} ID`}
+      label={fieldLabel}
       description={description ?? `Select an existing ${resourceLabel} or type an ID`}
       error={fieldState.error?.message}
       status={fieldState.isDirty && !fieldState.error ? 'success' : undefined}
@@ -139,6 +140,9 @@ export const ResourceSelect = <T extends FieldValues>(
       <Select
         {...restField}
         {...restProps}
+        aria-label={
+          restProps['aria-label'] ?? getAccessibleFieldLabel(fieldLabel)
+        }
         value={value || undefined}
         onChange={(v) => fOnChange(v || undefined)}
         onOpenChange={setOpen}

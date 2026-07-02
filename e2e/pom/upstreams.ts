@@ -21,7 +21,7 @@ const locator = {
   getUpstreamNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Upstreams' }),
   getAddUpstreamBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Upstream' }),
+    page.getByRole('link', { name: 'Add Upstream' }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

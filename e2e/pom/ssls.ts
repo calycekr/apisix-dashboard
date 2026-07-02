@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getSSLNavBtn: (page: Page) => page.getByRole('link', { name: 'SSLs' }),
-  getAddSSLBtn: (page: Page) => page.getByRole('button', { name: 'Add SSL' }),
+  getAddSSLBtn: (page: Page) => page.getByRole('link', { name: 'Add SSL' }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

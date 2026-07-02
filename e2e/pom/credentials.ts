@@ -21,7 +21,7 @@ const locator = {
   getCredentialsTab: (page: Page) =>
     page.getByRole('tab', { name: 'Credentials' }),
   getAddCredentialBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Credential', exact: true }),
+    page.getByRole('link', { name: 'Add Credential', exact: true }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

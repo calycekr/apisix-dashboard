@@ -142,12 +142,14 @@ export const FormItemNodes = <T extends FieldValues>(
         title: 'Host',
         dataIndex: 'host',
         valueType: 'text',
+        fieldProps: { 'aria-label': 'Host' },
         formItemProps: genProps('host'),
       },
       {
         title: 'Port',
         dataIndex: 'port',
         valueType: 'digit',
+        fieldProps: { 'aria-label': 'Port' },
         formItemProps: genProps('port'),
         render: (_, entity) => {
           return entity.port.toString();
@@ -157,6 +159,7 @@ export const FormItemNodes = <T extends FieldValues>(
         title: 'Weight',
         dataIndex: 'weight',
         valueType: 'digit',
+        fieldProps: { 'aria-label': 'Weight' },
         formItemProps: genProps('weight'),
         render: (_, entity) => {
           return entity.weight.toString();
@@ -166,6 +169,7 @@ export const FormItemNodes = <T extends FieldValues>(
         title: 'Priority',
         dataIndex: 'priority',
         valueType: 'digit',
+        fieldProps: { 'aria-label': 'Priority' },
         formItemProps: genProps('priority'),
         render: (_, entity) => {
           return entity.priority?.toString() || '-';

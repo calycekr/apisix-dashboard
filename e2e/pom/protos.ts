@@ -21,7 +21,7 @@ const locator = {
   getProtoNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Protos' }),
   getAddProtoBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Proto' }),
+    page.getByRole('link', { name: 'Add Proto' }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

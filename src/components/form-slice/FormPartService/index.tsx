@@ -60,7 +60,7 @@ const FormSectionSettings = () => {
 export const FormPartService = ({ showID = true }: { showID?: boolean } = {}) => {
   return (
     <>
-      <FormPartBasic showID={showID} showStatus />
+      <FormPartBasic showID={showID} />
       <FormSectionUpstream owner="service" />
       <FormSectionSettings />
       <FormSectionPlugins />

@@ -23,7 +23,7 @@ import {
 } from 'react-hook-form';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 export type FormItemTextInputProps<T extends FieldValues> =
   UseControllerProps<T> & InputProps & {
@@ -40,6 +40,8 @@ export const FormItemTextInput = <T extends FieldValues>(
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
+  const ariaLabel =
+    inputProps['aria-label'] ?? getAccessibleFieldLabel(label);
   return (
     <InputWrapper
       label={label}
@@ -58,6 +60,7 @@ export const FormItemTextInput = <T extends FieldValues>(
         }}
         {...restField}
         {...inputProps}
+        aria-label={ariaLabel}
       />
     </InputWrapper>
   );

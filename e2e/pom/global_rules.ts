@@ -21,7 +21,7 @@ const locator = {
   getGlobalRuleNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Global Rules', exact: true }),
   getAddGlobalRuleBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Global Rule', exact: true }),
+    page.getByRole('link', { name: 'Add Global Rule', exact: true }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

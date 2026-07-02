@@ -42,8 +42,11 @@ export const uiHasToastMsg = async (
   const alertMsg = page.getByRole('alert').filter(...filterOpts);
   // Increased timeout for CI environment (30s instead of default 5s)
   await expect(alertMsg).toBeVisible({ timeout: 30000 });
-  await alertMsg.getByRole('button').click();
-  await expect(alertMsg).not.toBeVisible();
+  const closeButton = alertMsg.getByRole('button').first();
+  if ((await closeButton.count()) > 0) {
+    await closeButton.click();
+    await expect(alertMsg).not.toBeVisible();
+  }
 };
 
 export async function uiCannotSubmitEmptyForm(page: Page, pom: CommonPOM) {
@@ -67,7 +70,7 @@ export async function uiFillHTTPStatuses(
 export const uiClearMonacoEditor = async (page: Page) => {
   await page.evaluate(() => {
     const editor = window.__monacoEditor__;
-    editor.getModel()?.setValue('');
+    editor?.getModel()?.setValue('');
   });
 };
 
@@ -96,6 +99,8 @@ export const uiFillMonacoEditor = async (
 ) => {
   await editor.click();
   const editorTextbox = editor.getByRole('textbox');
+  await editorTextbox.press(process.platform === 'darwin' ? 'Meta+A' : 'Control+A');
+  await editorTextbox.press('Backspace');
   // Use fill() instead of pressSequentially() for reliability
   await editorTextbox.fill(value);
   await editor.blur();

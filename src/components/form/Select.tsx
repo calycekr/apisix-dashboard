@@ -23,7 +23,7 @@ import {
 } from 'react-hook-form';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 const normalizeSelectData = (data: unknown): SelectProps['options'] => {
   if (!Array.isArray(data)) return undefined;
@@ -95,7 +95,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
       required = false,
       ...restProps
     },
-  } = genControllerProps(props, []);
+  } = genControllerProps(props);
 
   const {
     field: { value, onChange: fOnChange, ...restField },
@@ -126,6 +126,8 @@ export const FormItemSelect = <T extends FieldValues, R>(
 
     return sanitize(restProps.options ?? normalizeSelectData(data));
   }, [data, restProps.options]);
+  const ariaLabel =
+    restProps['aria-label'] ?? getAccessibleFieldLabel(label);
 
   return (
     <InputWrapper
@@ -149,6 +151,7 @@ export const FormItemSelect = <T extends FieldValues, R>(
         optionFilterProp={searchable ? 'label' : undefined}
         {...restField}
         {...restProps}
+        aria-label={ariaLabel}
         options={sanitizedOptions}
       />
     </InputWrapper>

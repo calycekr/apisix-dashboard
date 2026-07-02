@@ -21,7 +21,7 @@ const locator = {
   getPluginConfigNavBtn: (page: Page) =>
     page.getByRole('link', { name: 'Plugin Configs', exact: true }),
   getAddPluginConfigBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Plugin Config', exact: true }),
+    page.getByRole('link', { name: 'Add Plugin Config', exact: true }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),
 };

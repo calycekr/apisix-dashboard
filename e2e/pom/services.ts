@@ -28,12 +28,12 @@ const locator = {
   getServiceRoutesTab: (page: Page) =>
     page.getByRole('tab', { name: 'Routes', exact: true }),
   getAddRouteBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Route', exact: true }),
+    page.getByRole('link', { name: 'Add Route', exact: true }),
   // Service stream routes locators
   getServiceStreamRoutesTab: (page: Page) =>
     page.getByRole('tab', { name: 'Stream Routes', exact: true }),
   getAddStreamRouteBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Add Stream Route', exact: true }),
+    page.getByRole('link', { name: 'Add Stream Route', exact: true }),
 };
 
 const assert = {

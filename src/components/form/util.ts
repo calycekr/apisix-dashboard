@@ -14,6 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+import type { ReactNode } from 'react';
 import type { FieldValues, UseControllerProps } from 'react-hook-form';
 
 export const genControllerProps = <T extends FieldValues, R>(
@@ -36,4 +37,10 @@ export const genControllerProps = <T extends FieldValues, R>(
     },
     restProps,
   };
+};
+
+export const getAccessibleFieldLabel = (label?: ReactNode) => {
+  if (typeof label === 'string') return label;
+  if (typeof label === 'number') return String(label);
+  return undefined;
 };
