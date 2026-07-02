@@ -99,8 +99,30 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
     await expect(selectPluginsDialog).toBeHidden();
 
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(API_PLUGIN_CONFIGS)
+    );
+
     // Submit the form
     await pluginConfigsPom.getAddBtn(page).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      name: pluginConfigName,
+      plugins: {
+        'response-rewrite': {
+          body: 'test response',
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await uiHasToastMsg(page, {
       hasText: 'Plugin Config created and verified',
     });
@@ -147,6 +169,12 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
     await expect(editPluginDialog).toBeHidden();
 
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(API_PLUGIN_CONFIGS)
+    );
+
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
@@ -154,6 +182,22 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      name: `${pluginConfigName}-updated`,
+      plugins: {
+        'response-rewrite': {
+          body: 'updated response',
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await expect(page.getByText('No pending changes')).toBeVisible({
       timeout: 30000,
     });

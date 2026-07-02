@@ -109,8 +109,38 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
 
     await expect(page.getByTestId('plugin-response-rewrite')).toBeVisible();
 
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(API_PLUGIN_CONFIGS)
+    );
+
     // Submit the form
     await pluginConfigsPom.getAddBtn(page).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      name: pluginConfigNameWithAllFields,
+      desc: description,
+      labels: {
+        env: 'production',
+        version: 'v1.0',
+      },
+      plugins: {
+        'response-rewrite': {
+          body: 'test response body',
+          headers: {
+            'X-Custom-Header': 'custom-value',
+          },
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await uiHasToastMsg(page, {
       hasText: 'Plugin Config created and verified',
     });
@@ -176,6 +206,12 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
     await expect(editPluginDialog).toBeHidden();
 
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(API_PLUGIN_CONFIGS)
+    );
+
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
@@ -183,6 +219,31 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      name: pluginConfigNameWithAllFields,
+      desc: 'Updated description for testing all fields',
+      labels: {
+        env: 'production',
+        version: 'v1.0',
+        team: 'backend',
+      },
+      plugins: {
+        'response-rewrite': {
+          body: 'updated response body',
+          headers: {
+            'X-Updated-Header': 'updated-value',
+          },
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
