@@ -21,26 +21,113 @@ import { getStreamRouteListReq } from '@/apis/stream_routes';
 import { getUpstreamListReq } from '@/apis/upstreams';
 import type { APISIXType } from '@/types/schema/apisix';
 
+type TopologyResourceKey = 'routes' | 'streamRoutes' | 'services' | 'upstreams';
+
 export type TopologyData = {
-  routes: Array<{ id: string; name?: string; uri?: string; service_id?: string; upstream_id?: string; hasInlineUpstream: boolean }>;
-  streamRoutes: Array<{ id: string; name?: string; service_id?: string; upstream_id?: string; hasInlineUpstream: boolean }>;
-  services: Array<{ id: string; name?: string; upstream_id?: string; hasInlineUpstream: boolean }>;
+  routes: Array<{
+    id: string;
+    name?: string;
+    uri?: string;
+    service_id?: string;
+    upstream_id?: string;
+    hasInlineUpstream: boolean;
+    inlineUpstreamTargets: string[];
+  }>;
+  streamRoutes: Array<{
+    id: string;
+    name?: string;
+    service_id?: string;
+    upstream_id?: string;
+    hasInlineUpstream: boolean;
+    inlineUpstreamTargets: string[];
+  }>;
+  services: Array<{
+    id: string;
+    name?: string;
+    upstream_id?: string;
+    hasInlineUpstream: boolean;
+    inlineUpstreamTargets: string[];
+  }>;
   upstreams: Array<{ id: string; name?: string; nodes: string[] }>;
+  unavailableResources: TopologyResourceKey[];
 };
 
-function extractNodes(upstream: APISIXType['Upstream']): string[] {
+type TopologySourceData = {
+  routes: APISIXType['Route'][];
+  streamRoutes: APISIXType['StreamRoute'][];
+  services: APISIXType['Service'][];
+  upstreams: APISIXType['Upstream'][];
+  unavailableResources?: TopologyResourceKey[];
+};
+
+export function getUpstreamTargets(upstream?: Partial<APISIXType['Upstream']>): string[] {
   try {
-    const nodes = upstream.nodes;
-    if (!nodes || typeof nodes !== 'object') return [];
+    const targets: string[] = [];
+    const nodes = upstream?.nodes;
     if (Array.isArray(nodes)) {
-      return nodes
-        .filter((n) => n?.host && typeof n.port === 'number')
-        .map((n) => `${n.host}:${n.port}`);
+      targets.push(
+        ...nodes
+          .filter((n) => n?.host && typeof n.port === 'number')
+          .map((n) => `${n.host}:${n.port}`)
+      );
+    } else if (nodes && typeof nodes === 'object') {
+      targets.push(...Object.keys(nodes));
     }
-    return Object.keys(nodes);
+
+    const serviceName = upstream?.service_name?.trim();
+    const discoveryType = upstream?.discovery_type?.trim();
+    if (serviceName || discoveryType) {
+      targets.push(`${discoveryType || 'discovery'}${serviceName ? `:${serviceName}` : ''}`);
+    }
+
+    return targets;
   } catch {
     return [];
   }
+}
+
+export function buildTopologyData(data: TopologySourceData): TopologyData {
+  return {
+    routes: data.routes.map((r) => {
+      const inlineUpstreamTargets = getUpstreamTargets(r.upstream);
+      return {
+        id: r.id,
+        name: r.name,
+        uri: r.uri || r.uris?.join(', '),
+        service_id: r.service_id,
+        upstream_id: r.upstream_id,
+        hasInlineUpstream: inlineUpstreamTargets.length > 0,
+        inlineUpstreamTargets,
+      };
+    }),
+    streamRoutes: data.streamRoutes.map((r) => {
+      const inlineUpstreamTargets = getUpstreamTargets(r.upstream);
+      return {
+        id: r.id,
+        name: r.desc,
+        service_id: r.service_id,
+        upstream_id: r.upstream_id,
+        hasInlineUpstream: inlineUpstreamTargets.length > 0,
+        inlineUpstreamTargets,
+      };
+    }),
+    services: data.services.map((s) => {
+      const inlineUpstreamTargets = getUpstreamTargets(s.upstream);
+      return {
+        id: s.id,
+        name: s.name,
+        upstream_id: s.upstream_id,
+        hasInlineUpstream: inlineUpstreamTargets.length > 0,
+        inlineUpstreamTargets,
+      };
+    }),
+    upstreams: data.upstreams.map((u) => ({
+      id: u.id,
+      name: u.name,
+      nodes: getUpstreamTargets(u),
+    })),
+    unavailableResources: data.unavailableResources ?? [],
+  };
 }
 
 export const getTopologyData = async (): Promise<TopologyData> => {
@@ -50,42 +137,25 @@ export const getTopologyData = async (): Promise<TopologyData> => {
     fetchAllResources<APISIXType['Service']>(getServiceListReq),
     fetchAllResources<APISIXType['Upstream']>(getUpstreamListReq),
   ]);
-  const routes = routesRes.status === 'fulfilled' ? routesRes.value : [];
-  const streamRoutes = streamRoutesRes.status === 'fulfilled' ? streamRoutesRes.value : [];
-  const services = servicesRes.status === 'fulfilled' ? servicesRes.value : [];
-  const upstreams = upstreamsRes.status === 'fulfilled' ? upstreamsRes.value : [];
+  const settledResults = {
+    routes: routesRes,
+    streamRoutes: streamRoutesRes,
+    services: servicesRes,
+    upstreams: upstreamsRes,
+  };
+  const unavailableResources = Object.entries(settledResults)
+    .filter(([, result]) => result.status === 'rejected')
+    .map(([key]) => key as TopologyResourceKey);
 
-  // If core resources (routes, services, upstreams) all failed, throw
-  if (routesRes.status === 'rejected' && servicesRes.status === 'rejected' && upstreamsRes.status === 'rejected') {
-    throw new Error('Failed to fetch topology data — check APISIX connection');
+  if (unavailableResources.length === Object.keys(settledResults).length) {
+    throw new Error('Failed to fetch topology data - check APISIX connection');
   }
 
-  return {
-    routes: routes.map((r) => ({
-      id: r.id,
-      name: r.name,
-      uri: r.uri || r.uris?.join(', '),
-      service_id: r.service_id,
-      upstream_id: r.upstream_id,
-      hasInlineUpstream: !!r.upstream?.nodes,
-    })),
-    streamRoutes: streamRoutes.map((r) => ({
-      id: r.id,
-      name: r.desc,
-      service_id: r.service_id,
-      upstream_id: r.upstream_id,
-      hasInlineUpstream: !!r.upstream?.nodes,
-    })),
-    services: services.map((s) => ({
-      id: s.id,
-      name: s.name,
-      upstream_id: s.upstream_id,
-      hasInlineUpstream: !!s.upstream?.nodes,
-    })),
-    upstreams: upstreams.map((u) => ({
-      id: u.id,
-      name: u.name,
-      nodes: extractNodes(u),
-    })),
-  };
+  return buildTopologyData({
+    routes: routesRes.status === 'fulfilled' ? routesRes.value : [],
+    streamRoutes: streamRoutesRes.status === 'fulfilled' ? streamRoutesRes.value : [],
+    services: servicesRes.status === 'fulfilled' ? servicesRes.value : [],
+    upstreams: upstreamsRes.status === 'fulfilled' ? upstreamsRes.value : [],
+    unavailableResources,
+  });
 };

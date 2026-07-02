@@ -105,7 +105,7 @@ function buildNodesAndEdges(data: TopologyData, nodeColors: NodeColorSet): { nod
           <NodeLabel
             type="upstream"
             name={u.name || u.id}
-            detail={u.nodes.length ? u.nodes.slice(0, 2).join(', ') + (u.nodes.length > 2 ? '...' : '') : ''}
+            detail={summarizeTargets(u.nodes)}
             nodeColors={nodeColors}
           />
         ),
@@ -125,7 +125,7 @@ function buildNodesAndEdges(data: TopologyData, nodeColors: NodeColorSet): { nod
           <NodeLabel
             type="service"
             name={s.name || s.id}
-            detail={s.hasInlineUpstream ? 'inline upstream' : ''}
+            detail={s.hasInlineUpstream ? `inline: ${summarizeTargets(s.inlineUpstreamTargets)}` : ''}
             nodeColors={nodeColors}
           />
         ),
@@ -194,7 +194,7 @@ function buildNodesAndEdges(data: TopologyData, nodeColors: NodeColorSet): { nod
           <NodeLabel
             type="streamRoute"
             name={r.name || r.id}
-            detail=""
+            detail={r.hasInlineUpstream ? `inline: ${summarizeTargets(r.inlineUpstreamTargets)}` : ''}
             nodeColors={nodeColors}
           />
         ),
@@ -241,6 +241,30 @@ function nodeStyle(type: string, nodeColors: NodeColorSet): React.CSSProperties 
     width: NODE_WIDTH,
     fontSize: 'var(--app-font-size-sm)',
   };
+}
+
+function summarizeTargets(targets: string[]): string {
+  if (!targets.length) return '';
+  return targets.slice(0, 2).join(', ') + (targets.length > 2 ? '...' : '');
+}
+
+function InlineUpstreamTargets({ targets }: { targets: string[] }) {
+  if (!targets.length) return null;
+
+  return (
+    <div style={{ marginTop: 8 }}>
+      <Tag color="orange" style={{ marginBottom: 4 }}>Inline Target</Tag>
+      <List
+        size="small"
+        dataSource={targets}
+        renderItem={(item: string) => (
+          <List.Item style={{ padding: '2px 0', border: 'none' }}>
+            <Typography.Text code style={{ fontSize: 'var(--app-font-size-xs)' }}>{item}</Typography.Text>
+          </List.Item>
+        )}
+      />
+    </div>
+  );
 }
 
 function NodeLabel({ type, name, detail, nodeColors }: { type: string; name: string; detail: string; nodeColors: NodeColorSet }) {
@@ -378,6 +402,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
   }, [selectedNodeId, data, navigate]);
 
   const routeData = selectedResource?.type === 'Route' ? selectedResource.data as TopologyData['routes'][number] : null;
+  const streamRouteData = selectedResource?.type === 'Stream Route' ? selectedResource.data as TopologyData['streamRoutes'][number] : null;
   const serviceData = selectedResource?.type === 'Service' ? selectedResource.data as TopologyData['services'][number] : null;
   const upstreamData = selectedResource?.type === 'Upstream' ? selectedResource.data as TopologyData['upstreams'][number] : null;
 
@@ -392,7 +417,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
         borderRadius: 8,
       }}>
         <Typography.Text type="secondary">
-          No resources found. Create routes, services, or upstreams to see the topology.
+          No resources found. Create routes, stream routes, services, or upstreams to see the topology.
         </Typography.Text>
       </div>
     );
@@ -529,9 +554,34 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                     </div>
                   )}
 
-                  {routeData.hasInlineUpstream && (
-                    <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
+                  <InlineUpstreamTargets targets={routeData.inlineUpstreamTargets} />
+                </>
+              )}
+
+              {streamRouteData && (
+                <>
+                  <Divider style={{ margin: '8px 0' }} />
+                  <Typography.Text strong style={{ fontSize: 'var(--app-font-size-sm)', display: 'block' }}>Connected Resources</Typography.Text>
+
+                  {streamRouteData.service_id && (
+                    <div style={{ marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 'var(--app-font-size-xs)', display: 'block' }}>Service Link</Typography.Text>
+                      <Button type="link" size="small" style={{ padding: 0, height: 'auto', fontSize: 'var(--app-font-size-sm)' }} onClick={() => setSelectedNodeId(`service-${streamRouteData.service_id}`)}>
+                        service-{streamRouteData.service_id}
+                      </Button>
+                    </div>
                   )}
+
+                  {streamRouteData.upstream_id && (
+                    <div style={{ marginTop: 4 }}>
+                      <Typography.Text type="secondary" style={{ fontSize: 'var(--app-font-size-xs)', display: 'block' }}>Upstream Link</Typography.Text>
+                      <Button type="link" size="small" style={{ padding: 0, height: 'auto', fontSize: 'var(--app-font-size-sm)' }} onClick={() => setSelectedNodeId(`upstream-${streamRouteData.upstream_id}`)}>
+                        upstream-{streamRouteData.upstream_id}
+                      </Button>
+                    </div>
+                  )}
+
+                  <InlineUpstreamTargets targets={streamRouteData.inlineUpstreamTargets} />
                 </>
               )}
 
@@ -549,16 +599,14 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                     </div>
                   )}
 
-                  {serviceData.hasInlineUpstream && (
-                    <Tag color="orange" style={{ marginTop: 8 }}>Inline Target Nodes</Tag>
-                  )}
+                  <InlineUpstreamTargets targets={serviceData.inlineUpstreamTargets} />
                 </>
               )}
 
               {upstreamData && (
                 <>
                   <Divider style={{ margin: '8px 0' }} />
-                  <Typography.Text strong style={{ fontSize: 'var(--app-font-size-sm)', display: 'block', marginBottom: 4 }}>Target Nodes</Typography.Text>
+                  <Typography.Text strong style={{ fontSize: 'var(--app-font-size-sm)', display: 'block', marginBottom: 4 }}>Targets</Typography.Text>
                   {(upstreamData.nodes || []).length > 0 ? (
                     <List
                       size="small"
@@ -570,7 +618,7 @@ function TopologyGraph({ data }: { data: TopologyData }) {
                       )}
                     />
                   ) : (
-                    <Typography.Text type="secondary" style={{ fontSize: 'var(--app-font-size-xs)' }}>No static target nodes specified</Typography.Text>
+                    <Typography.Text type="secondary" style={{ fontSize: 'var(--app-font-size-xs)' }}>No targets specified</Typography.Text>
                   )}
                 </>
               )}
@@ -609,7 +657,7 @@ function TopologyPage() {
     <>
       <PageHeader
         title="Service Topology"
-        desc="Visualize connections between Routes, Services, and Upstreams"
+        desc="Visualize connections between Routes, Stream Routes, Services, and Upstreams"
       />
       {isError ? (
         <Alert
@@ -636,9 +684,29 @@ function TopologyPage() {
           <Spin size="large" />
         </div>
       ) : (
-        <ReactFlowProvider>
-          <TopologyGraph data={data} />
-        </ReactFlowProvider>
+        <>
+          {!!data.unavailableResources.length && (
+            <Alert
+              type="warning"
+              showIcon
+              style={{ marginBottom: 16 }}
+              message="Topology data is incomplete"
+              description={`Could not load: ${data.unavailableResources.join(', ')}. The graph may omit affected links.`}
+              action={
+                <Button
+                  size="small"
+                  loading={isFetching}
+                  onClick={() => void refetch()}
+                >
+                  Retry
+                </Button>
+              }
+            />
+          )}
+          <ReactFlowProvider>
+            <TopologyGraph data={data} />
+          </ReactFlowProvider>
+        </>
       )}
     </>
   );
