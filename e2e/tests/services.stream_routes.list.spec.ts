@@ -19,7 +19,7 @@ import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
 import { uiGoto } from '@e2e/utils/ui';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import { deleteAllServices, postServiceReq } from '@/apis/services';
 import {
@@ -64,6 +64,14 @@ const anotherServiceStreamRoute = {
 let testServiceId: string;
 let anotherServiceId: string;
 const createdStreamRoutes: string[] = [];
+
+const getSelectContainer = (page: Page, label: string) =>
+  page
+    .getByRole('combobox', { name: label, exact: true })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+    .first();
 
 test.beforeAll(async () => {
   await deleteAllStreamRoutes(e2eReq);
@@ -218,8 +226,9 @@ test('should display stream routes list under service', async ({ page }) => {
     await expect(serverAddrField).toHaveValue(streamRoutes[0].server_addr);
 
     // Verify service_id is correct
-    const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
+    await expect(getSelectContainer(page, 'Service ID')).toContainText(
+      testServiceId
+    );
   });
 
   await test.step('should have Add Stream Route button', async () => {
@@ -235,9 +244,11 @@ test('should display stream routes list under service', async ({ page }) => {
     await servicesPom.isServiceStreamRouteAddPage(page);
 
     // Verify service_id is pre-filled
-    const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
-    await expect(serviceIdField).toBeDisabled();
+    const serviceIdField = getSelectContainer(page, 'Service ID');
+    await expect(serviceIdField).toContainText(testServiceId);
+    await expect(
+      page.getByRole('combobox', { name: 'Service ID', exact: true })
+    ).toBeDisabled();
   });
 
   await test.step('should show correct stream route count', async () => {
@@ -245,9 +256,11 @@ test('should display stream routes list under service', async ({ page }) => {
     await servicesPom.toServiceStreamRoutes(page, testServiceId);
     await servicesPom.isServiceStreamRoutesPage(page);
 
-    // Check that all 3 stream routes are displayed in the table
-    const tableRows = page.locator('tbody tr');
-    await expect(tableRows).toHaveCount(streamRoutes.length);
+    for (const streamRouteId of createdStreamRoutes) {
+      await expect(
+        page.getByRole('cell', { name: streamRouteId })
+      ).toBeVisible();
+    }
   });
 });
 

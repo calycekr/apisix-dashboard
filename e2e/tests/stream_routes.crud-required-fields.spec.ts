@@ -16,6 +16,7 @@
  */
 import { streamRoutesPom } from '@e2e/pom/stream_routes';
 import { randomId } from '@e2e/utils/common';
+import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
 import { uiHasToastMsg } from '@e2e/utils/ui';
 import {
@@ -28,7 +29,13 @@ import {
 } from '@e2e/utils/ui/upstreams';
 import { expect } from '@playwright/test';
 
+import { deleteAllStreamRoutes } from '@/apis/stream_routes';
+
 test.describe.configure({ mode: 'serial' });
+
+test.beforeAll(async () => {
+  await deleteAllStreamRoutes(e2eReq);
+});
 
 test('CRUD stream route with required fields', async ({ page }) => {
   // Navigate to stream routes page
@@ -60,9 +67,25 @@ test('CRUD stream route with required fields', async ({ page }) => {
     nodes: [{ host: '127.0.0.2', port: 8080, weight: 1 }],
   });
 
-  // Submit and land on detail page
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-
+  const submitButton = page
+    .locator('form')
+    .getByRole('button', { name: 'Add', exact: true });
+  await expect(submitButton).toBeEnabled();
+  await expect(submitButton).toHaveText('Add');
+  expect(
+    await submitButton.evaluate((button) => ({
+      disabled: (button as HTMLButtonElement).disabled,
+      type: (button as HTMLButtonElement).type,
+    }))
+  ).toEqual({ disabled: false, type: 'submit' });
+  const createResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes('/apisix/admin/stream_routes') &&
+      response.request().method() === 'POST',
+    { timeout: 30000 }
+  );
+  await submitButton.click();
+  await createResponse;
   await streamRoutesPom.isDetailPage(page);
   const streamRouteId = await page
     .getByRole('textbox', { name: 'ID', exact: true })

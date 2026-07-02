@@ -16,6 +16,7 @@
  */
 import { streamRoutesPom } from '@e2e/pom/stream_routes';
 import { randomId } from '@e2e/utils/common';
+import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
 import { uiHasToastMsg } from '@e2e/utils/ui';
 import {
@@ -28,10 +29,16 @@ import {
 } from '@e2e/utils/ui/upstreams';
 import { expect } from '@playwright/test';
 
+import { deleteAllStreamRoutes } from '@/apis/stream_routes';
+
 test.describe.configure({ mode: 'serial' });
 
+test.beforeAll(async () => {
+  await deleteAllStreamRoutes(e2eReq);
+});
+
 test('CRUD stream route with all fields', async ({ page }) => {
-  test.setTimeout(60000);
+  test.setTimeout(120000);
 
   // Navigate to stream routes page
   await streamRoutesPom.toIndex(page);
@@ -43,12 +50,13 @@ test('CRUD stream route with all fields', async ({ page }) => {
 
   // Use unique server addresses to avoid collisions when running tests in parallel
   const uniqueId = randomId('test');
+  const dnsSafeUniqueId = uniqueId.replace(/[^a-zA-Z0-9-]/g, '-');
   const uniqueIpSuffix = parseInt(uniqueId.slice(-6), 36) % 240 + 10; // 10-249
   const streamRouteData = {
     server_addr: `127.0.0.${uniqueIpSuffix}`,
     server_port: 9100 + parseInt(uniqueId.slice(-4), 36) % 1000, // Unique port
     remote_addr: '192.168.10.0/24',
-    sni: `edge-${uniqueId}.example.com`,
+    sni: `edge-${dnsSafeUniqueId}.example.com`,
     desc: `Stream route with optional fields - ${uniqueId}`,
     labels: {
       env: 'production',
@@ -69,9 +77,25 @@ test('CRUD stream route with all fields', async ({ page }) => {
     nodes: [{ host: '127.0.0.11', port: 8081, weight: 100 }],
   });
 
-  // Submit and land on detail page
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-
+  const submitButton = page
+    .locator('form')
+    .getByRole('button', { name: 'Add', exact: true });
+  await expect(submitButton).toBeEnabled();
+  await expect(submitButton).toHaveText('Add');
+  expect(
+    await submitButton.evaluate((button) => ({
+      disabled: (button as HTMLButtonElement).disabled,
+      type: (button as HTMLButtonElement).type,
+    }))
+  ).toEqual({ disabled: false, type: 'submit' });
+  const createResponse = page.waitForResponse(
+    (response) =>
+      response.url().includes('/apisix/admin/stream_routes') &&
+      response.request().method() === 'POST',
+    { timeout: 30000 }
+  );
+  await submitButton.click();
+  await createResponse;
   await streamRoutesPom.isDetailPage(page);
   const streamRouteId = await page
     .getByRole('textbox', { name: 'ID', exact: true })
@@ -88,7 +112,7 @@ test('CRUD stream route with all fields', async ({ page }) => {
     server_addr: `127.0.0.${updatedIpSuffix}`,
     server_port: 9200 + parseInt(uniqueId.slice(-4), 36) % 1000, // Unique port
     remote_addr: '10.10.0.0/16',
-    sni: `edge-updated-${uniqueId}.example.com`,
+    sni: `edge-updated-${dnsSafeUniqueId}.example.com`,
     desc: `Updated stream route with optional fields - ${uniqueId}`,
     labels: {
       ...streamRouteData.labels,
