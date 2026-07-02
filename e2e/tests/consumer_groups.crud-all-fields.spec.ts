@@ -25,6 +25,7 @@ import {
 import { expect } from '@playwright/test';
 
 import { deleteAllConsumerGroups } from '@/apis/consumer_groups';
+import { API_CONSUMER_GROUPS } from '@/config/constant';
 
 test.beforeAll(async () => {
   await deleteAllConsumerGroups(e2eReq);
@@ -88,8 +89,30 @@ test('should CRUD Consumer Group with all fields', async ({ page }) => {
     await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
     await expect(selectPluginsDialog).toBeHidden();
 
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_CONSUMER_GROUPS}/${testId}`)
+    );
+
     // Submit the form
     await consumerGroupsPom.getAddBtn(page).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      desc: testDesc,
+      plugins: {
+        'basic-auth': {
+          hide_credentials: true,
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await uiHasToastMsg(page, {
       hasText: 'Consumer Group created and verified',
     });
@@ -122,12 +145,34 @@ test('should CRUD Consumer Group with all fields', async ({ page }) => {
     await descField.clear();
     await descField.fill('Updated description with all fields');
 
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_CONSUMER_GROUPS}/${testId}`)
+    );
+
     // Save changes
     await page.getByRole('button', { name: 'Save', exact: true }).click();
     await page
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      desc: 'Updated description with all fields',
+      plugins: {
+        'basic-auth': {
+          hide_credentials: true,
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await uiHasToastMsg(page, {
       hasText: 'Consumer Group saved and reloaded from APISIX',
     });
