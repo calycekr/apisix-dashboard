@@ -15,6 +15,7 @@
  * limitations under the License.
  */
 import { test } from '@e2e/utils/test';
+import { uiSelectByLabel } from '@e2e/utils/ui';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 const requiredFields = (page: Page) =>
@@ -92,11 +93,7 @@ test('create forms show conditional required fields and minimal JSON templates',
   );
 
   await page.getByRole('tab', { name: 'Visual Editor' }).click();
-  await page
-    .locator('[data-form-field="discovery_type"] .ant-select-selector')
-    .click();
-  await page.keyboard.type('dns');
-  await page.keyboard.press('Enter');
+  await uiSelectByLabel(page, 'Discovery Type', 'dns');
   await expect.poll(() => requiredFields(page)).toContain('service_name');
 
   await page.locator('input[name="service_name"]').fill('orders');
@@ -115,19 +112,10 @@ test('API Console switches required-only templates with the resource', async ({
     JSON.stringify({ uri: '/' }, null, 2)
   );
 
-  const resourceSelect = page
-    .locator('label')
-    .filter({ hasText: 'Resource' })
-    .locator('.ant-select-selector');
-
-  await resourceSelect.click();
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('Enter');
+  await uiSelectByLabel(page, 'Resource', 'Services');
   await expect.poll(() => readMonacoValue(page, requestEditor)).toBe('{}');
 
-  await resourceSelect.click();
-  await page.keyboard.press('ArrowDown');
-  await page.keyboard.press('Enter');
+  await uiSelectByLabel(page, 'Resource', 'Upstreams');
   await expect.poll(() => readMonacoValue(page, requestEditor)).toBe(
     JSON.stringify(
       {

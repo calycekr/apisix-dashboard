@@ -15,16 +15,52 @@
  * limitations under the License.
  */
 
-import { expect, test } from '@playwright/test';
+import { getAPISIXConf } from '@e2e/utils/common';
+import { test } from '@e2e/utils/test';
+import { uiFillMonacoEditor } from '@e2e/utils/ui';
+import { expect, type Page } from '@playwright/test';
+
+let expectedAdminKey: string;
+
+const selectMethod = async (page: Page, method: string) => {
+  const select = page
+    .getByRole('combobox', { name: 'Method' })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+    .first();
+  await select.click();
+  await page
+    .locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden)')
+    .getByText(method, { exact: true })
+    .click();
+  await expect(select).toContainText(method);
+};
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(() => {
-    localStorage.setItem('settings:adminKey', 'api-console-test-key');
-    sessionStorage.clear();
-  });
+  expectedAdminKey = (await getAPISIXConf()).adminKey;
+  await page.evaluate(() => sessionStorage.clear());
 
   await page.route('**/apisix/admin/routes**', async (route) => {
-    const url = new URL(route.request().url());
+    const request = route.request();
+    const url = new URL(request.url());
+    if (
+      request.method() === 'PUT' &&
+      url.pathname.endsWith('/apisix/admin/routes/raw-console-route')
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        headers: {
+          'x-api-console-test': 'put-executed',
+        },
+        body: JSON.stringify({
+          value: request.postDataJSON(),
+        }),
+      });
+      return;
+    }
+
     const isConsoleRequest =
       url.searchParams.get('page') === '2'
       && url.searchParams.get('page_size') === '25';
@@ -49,8 +85,7 @@ test.beforeEach(async ({ page }) => {
 
 test('executes query requests and exposes response diagnostics', async ({ page }) => {
   // Select GET method since default is now PUT
-  await page.getByRole('combobox', { name: 'Method' }).click();
-  await page.getByRole('option', { name: 'GET' }).click();
+  await selectMethod(page, 'GET');
 
   const queryInput = page.getByRole('textbox', { name: 'Query parameters' });
   await queryInput.fill('page=2&page_size=25');
@@ -63,8 +98,10 @@ test('executes query requests and exposes response diagnostics', async ({ page }
   await page.keyboard.press('Control+Enter');
   const request = await requestPromise;
 
-  expect(request.headers()['x-api-key']).toBe('api-console-test-key');
-  await expect(page.getByText('200', { exact: true })).toBeVisible();
+  expect(request.headers()['x-api-key']).toBe(expectedAdminKey);
+  await expect(
+    page.locator('.ant-tag').filter({ hasText: '200' }).first()
+  ).toBeVisible();
   await expect(page.getByRole('button', { name: 'History (1)' })).toBeVisible();
 
   await page.getByText('Headers', { exact: true }).click();
@@ -82,8 +119,7 @@ test('executes query requests and exposes response diagnostics', async ({ page }
 
 test('saves and restores session presets without executing them', async ({ page }) => {
   // Select GET method since default is now PUT
-  await page.getByRole('combobox', { name: 'Method' }).click();
-  await page.getByRole('option', { name: 'GET' }).click();
+  await selectMethod(page, 'GET');
 
   const queryInput = page.getByRole('textbox', { name: 'Query parameters' });
   await queryInput.fill('page=2&page_size=25');
@@ -121,4 +157,45 @@ test('saves and restores session presets without executing them', async ({ page 
     method: 'GET',
     endpoint: '/routes?page=2&page_size=25',
   });
+});
+
+test('executes confirmed PUT requests with JSON body and history', async ({
+  page,
+}) => {
+  const routeId = 'raw-console-route';
+  const routePayload = {
+    uri: '/raw-console',
+    name: 'Raw Console Route',
+  };
+
+  await page.getByRole('combobox', { name: /Path suffix/ }).fill(routeId);
+
+  const requestEditor = page.locator('.monaco-editor').first();
+  await uiFillMonacoEditor(page, requestEditor, JSON.stringify(routePayload));
+
+  const requestPromise = page.waitForRequest(
+    (request) =>
+      request.method() === 'PUT' &&
+      request.url().includes(`/apisix/admin/routes/${routeId}`)
+  );
+  await page.getByRole('button', { name: /Send PUT/ }).click();
+  await page
+    .getByRole('dialog', { name: `PUT /routes/${routeId}` })
+    .getByRole('button', { name: 'Execute' })
+    .click();
+
+  const request = await requestPromise;
+  expect(request.headers()['x-api-key']).toBe(expectedAdminKey);
+  expect(request.postDataJSON()).toMatchObject(routePayload);
+  await expect(
+    page.locator('.ant-tag').filter({ hasText: '200' }).first()
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'History (1)' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'History (1)' }).click();
+  await expect(
+    page.getByRole('button', {
+      name: /PUT \/routes\/raw-console-route 200/,
+    })
+  ).toBeVisible();
 });
