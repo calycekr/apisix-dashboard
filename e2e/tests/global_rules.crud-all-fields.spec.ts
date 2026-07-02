@@ -24,6 +24,8 @@ import {
 } from '@e2e/utils/ui';
 import { expect } from '@playwright/test';
 
+import { API_GLOBAL_RULES } from '@/config/constant';
+
 test('should CRUD global rule with multiple plugins', async ({ page }) => {
   let globalRuleId: string;
 
@@ -138,6 +140,67 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
 
     // Verify we're on the detail page
     await globalRulePom.isDetailPage(page);
+  });
+
+  await test.step('update global rule plugins from detail page', async () => {
+    const responseRewritePlugin = page.getByTestId('plugin-response-rewrite');
+    await responseRewritePlugin.getByRole('button', { name: 'Edit' }).click();
+
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: response-rewrite',
+    });
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
+    await uiFillMonacoEditor(
+      page,
+      pluginEditor,
+      JSON.stringify({
+        body: 'updated global response',
+        headers: {
+          set: {
+            'X-Global-Rule': 'updated-global-rule',
+          },
+        },
+      })
+    );
+    await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
+    await expect(editPluginDialog).toBeHidden();
+
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_GLOBAL_RULES}/${globalRuleId}`)
+    );
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      plugins: {
+        'response-rewrite': {
+          body: 'updated global response',
+          headers: {
+            set: {
+              'X-Global-Rule': 'updated-global-rule',
+            },
+          },
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
+
+    await uiHasToastMsg(page, {
+      hasText: 'Global Rule saved and reloaded from APISIX',
+    });
   });
 
   await test.step('delete global rule from detail page', async () => {
