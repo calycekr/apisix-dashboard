@@ -125,11 +125,34 @@ test.describe('CRUD secret with all fields (AWS)', () => {
     });
 
     await test.step('save the changes', async () => {
+      const saveResponse = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'PUT' &&
+          response.url().includes(
+            `${API_SECRETS}/${manager}/${createdSecretId}`
+          )
+      );
       await page.getByRole('button', { name: 'Save', exact: true }).click();
       await page
         .getByRole('dialog', { name: 'Review changes before saving' })
         .getByRole('button', { name: 'Confirm & Save' })
         .click();
+      const response = await saveResponse;
+      const requestPayload = response.request().postDataJSON() as Record<
+        string,
+        unknown
+      >;
+      expect(requestPayload).toMatchObject({
+        access_key_id: updatedFields['Access Key ID'],
+        secret_access_key: updatedFields['Secret Access Key'],
+        session_token: updatedFields['Session Token'],
+        region: updatedFields.Region,
+        endpoint_url: updatedFields['Endpoint URL'],
+      });
+      expect(requestPayload).not.toHaveProperty('id');
+      expect(requestPayload).not.toHaveProperty('manager');
+      expect(requestPayload).not.toHaveProperty('create_time');
+      expect(requestPayload).not.toHaveProperty('update_time');
       await secretsPom.isDetailPage(page);
       await uiHasToastMsg(page, {
         hasText: 'Secret saved and reloaded from APISIX',

@@ -103,11 +103,32 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
     });
 
     await test.step('save the changes', async () => {
+      const saveResponse = page.waitForResponse(
+        (response) =>
+          response.request().method() === 'PUT' &&
+          response.url().includes(
+            `${API_SECRETS}/${manager}/${createdSecretId}`
+          )
+      );
       await page.getByRole('button', { name: 'Save' }).click();
       await page
         .getByRole('dialog', { name: 'Review changes before saving' })
         .getByRole('button', { name: 'Confirm & Save' })
         .click();
+      const response = await saveResponse;
+      const requestPayload = response.request().postDataJSON() as Record<
+        string,
+        unknown
+      >;
+      expect(requestPayload).toMatchObject({
+        uri: updatedFields.URI,
+        prefix: updatedFields.Prefix,
+        token: updatedFields.Token,
+      });
+      expect(requestPayload).not.toHaveProperty('id');
+      expect(requestPayload).not.toHaveProperty('manager');
+      expect(requestPayload).not.toHaveProperty('create_time');
+      expect(requestPayload).not.toHaveProperty('update_time');
       await secretsPom.isDetailPage(page);
     });
 
