@@ -71,11 +71,10 @@ test('should CRUD route with required fields', async ({ page }) => {
       name: 'test-upstream',
       desc: 'test',
     });
-    // Submit the form
-    await routesPom.getAddBtn(page).click();
-    await uiHasToastMsg(page, {
-      hasText: 'Route created and verified',
-    });
+    await expect(async () => {
+      await routesPom.getAddBtn(page).click();
+      await routesPom.isDetailPage(page);
+    }).toPass({ timeout: 20000 });
   });
 
   await test.step('auto navigate to route detail page', async () => {

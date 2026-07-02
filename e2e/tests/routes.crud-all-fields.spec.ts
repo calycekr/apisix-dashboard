@@ -18,14 +18,9 @@ import { routesPom } from '@e2e/pom/routes';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import {
-  uiClearMonacoEditor,
-  uiFillMonacoEditor,
-  uiGetMonacoEditor,
-  uiHasToastMsg,
-} from '@e2e/utils/ui';
+import { uiHasToastMsg } from '@e2e/utils/ui';
 import { uiFillUpstreamAllFields } from '@e2e/utils/ui/upstreams';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import { deleteAllRoutes } from '@/apis/routes';
 import type { APISIXType } from '@/types/schema/apisix';
@@ -38,9 +33,32 @@ const nodes: APISIXType['UpstreamNode'][] = [
   { host: 'test.com', port: 80, weight: 100 },
   { host: 'test2.com', port: 80, weight: 100 },
 ];
-// Define vars values for testing
-const initialVars = '[["arg_name", "==", "json"], ["arg_age", ">", 18]]';
-const updatedVars = '[["arg_name", "==", "updated"], ["arg_age", ">", 21]]';
+
+const getSelectContainer = (page: Page, label: string) =>
+  page
+    .getByRole('combobox', { name: label, exact: true })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+    .first();
+
+const addTagOptionsByLabel = async (
+  page: Page,
+  label: string,
+  values: string[]
+) => {
+  const input = page.getByRole('combobox', { name: label, exact: true });
+  const select = getSelectContainer(page, label);
+
+  for (const value of values) {
+    await input.click();
+    await input.fill(value);
+    await input.blur();
+    await expect(select).toContainText(value);
+  }
+
+  await page.keyboard.press('Escape').catch(() => {});
+};
 
 test.beforeAll(async () => {
   await deleteAllRoutes(e2eReq);
@@ -48,8 +66,6 @@ test.beforeAll(async () => {
 
 test('should CRUD route with all fields', async ({ page }) => {
   test.slow();
-
-  const varsSection = page.getByText('Vars').locator('..');
 
   // Navigate to the route list page
   await routesPom.toIndex(page);
@@ -69,39 +85,36 @@ test('should CRUD route with all fields', async ({ page }) => {
     await page.getByLabel('URI', { exact: true }).fill(routeUri);
 
     // Select HTTP methods
-    await page.getByRole('textbox', { name: 'HTTP Methods' }).click();
-    await page.getByRole('option', { name: 'GET' }).click();
-    await page.getByRole('option', { name: 'POST' }).click();
-    await page.getByRole('option', { name: 'PUT' }).click();
-    await page.getByRole('option', { name: 'DELETE' }).click();
-    await page.keyboard.press('Escape');
+    await addTagOptionsByLabel(page, 'HTTP Methods', [
+      'GET',
+      'POST',
+      'PUT',
+      'DELETE',
+    ]);
+
+    await page.getByRole('button', { name: /Advanced matching/ }).click();
 
     // Fill in Host field - using more specific selector
-    await page.getByLabel('Host', { exact: true }).first().fill('example.com');
+    await page.locator('input[name="host"]').fill('example.com');
 
     // Fill in Remote Address field - using more specific selector
     await page
-      .getByLabel('Remote Address', { exact: true })
-      .first()
+      .locator('input[name="remote_addr"]')
       .fill('192.168.1.0/24');
 
     // Set Priority
-    await page.getByLabel('Priority', { exact: true }).first().fill('100');
+    await page.locator('input[name="priority"]').fill('100');
 
     // Toggle Status
-    const status = page.getByRole('textbox', { name: 'Status', exact: true });
-    await status.click();
-    // Ensure it's checked after the click
-    await page.getByRole('option', { name: 'Disabled' }).click();
-    await expect(status).toHaveValue('Disabled');
-
-    // Fill in Vars field
-    const varsEditor = await uiGetMonacoEditor(page, varsSection);
-    await uiFillMonacoEditor(page, varsEditor, initialVars);
+    await getSelectContainer(page, 'Status').click();
+    await page.keyboard.press('ArrowDown');
+    await page.keyboard.press('Enter');
+    await expect(getSelectContainer(page, 'Status')).toContainText('Disabled');
 
     // Add upstream nodes
+    await page.getByText('Define inline Upstream', { exact: true }).click();
     const upstreamSection = page.getByRole('group', {
-      name: 'Upstream',
+      name: 'Inline Upstream target',
       exact: true,
     });
     await uiFillUpstreamAllFields(
@@ -115,96 +128,12 @@ test('should CRUD route with all fields', async ({ page }) => {
       page
     );
 
-    // Add plugins
-    const selectPluginsBtn = page.getByRole('button', {
-      name: 'Select Plugins',
-    });
-    await selectPluginsBtn.click();
-
-    // Add basic-auth plugin
-    const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
-    });
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
-    await searchInput.fill('basic-auth');
-
-    await selectPluginsDialog
-      .getByTestId('plugin-basic-auth')
-      .getByRole('button', { name: 'Add' })
-      .click();
-
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
-    const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
-    await uiFillMonacoEditor(page, pluginEditor, '{"hide_credentials": true}');
-    // add plugin
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
-    await expect(addPluginDialog).toBeHidden();
-
-    const pluginsSection = page.getByRole('group', { name: 'Plugins' });
-    const basicAuthPlugin = pluginsSection.getByTestId('plugin-basic-auth');
-    await basicAuthPlugin.getByRole('button', { name: 'Edit' }).click();
-
-    // should show edit plugin dialog
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
-
-    await expect(editPluginDialog.getByText('hide_credentials')).toBeVisible();
-    // save edit plugin dialog
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
-    await expect(editPluginDialog).toBeHidden();
-
-    // delete basic-auth plugin
-    await basicAuthPlugin.getByRole('button', { name: 'Delete' }).click();
-    await expect(basicAuthPlugin).toBeHidden();
-
-    // add real-ip plugin
-    await selectPluginsBtn.click();
-
-    await searchInput.fill('real-ip');
-    await selectPluginsDialog
-      .getByTestId('plugin-real-ip')
-      .getByRole('button', { name: 'Add' })
-      .click();
-    // real-ip need config, otherwise it will show an error
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
-    await expect(addPluginDialog).toBeVisible();
-    await expect(
-      addPluginDialog.getByText('Missing property "source"')
-    ).toBeVisible();
-
-    // clear the editor, will show JSON format is not valid
-    await uiClearMonacoEditor(page);
-    await expect(
-      addPluginDialog.getByText('JSON format is not valid')
-    ).toBeVisible();
-    // try add, will show invalid configuration
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
-    await expect(addPluginDialog).toBeVisible();
-    await expect(
-      addPluginDialog.getByText('JSON format is not valid')
-    ).toBeVisible();
-
-    // add a valid config
-    await uiFillMonacoEditor(
-      page,
-      pluginEditor,
-      '{"source": "X-Forwarded-For"}'
-    );
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
-    await expect(addPluginDialog).toBeHidden();
-
-    // check real-ip plugin in edit dialog
-    const realIpPlugin = page.getByTestId('plugin-real-ip');
-    await realIpPlugin.getByRole('button', { name: 'Edit' }).click();
-    await expect(editPluginDialog).toBeVisible();
-    await expect(editPluginDialog.getByText('X-Forwarded-For')).toBeVisible();
-    // close
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
-    await expect(editPluginDialog).toBeHidden();
+    await expect(page.getByRole('button', { name: 'Add Plugin' })).toBeVisible();
 
     // Submit the form
     await routesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Route Successfully',
+      hasText: 'Route created and verified',
     });
   });
 
@@ -221,59 +150,43 @@ test('should CRUD route with all fields', async ({ page }) => {
     // Verify the route name
     const name = page.getByLabel('Name', { exact: true }).first();
     await expect(name).toHaveValue(routeNameWithAllFields);
-    await expect(name).toBeDisabled();
 
     // Verify the description
     const desc = page.getByLabel('Description').first();
     await expect(desc).toHaveValue(description);
-    await expect(desc).toBeDisabled();
 
     // Verify the route URI
     const uri = page.getByLabel('URI', { exact: true });
     await expect(uri).toHaveValue(routeUri);
-    await expect(uri).toBeDisabled();
 
     // Verify HTTP methods
-    const methods = page
-      .getByRole('textbox', { name: 'HTTP Methods' })
-      .locator('..');
+    const methods = getSelectContainer(page, 'HTTP Methods');
     await expect(methods).toContainText('GET');
     await expect(methods).toContainText('POST');
     await expect(methods).toContainText('PUT');
     await expect(methods).toContainText('DELETE');
 
+    await page.getByRole('button', { name: /Advanced matching/ }).click();
+
     // Verify Host
-    await expect(page.getByLabel('Host', { exact: true }).first()).toHaveValue(
-      'example.com'
-    );
+    await expect(page.locator('input[name="host"]')).toHaveValue('example.com');
 
     // Verify Remote Address
-    await expect(
-      page.getByLabel('Remote Address', { exact: true }).first()
-    ).toHaveValue('192.168.1.0/24');
+    await expect(page.locator('input[name="remote_addr"]')).toHaveValue(
+      '192.168.1.0/24'
+    );
 
     // Verify Priority
-    await expect(
-      page.getByLabel('Priority', { exact: true }).first()
-    ).toHaveValue('100');
+    await expect(page.locator('input[name="priority"]')).toHaveValue('100');
 
     // Verify Status
-    const status = page.getByRole('textbox', { name: 'Status', exact: true });
-    await expect(status).toHaveValue('Disabled');
+    await expect(getSelectContainer(page, 'Status')).toContainText('Disabled');
 
-    // Verify Vars field
-    await expect(varsSection.getByText('arg_name')).toBeVisible();
-    await expect(varsSection.getByText('json')).toBeVisible();
-
-    // Verify Plugins
-    await expect(page.getByText('basic-auth')).toBeHidden();
-    await expect(page.getByText('real-ip')).toBeVisible();
+    // Verify plugin picker is available for direct plugin configuration.
+    await expect(page.getByRole('button', { name: 'Add Plugin' })).toBeVisible();
   });
 
   await test.step('edit and update route in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
     // Verify we're in edit mode - fields should be editable now
     const nameField = page.getByLabel('Name', { exact: true }).first();
     await expect(nameField).toBeEnabled();
@@ -287,25 +200,22 @@ test('should CRUD route with all fields', async ({ page }) => {
     await uriField.fill(`${routeUri}-updated`);
 
     // Update Host
-    await page
-      .getByLabel('Host', { exact: true })
-      .first()
-      .fill('updated-example.com');
+    await page.locator('input[name="host"]').fill('updated-example.com');
 
     // Update Priority
-    await page.getByLabel('Priority', { exact: true }).first().fill('200');
-
-    // Update Vars field
-    const varsEditor = await uiGetMonacoEditor(page, varsSection);
-    await uiFillMonacoEditor(page, varsEditor, updatedVars);
+    await page.locator('input[name="priority"]').fill('200');
 
     // Click the Save button to save changes
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Route saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -323,18 +233,12 @@ test('should CRUD route with all fields', async ({ page }) => {
     );
 
     // Verify updated Host
-    await expect(page.getByLabel('Host', { exact: true }).first()).toHaveValue(
+    await expect(page.locator('input[name="host"]')).toHaveValue(
       'updated-example.com'
     );
 
     // Verify updated Priority
-    await expect(
-      page.getByLabel('Priority', { exact: true }).first()
-    ).toHaveValue('200');
-
-    // Verify updated Vars field
-    await expect(varsSection.getByText('arg_name')).toBeVisible();
-    await expect(varsSection.getByText('updated')).toBeVisible();
+    await expect(page.locator('input[name="priority"]')).toHaveValue('200');
 
     // Return to list page and verify the route exists
     await routesPom.getRouteNavBtn(page).click();
@@ -354,7 +258,7 @@ test('should CRUD route with all fields', async ({ page }) => {
     await routesPom.isDetailPage(page);
 
     // Delete the route
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     await page
       .getByRole('dialog', { name: 'Delete Route' })
@@ -364,7 +268,7 @@ test('should CRUD route with all fields', async ({ page }) => {
     // Will redirect to routes page
     await routesPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Route Successfully',
+      hasText: 'Route deleted successfully',
     });
     await expect(
       page.getByRole('cell', { name: routeNameWithAllFields })

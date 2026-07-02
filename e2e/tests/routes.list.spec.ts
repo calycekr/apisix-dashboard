@@ -37,10 +37,10 @@ test('should navigate to routes page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('Name', { exact: true })).toBeVisible();
-    await expect(table.getByText('URI', { exact: true })).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'ID' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'URI' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'RAW' })).toBeVisible();
   });
 });
 

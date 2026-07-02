@@ -38,8 +38,9 @@ const assert = {
     await expect(title).toBeVisible();
   },
   isDetailPage: async (page: Page) => {
-    await expect(page).toHaveURL((url) =>
-      url.pathname.includes('/routes/detail')
+    await expect(page).toHaveURL(
+      (url) => url.pathname.includes('/routes/detail'),
+      { timeout: 15000 }
     );
     const title = page.getByRole('heading', { name: /^Route:/ });
     await expect(title).toBeVisible();

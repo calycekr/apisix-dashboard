@@ -103,6 +103,7 @@ const FormSectionMatchRules = () => {
           {
             key: 'advanced-match',
             label: 'Advanced matching',
+            forceRender: true,
             children: (
               <>
                 <InputWrapper label="Enable WebSocket">

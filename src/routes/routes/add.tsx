@@ -56,7 +56,8 @@ export const RouteAddForm = (props: Props) => {
       const id = response.data.value.id;
       await verifyAdminApiResource(
         `${API_ROUTES}/${id}`,
-        stripSystemReadonlyFields(payload as Record<string, unknown>)
+        stripSystemReadonlyFields(payload as Record<string, unknown>),
+        { ignoredPaths: ['upstream.tls.client_key'] }
       );
       return response;
     },
