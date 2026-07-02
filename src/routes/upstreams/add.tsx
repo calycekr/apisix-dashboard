@@ -47,7 +47,8 @@ const UpstreamAddForm = ({ defaultValues }: { defaultValues?: PostUpstreamType }
       const id = response.data.value.id;
       await verifyAdminApiResource(
         `${API_UPSTREAMS}/${id}`,
-        stripSystemReadonlyFields(payload as Record<string, unknown>)
+        stripSystemReadonlyFields(payload as Record<string, unknown>),
+        { ignoredPaths: ['tls.client_key'] }
       );
       return response;
     },

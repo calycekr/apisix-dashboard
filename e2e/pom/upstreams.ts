@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getUpstreamNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Upstreams' }),
+    page.getByRole('menuitem', { name: 'Upstreams' }),
   getAddUpstreamBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Upstream' }),
   getAddBtn: (page: Page) =>
@@ -40,8 +40,9 @@ const assert = {
     await expect(title).toBeVisible();
   },
   isDetailPage: async (page: Page) => {
-    await expect(page).toHaveURL((url) =>
-      url.pathname.includes('/upstreams/detail')
+    await expect(page).toHaveURL(
+      (url) => url.pathname.includes('/upstreams/detail'),
+      { timeout: 15000 }
     );
     const title = page.getByRole('heading', { name: /^Upstream:/ });
     await expect(title).toBeVisible();

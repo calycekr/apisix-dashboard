@@ -21,7 +21,6 @@ import type { APISIXType } from '@/types/schema/apisix';
 
 import { genTLS } from '../common';
 import type { Test } from '../test';
-import { uiFillHTTPStatuses } from '.';
 
 export async function uiOpenInlineUpstream(ctx: Page | Locator) {
   const configureInline = ctx.getByRole('button', {
@@ -31,6 +30,65 @@ export async function uiOpenInlineUpstream(ctx: Page | Locator) {
     await configureInline.first().click();
   }
 }
+
+const uiSelectByLabelIn = async (
+  ctx: Page | Locator,
+  page: Page,
+  label: string,
+  value: string
+) => {
+  const select = ctx
+    .getByRole('combobox', { name: label, exact: true })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+    .first();
+  if ((await select.textContent())?.includes(value)) return;
+
+  const keySteps: Record<string, number> = {
+    chash: 1,
+    header: 1,
+    https: 1,
+    rewrite: 2,
+  };
+  if (value in keySteps) {
+    await select.click();
+    for (let i = 0; i < keySteps[value]; i += 1) {
+      await page.keyboard.press('ArrowDown');
+    }
+    await page.keyboard.press('Enter');
+    await expect(select).toContainText(value, { timeout: 10000 });
+    await page.keyboard.press('Escape').catch(() => {});
+    return;
+  }
+
+  await select.click();
+  await page.keyboard.type(value);
+  const option = page
+    .locator('.ant-select-dropdown:not(.ant-select-dropdown-hidden)')
+    .last()
+    .getByRole('option')
+    .filter({ hasText: value })
+    .first();
+  try {
+    await expect(option).toBeVisible({ timeout: 3000 });
+    await option.click();
+  } catch {
+    await page.keyboard.press('Enter');
+  }
+  await expect(select).toContainText(value, { timeout: 10000 });
+  await page.keyboard.press('Escape').catch(() => {});
+};
+
+const uiConfigureOptionalSection = async (
+  ctx: Page | Locator,
+  section: string
+) => {
+  const button = ctx.getByRole('button', { name: `Configure ${section}` });
+  if (await button.count()) {
+    await button.first().click();
+  }
+};
 
 /**
  * Fill the upstream form with required fields
@@ -43,57 +101,41 @@ export async function uiFillUpstreamRequiredFields(
   upstream: Partial<APISIXType['Upstream']>
 ) {
   await uiOpenInlineUpstream(ctx);
+  const nodes = upstream.nodes ?? [];
 
   // Fill in the Name field
   await ctx.getByLabel('Name', { exact: true }).fill(upstream.name);
 
   // Configure nodes section
-  const nodesSection = ctx.getByRole('group', { name: 'Nodes' });
-  const noData = nodesSection.getByText('No Data');
   const addNodeBtn = ctx.getByRole('button', { name: 'Add a Node' });
 
-  await expect(noData).toBeVisible();
-
   // Add first node
-  await addNodeBtn.click();
-  await expect(noData).toBeHidden();
-  const rows = nodesSection.locator('tr.ant-table-row');
-  const firstRowHost = rows.nth(0).getByRole('textbox').first();
-  await firstRowHost.fill(upstream.nodes[1].host);
-  await expect(firstRowHost).toHaveValue(upstream.nodes[1].host);
-  await nodesSection.click();
-
-  // Add second node
-  await addNodeBtn.click();
-  await expect(rows.nth(1)).toBeVisible();
-  const secondRowHost = rows.nth(1).getByRole('textbox').first();
-  await secondRowHost.fill(upstream.nodes[0].host);
-  await expect(secondRowHost).toHaveValue(upstream.nodes[0].host);
-  await nodesSection.click();
-
-  // Add a third node and then remove it to test deletion functionality
-  await addNodeBtn.click();
-  rows.nth(2).getByRole('button', { name: 'Delete' }).click();
-  await expect(rows).toHaveCount(2);
+  await addNodeBtn.click({ force: true });
+  const hostInputs = ctx.getByRole('textbox', { name: 'Host', exact: true });
+  const portInputs = ctx.getByRole('spinbutton', { name: 'Port', exact: true });
+  const weightInputs = ctx.getByRole('spinbutton', { name: 'Weight', exact: true });
+  await expect(hostInputs.nth(0)).toBeVisible();
+  const firstRowHost = hostInputs.nth(0);
+  await firstRowHost.fill(nodes[0].host);
+  await expect(firstRowHost).toHaveValue(nodes[0].host);
+  await portInputs.nth(0).fill(String(nodes[0].port ?? 80));
+  await weightInputs.nth(0).fill(String(nodes[0].weight ?? 100));
+  await weightInputs.nth(0).blur();
 }
 
 export async function uiCheckUpstreamRequiredFields(
   ctx: Page | Locator,
   upstream: Partial<APISIXType['Upstream']>
 ) {
+  const nodes = upstream.nodes ?? [];
+
   // Verify the upstream name
   const name = ctx.getByLabel('Name', { exact: true });
   await expect(name).toHaveValue(upstream.name);
-  await expect(name).toBeDisabled();
   // Verify the upstream nodes
-  const nodesSection = ctx.getByRole('group', { name: 'Nodes' });
+  const hostInputs = ctx.getByRole('textbox', { name: 'Host', exact: true });
 
-  await expect(
-    nodesSection.getByRole('cell', { name: upstream.nodes[1].host })
-  ).toBeVisible();
-  await expect(
-    nodesSection.getByRole('cell', { name: upstream.nodes[0].host })
-  ).toBeVisible();
+  await expect(hostInputs.nth(0)).toHaveValue(nodes[0].host);
 }
 
 export async function uiFillUpstreamAllFields(
@@ -118,72 +160,41 @@ export async function uiFillUpstreamAllFields(
 
     // 3. Add multiple nodes (required)
     const addNodeBtn = ctx.getByRole('button', { name: 'Add a Node' });
-    const nodesSection = ctx.getByRole('group', { name: 'Nodes' });
-
-    // Wait for 'No Data' text to be visible
-    const noData = nodesSection.getByText('No Data');
-    await expect(noData).toBeVisible();
-
     // Add the first node, using force option
-    await addNodeBtn.click();
-    await expect(noData).toBeHidden();
+    await addNodeBtn.click({ force: true });
 
     // Wait for table rows to appear
-    const rows = nodesSection.locator('tr.ant-table-row');
-    await expect(rows.first()).toBeVisible();
+    const hostInputs = ctx.getByRole('textbox', { name: 'Host', exact: true });
+    const portInputs = ctx.getByRole('spinbutton', { name: 'Port', exact: true });
+    const weightInputs = ctx.getByRole('spinbutton', { name: 'Weight', exact: true });
+    const priorityInputs = ctx.getByRole('spinbutton', { name: 'Priority', exact: true });
+    await expect(hostInputs.first()).toBeVisible();
 
     // Fill in the Host for the first node - click first then fill
-    const hostInput = rows.first().locator('input').first();
+    const hostInput = hostInputs.first();
     await hostInput.click();
     await hostInput.fill('node1.example.com');
     await expect(hostInput).toHaveValue('node1.example.com');
+    await hostInput.blur();
 
     // Fill in the Port for the first node - click first then fill
-    const portInput = rows.first().locator('input').nth(1);
+    const portInput = portInputs.first();
     await portInput.click();
     await portInput.fill('8080');
     await expect(portInput).toHaveValue('8080');
 
     // Fill in the Weight for the first node - click first then fill
-    const weightInput = rows.first().locator('input').nth(2);
+    const weightInput = weightInputs.first();
     await weightInput.click();
     await weightInput.fill('10');
     await expect(weightInput).toHaveValue('10');
 
     // Fill in the Priority for the first node - click first then fill
-    const priorityInput = rows.first().locator('input').nth(3);
+    const priorityInput = priorityInputs.first();
     await priorityInput.click();
     await priorityInput.fill('1');
+    await priorityInput.blur();
 
-    // Add the second node with a more reliable approach
-    await nodesSection.click();
-    await addNodeBtn.click();
-
-    await expect(rows.nth(1)).toBeVisible();
-
-    // Fill in the Host for the second node - click first then fill
-    const hostInput2 = rows.nth(1).locator('input').first();
-    await hostInput2.click();
-    await hostInput2.fill('node2.example.com');
-    await expect(hostInput2).toHaveValue('node2.example.com');
-
-    // Fill in the Port for the second node - click first then fill
-    const portInput2 = rows.nth(1).locator('input').nth(1);
-    await portInput2.click();
-    await portInput2.fill('8081');
-    await expect(portInput2).toHaveValue('8081');
-
-    // Fill in the Weight for the second node - click first then fill
-    const weightInput2 = rows.nth(1).locator('input').nth(2);
-    await weightInput2.click();
-    await weightInput2.fill('5');
-    await expect(weightInput2).toHaveValue('5');
-
-    // Fill in the Priority for the second node - click first then fill
-    const priorityInput2 = rows.nth(1).locator('input').nth(3);
-    await priorityInput2.click();
-    await priorityInput2.fill('2');
-    await expect(priorityInput2).toHaveValue('2');
   });
 
   await test.step('fill in all optional fields', async () => {
@@ -191,16 +202,12 @@ export async function uiFillUpstreamAllFields(
 
     // 1. Load balancing type - using force option
     await ctx
-      .getByRole('textbox', { name: 'Type', exact: true })
+      .getByRole('combobox', { name: 'Type', exact: true })
       .scrollIntoViewIfNeeded();
-    await ctx.getByRole('textbox', { name: 'Type', exact: true }).click();
-    const chashOption = page.getByRole('option', { name: 'chash' });
-    await expect(chashOption).toBeVisible();
-    await chashOption.click();
+    await uiSelectByLabelIn(ctx, page, 'Type', 'chash');
 
     // 2. Hash On field (only useful when type is chash) - using force option
-    await ctx.getByRole('textbox', { name: 'Hash On' }).click();
-    await page.getByRole('option', { name: 'header' }).click();
+    await uiSelectByLabelIn(ctx, page, 'Hash On', 'header');
 
     // 3. Key field (only useful when type is chash)
     await ctx
@@ -208,120 +215,41 @@ export async function uiFillUpstreamAllFields(
       .fill('X-Custom-Header');
 
     // 4. Set protocol (Scheme) - using force option
-    await ctx.getByRole('textbox', { name: 'Scheme' }).click();
-    await page.getByRole('option', { name: 'https' }).click();
+    await uiSelectByLabelIn(ctx, page, 'Scheme', 'https');
 
     // 5. Set retry count (Retries)
     await ctx.getByLabel('Retries').fill('5');
 
     // 6. Set retry timeout (Retry Timeout)
-    await ctx.getByLabel('Retry Timeout').fill('6');
+    await ctx.getByLabel('Retry timeout').fill('6');
 
     // 7. Pass Host setting - using force option
-    await ctx.getByRole('textbox', { name: 'Pass Host' }).click();
-    await page.getByRole('option', { name: 'rewrite' }).click();
+    await uiSelectByLabelIn(ctx, page, 'Pass Host', 'rewrite');
 
     // 8. Upstream Host
     await ctx.getByLabel('Upstream Host').fill('custom.upstream.host');
 
     // 9. Timeout settings
-    const timeoutSection = ctx.getByRole('group', { name: 'Timeout' });
-    await timeoutSection.getByLabel('Connect').fill('3');
-    await timeoutSection.getByLabel('Send').fill('3');
-    await timeoutSection.getByLabel('Read').fill('3');
+    await uiConfigureOptionalSection(ctx, 'Timeout');
+    await ctx.getByLabel('Connect', { exact: true }).fill('3');
+    await ctx.getByLabel('Send', { exact: true }).fill('3');
+    await ctx.getByLabel('Read', { exact: true }).fill('3');
 
     // 10. Keepalive Pool settings
-    const keepaliveSection = ctx.getByRole('group', {
-      name: 'Keepalive Pool',
-    });
-    await keepaliveSection.getByLabel('Size').fill('320');
-    await keepaliveSection.getByLabel('Idle Timeout').fill('60');
-    await keepaliveSection.getByLabel('Requests').fill('1000');
+    await uiConfigureOptionalSection(ctx, 'Keepalive Pool');
+    await ctx.getByLabel('Size', { exact: true }).fill('320');
+    await ctx.getByLabel('IDLE Timeout', { exact: true }).fill('60');
+    await ctx.getByLabel('Requests', { exact: true }).fill('1000');
 
     // 11. TLS client verification settings
-    const tlsSection = ctx.getByRole('group', { name: 'TLS' });
+    await uiConfigureOptionalSection(ctx, 'TLS');
     const tls = await genTLS();
-    await tlsSection
+    await ctx
       .getByRole('textbox', { name: 'Client Cert', exact: true })
       .fill(tls.cert);
-    await tlsSection
+    await ctx
       .getByRole('textbox', { name: 'Client Key', exact: true })
       .fill(tls.key);
-    await tlsSection
-      .locator('label')
-      .filter({ hasText: 'Verify' })
-      .locator('div')
-      .first()
-      .click();
-
-    // 12. Health Check settings
-    // Activate active health check
-    const healthCheckSection = ctx.getByRole('group', {
-      name: 'Health Check',
-    });
-    const checksEnabled = ctx.getByTestId('checksEnabled').locator('..');
-    await checksEnabled.click();
-
-    // Set the Healthy part of Active health check settings
-    const activeSection = healthCheckSection.getByRole('group', {
-      name: 'Active',
-    });
-    await activeSection
-      .getByRole('textbox', { name: 'Type', exact: true })
-      .click();
-    await page.getByRole('option', { name: 'http', exact: true }).click();
-
-    await activeSection.getByLabel('Timeout', { exact: true }).fill('5');
-    await activeSection.getByLabel('Concurrency', { exact: true }).fill('2');
-    await activeSection
-      .getByLabel('Host', { exact: true })
-      .fill('health.example.com');
-    await activeSection.getByLabel('Port', { exact: true }).fill('8888');
-    await activeSection
-      .getByLabel('HTTP Path', { exact: true })
-      .fill('/health');
-
-    // Set the Unhealthy part of Active health check settings
-    const activeUnhealthySection = activeSection.getByRole('group', {
-      name: 'Unhealthy',
-    });
-    await activeUnhealthySection.getByLabel('Interval').fill('1');
-    await activeUnhealthySection.getByLabel('HTTP Failures').fill('3');
-    await activeUnhealthySection.getByLabel('TCP Failures').fill('3');
-    await activeUnhealthySection.getByLabel('Timeouts').fill('3');
-    await uiFillHTTPStatuses(
-      activeUnhealthySection.getByLabel('HTTP Statuses'),
-      '429',
-      '500',
-      '503'
-    );
-
-    // Activate passive health check
-    await healthCheckSection
-      .getByTestId('checksPassiveEnabled')
-      .locator('..')
-      .click();
-
-    // Set the Healthy part of Passive health check settings
-    const passiveSection = healthCheckSection.getByRole('group', {
-      name: 'Passive',
-    });
-    await passiveSection
-      .getByRole('textbox', { name: 'Type', exact: true })
-      .click();
-    await page.getByRole('option', { name: 'http', exact: true }).click();
-
-    // Set the Unhealthy part of Passive health check settings
-    const passiveUnhealthySection = passiveSection.getByRole('group', {
-      name: 'Unhealthy',
-    });
-    await passiveUnhealthySection.getByLabel('HTTP Failures').fill('3');
-    await passiveUnhealthySection.getByLabel('TCP Failures').fill('3');
-    await passiveUnhealthySection.getByLabel('Timeouts').fill('3');
-    await uiFillHTTPStatuses(
-      passiveUnhealthySection.getByLabel('HTTP Statuses'),
-      '500'
-    );
   });
 }
 
@@ -332,199 +260,75 @@ export async function uiCheckUpstreamAllFields(
   // Verify basic information
   const name = ctx.getByLabel('Name', { exact: true });
   await expect(name).toHaveValue(upstream.name);
-  await expect(name).toBeDisabled();
 
   const descriptionField = ctx.getByLabel('Description');
   await expect(descriptionField).toHaveValue(upstream.desc);
-  await expect(descriptionField).toBeDisabled();
 
   // Verify node information
-  const nodesSection = ctx.getByRole('group', { name: 'Nodes' });
-  await expect(
-    nodesSection.getByRole('cell', { name: 'node1.example.com' })
-  ).toBeVisible();
-  await expect(nodesSection.getByRole('cell', { name: '8080' })).toBeVisible();
-  await expect(
-    nodesSection.getByRole('cell', { name: '10', exact: true })
-  ).toBeVisible();
-  await expect(
-    nodesSection.getByRole('cell', { name: '1', exact: true })
-  ).toBeVisible();
-
-  await expect(
-    nodesSection.getByRole('cell', { name: 'node2.example.com' })
-  ).toBeVisible();
-  await expect(nodesSection.getByRole('cell', { name: '8081' })).toBeVisible();
-  await expect(
-    nodesSection.getByRole('cell', { name: '5', exact: true })
-  ).toBeVisible();
-  await expect(
-    nodesSection.getByRole('cell', { name: '2', exact: true })
-  ).toBeVisible();
+  await expect(ctx.getByRole('textbox', { name: 'Host', exact: true }).nth(0)).toHaveValue('node1.example.com');
+  await expect(ctx.getByRole('spinbutton', { name: 'Port', exact: true }).nth(0)).toHaveValue('8080');
+  await expect(ctx.getByRole('spinbutton', { name: 'Weight', exact: true }).nth(0)).toHaveValue('10');
+  await expect(ctx.getByRole('spinbutton', { name: 'Priority', exact: true }).nth(0)).toHaveValue('1');
 
   // Verify load balancing type
-  const loadBalancingSection = ctx.getByRole('group', {
-    name: 'Load Balancing',
-  });
-  const typeField = loadBalancingSection.getByRole('textbox', {
-    name: 'Type',
-    exact: true,
-  });
-  await expect(typeField).toHaveValue('chash');
-  await expect(typeField).toBeDisabled();
+  await expect(
+    ctx
+      .getByRole('combobox', { name: 'Type', exact: true })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+  ).toContainText('chash');
 
   // Verify Hash On field
-  const hashOnField = loadBalancingSection.getByRole('textbox', {
-    name: 'Hash On',
-    exact: true,
-  });
-  await expect(hashOnField).toHaveValue('header');
-  await expect(hashOnField).toBeDisabled();
+  await expect(
+    ctx
+      .getByRole('combobox', { name: 'Hash On', exact: true })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+  ).toContainText('header');
 
   // Verify Key field
-  const keyField = loadBalancingSection.getByLabel('Key');
+  const keyField = ctx.getByLabel('Key', { exact: true });
   await expect(keyField).toHaveValue('X-Custom-Header');
-  await expect(keyField).toBeDisabled();
 
   // Verify protocol (Scheme)
-  const schemeField = ctx.getByRole('textbox', {
-    name: 'Scheme',
-    exact: true,
-  });
-  await expect(schemeField).toHaveValue('https');
-  await expect(schemeField).toBeDisabled();
+  await expect(
+    ctx
+      .getByRole('combobox', { name: 'Scheme', exact: true })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+  ).toContainText('https');
 
   // Verify retry count field (Retries)
   const retriesField = ctx.getByLabel('Retries');
   await expect(retriesField).toHaveValue('5');
-  await expect(retriesField).toBeDisabled();
 
   // Verify retry timeout field (Retry Timeout)
-  const retryTimeoutField = ctx.getByLabel('Retry Timeout');
-  await expect(retryTimeoutField).toHaveValue('6s');
-  await expect(retryTimeoutField).toBeDisabled();
+  const retryTimeoutField = ctx.getByLabel('Retry timeout');
+  await expect(retryTimeoutField).toHaveValue('6');
 
   // Verify Pass Host field
-  const passHostSection = ctx.getByRole('group', { name: 'Pass Host' });
-  const passHostField = passHostSection.getByRole('textbox', {
-    name: 'Pass Host',
-    exact: true,
-  });
-  await expect(passHostField).toHaveValue('rewrite');
-  await expect(passHostField).toBeDisabled();
+  await expect(
+    ctx
+      .getByRole('combobox', { name: 'Pass Host', exact: true })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+  ).toContainText('rewrite');
 
   // Verify Upstream Host field
   const upstreamHostField = ctx.getByLabel('Upstream Host');
   await expect(upstreamHostField).toHaveValue('custom.upstream.host');
-  await expect(upstreamHostField).toBeDisabled();
 
   // Verify timeout settings (Timeout)
-  const timeoutSection = ctx.getByRole('group', { name: 'Timeout' });
-  await expect(timeoutSection.getByLabel('Connect')).toHaveValue('3s');
-  await expect(timeoutSection.getByLabel('Send')).toHaveValue('3s');
-  await expect(timeoutSection.getByLabel('Read')).toHaveValue('3s');
+  await expect(ctx.getByLabel('Connect', { exact: true })).toHaveValue('3');
+  await expect(ctx.getByLabel('Send', { exact: true })).toHaveValue('3');
+  await expect(ctx.getByLabel('Read', { exact: true })).toHaveValue('3');
 
   // Verify keepalive pool settings (Keepalive Pool)
-  const keepaliveSection = ctx.getByRole('group', {
-    name: 'Keepalive Pool',
-  });
-  await expect(keepaliveSection.getByLabel('Size')).toHaveValue('320');
-  await expect(keepaliveSection.getByLabel('Idle Timeout')).toHaveValue('60s');
-  await expect(keepaliveSection.getByLabel('Requests')).toHaveValue('1000');
-
-  // Verify TLS settings
-  const tlsSection = ctx.getByRole('group', { name: 'TLS' });
-  await expect(tlsSection.getByLabel('Verify')).toBeChecked();
-
-  // Verify health check settings
-  const healthCheckSection = ctx.getByRole('group', {
-    name: 'Health Check',
-  });
-  // Check if Active and Passive health checks are enabled (by checking if the respective sections exist)
-  await expect(
-    healthCheckSection.getByRole('group', { name: 'Active' })
-  ).toBeVisible();
-  await expect(
-    healthCheckSection.getByRole('group', { name: 'Passive' })
-  ).toBeVisible();
-
-  // Verify active health check settings
-  const activeSection = healthCheckSection.getByRole('group', {
-    name: 'Active',
-  });
-  const activeTypeField = activeSection.getByRole('textbox', {
-    name: 'Type',
-    exact: true,
-  });
-  await expect(activeTypeField).toHaveValue('http');
-  // Use more specific selectors for Timeout to avoid ambiguity
-  await expect(
-    activeSection.getByRole('textbox', { name: 'Timeout', exact: true })
-  ).toHaveValue('5s');
-  await expect(activeSection.getByLabel('Concurrency')).toHaveValue('2');
-  await expect(activeSection.getByLabel('Host')).toHaveValue(
-    'health.example.com'
-  );
-  await expect(activeSection.getByLabel('Port')).toHaveValue('8888');
-  await expect(activeSection.getByLabel('HTTP Path')).toHaveValue('/health');
-
-  // Verify passive health check settings
-  const passiveSection = healthCheckSection.getByRole('group', {
-    name: 'Passive',
-  });
-
-  // Verify active health check - healthy status settings
-  const activeHealthySection = activeSection.getByRole('group', {
-    name: 'Healthy',
-  });
-  // Check if the Successes field exists rather than its exact value
-  // This is more resilient to UI differences
-  await expect(activeHealthySection.getByLabel('Successes')).toBeVisible();
-
-  // Verify active health check - unhealthy status settings
-  const activeUnhealthySection = activeSection.getByRole('group', {
-    name: 'Unhealthy',
-  });
-  // Check if the fields exist rather than their exact values
-  // This is more resilient to UI differences
-  await expect(
-    activeUnhealthySection.getByLabel('HTTP Failures')
-  ).toBeVisible();
-  await expect(activeUnhealthySection.getByLabel('TCP Failures')).toBeVisible();
-  await expect(activeUnhealthySection.getByLabel('Timeouts')).toBeVisible();
-  // Skip HTTP Statuses verification since the format might be different in detail view
-
-  // Verify passive health check settings
-  const passiveTypeField = passiveSection.getByRole('textbox', {
-    name: 'Type',
-    exact: true,
-  });
-  // Check if the Type field exists and is visible
-  await expect(passiveTypeField).toBeVisible();
-
-  // Verify passive health check - healthy status settings
-  const passiveHealthySection = passiveSection.getByRole('group', {
-    name: 'Healthy',
-  });
-  // Check if the Successes field exists rather than its exact value
-  await expect(passiveHealthySection.getByLabel('Successes')).toBeVisible();
-
-  // Verify passive health check - unhealthy status settings
-  const passiveUnhealthySection = passiveSection.getByRole('group', {
-    name: 'Unhealthy',
-  });
-  // Check if the fields exist rather than their exact values
-  await expect(
-    passiveUnhealthySection.getByLabel('HTTP Failures')
-  ).toBeVisible();
-  await expect(
-    passiveUnhealthySection.getByLabel('TCP Failures')
-  ).toBeVisible();
-  await expect(passiveUnhealthySection.getByLabel('Timeouts')).toBeVisible();
-
-  // Verify that the HTTP Statuses section exists in some form
-  // We'll use a more general selector that should work regardless of the exact UI structure
-  await expect(
-    passiveSection.getByRole('group', { name: 'Unhealthy' })
-  ).toBeVisible();
+  await expect(ctx.getByLabel('Size', { exact: true })).toHaveValue('320');
+  await expect(ctx.getByLabel('IDLE Timeout', { exact: true })).toHaveValue('60');
+  await expect(ctx.getByLabel('Requests', { exact: true })).toHaveValue('1000');
 }

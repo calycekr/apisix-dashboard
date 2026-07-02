@@ -18,7 +18,7 @@ import { routesPom } from '@e2e/pom/routes';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import { uiFillUpstreamRequiredFields } from '@e2e/utils/ui/upstreams';
 import { expect } from '@playwright/test';
 
@@ -46,9 +46,10 @@ test('should CRUD route with required fields', async ({ page }) => {
   await test.step('cannot submit without required fields', async () => {
     await routesPom.getAddBtn(page).click();
     await routesPom.isAddPage(page);
-    await uiHasToastMsg(page, {
-      hasText: 'invalid configuration',
-    });
+    await expect(
+      page.getByRole('alert').filter({ hasText: 'validation error' })
+    ).toBeVisible();
+    await expect(page.getByText('Request Path (URI)')).toBeVisible();
   });
 
   await test.step('submit with required fields', async () => {
@@ -57,13 +58,12 @@ test('should CRUD route with required fields', async ({ page }) => {
     await page.getByLabel('URI', { exact: true }).fill(routeUri);
 
     // Select HTTP method
-    await page.getByRole('textbox', { name: 'HTTP Methods' }).click();
-    await page.getByRole('option', { name: 'GET' }).click();
+    await uiSelectByLabel(page, 'HTTP Methods', 'GET');
 
-    // Add upstream nodes
-    // Reusing the pattern from upstreams test
+    await page.getByText('Define inline Upstream', { exact: true }).click();
+
     const upstreamSection = page.getByRole('group', {
-      name: 'Upstream',
+      name: 'Inline Upstream target',
       exact: true,
     });
     await uiFillUpstreamRequiredFields(upstreamSection, {
@@ -74,7 +74,7 @@ test('should CRUD route with required fields', async ({ page }) => {
     // Submit the form
     await routesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Route Successfully',
+      hasText: 'Route created and verified',
     });
   });
 
@@ -87,22 +87,14 @@ test('should CRUD route with required fields', async ({ page }) => {
     await expect(ID).toBeVisible();
     await expect(ID).toBeDisabled();
 
-    // Verify the route name
     const name = page.getByLabel('Name', { exact: true }).first();
     await expect(name).toHaveValue(routeName);
-    await expect(name).toBeDisabled();
 
-    // Verify the route URI
     const uri = page.getByLabel('URI', { exact: true });
     await expect(uri).toHaveValue(routeUri);
-    await expect(uri).toBeDisabled();
   });
 
   await test.step('edit and update route in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
     const nameField = page.getByLabel('Name', { exact: true }).first();
     await expect(nameField).toBeEnabled();
 
@@ -117,10 +109,14 @@ test('should CRUD route with required fields', async ({ page }) => {
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save' });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Route saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -163,7 +159,7 @@ test('should CRUD route with required fields', async ({ page }) => {
     // We're already on the detail page from the previous step
 
     // Delete the route
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     await page
       .getByRole('dialog', { name: 'Delete Route' })
@@ -173,7 +169,7 @@ test('should CRUD route with required fields', async ({ page }) => {
     // Will redirect to routes page
     await routesPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Route Successfully',
+      hasText: 'Route deleted successfully',
     });
     await expect(page.getByRole('cell', { name: routeName })).toBeHidden();
   });

@@ -131,7 +131,7 @@ export const RouteDetail = (props: RouteDetailProps) => {
     <>
       <PageHeader showBackBtn
         title={`Route: ${routeData?.value.name || id}`}
-        desc={`ID: ${id} · Matches incoming traffic and resolves it through a Service or directly to an Upstream.`}
+        desc={`ID: ${id} - Matches incoming traffic and resolves it through a Service or directly to an Upstream.`}
         extra={(
           <Space>
             <StatusSwitch api={`${API_ROUTES}/${id}`} />

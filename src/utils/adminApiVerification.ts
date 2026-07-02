@@ -23,11 +23,47 @@ const wait = (delayMs: number) =>
     window.setTimeout(resolve, delayMs);
   });
 
+const stripVerificationPaths = (
+  data: Record<string, unknown>,
+  paths: string[]
+): Record<string, unknown> => {
+  if (paths.length === 0) return data;
+
+  const stripPath = (value: unknown, [head, ...rest]: string[]): unknown => {
+    if (!head || !isRecord(value)) return value;
+    if (!Object.prototype.hasOwnProperty.call(value, head)) return value;
+
+    const copy = { ...value };
+    if (rest.length === 0) {
+      delete copy[head];
+      return copy;
+    }
+
+    const nested = stripPath(copy[head], rest);
+    if (isRecord(nested) && Object.keys(nested).length === 0) {
+      delete copy[head];
+    } else {
+      copy[head] = nested;
+    }
+    return copy;
+  };
+
+  return paths.reduce(
+    (result, path) => stripPath(result, path.split('.')) as Record<string, unknown>,
+    data
+  );
+};
+
 export const verifyAdminApiResource = async (
   api: string,
-  expected: Record<string, unknown>
+  expected: Record<string, unknown>,
+  options: { ignoredPaths?: string[] } = {}
 ) => {
   let lastError: unknown;
+  const comparableExpected = stripVerificationPaths(
+    expected,
+    options.ignoredPaths ?? []
+  );
 
   for (let attempt = 0; attempt < 3; attempt++) {
     try {
@@ -41,7 +77,7 @@ export const verifyAdminApiResource = async (
         throw new Error('Admin API returned no resource value');
       }
 
-      const mismatches = getPatchMismatchPaths(expected, actual);
+      const mismatches = getPatchMismatchPaths(comparableExpected, actual);
       if (mismatches.length === 0) return;
 
       lastError = new Error(

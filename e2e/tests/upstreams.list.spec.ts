@@ -37,9 +37,9 @@ test('should navigate to upstreams page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('Name', { exact: true })).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'ID' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'Name' })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'RAW' })).toBeVisible();
   });
 });
 

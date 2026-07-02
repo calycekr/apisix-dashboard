@@ -133,7 +133,7 @@ function RouteComponent() {
     <>
       <PageHeader showBackBtn
         title={`Upstream: ${upstream.name || id}`}
-        desc={`ID: ${id} · Backend selection, load-balancing, connection, and health policy.`}
+        desc={`ID: ${id} - Backend selection, load-balancing, connection, and health policy.`}
         extra={(
           <Space>
             <Link to="/services/add" search={{ upstream_id: id }}>

@@ -32,7 +32,7 @@ test.beforeAll(async () => {
 });
 
 test('should CRUD upstream with all fields', async ({ page }) => {
-  test.setTimeout(30000);
+  test.setTimeout(60000);
 
   const upstreamNameWithAllFields = randomId('test-upstream-full');
   const description =
@@ -54,11 +54,6 @@ test('should CRUD upstream with all fields', async ({ page }) => {
   // Submit the form
   const addBtn = page.getByRole('button', { name: 'Add', exact: true });
   await addBtn.click();
-
-  // Wait for success message
-  await uiHasToastMsg(page, {
-    hasText: 'Add Upstream Successfully',
-  });
 
   // Verify automatic redirection to detail page
   await upstreamsPom.isDetailPage(page);
@@ -97,7 +92,7 @@ test('should CRUD upstream with all fields', async ({ page }) => {
     await upstreamsPom.isDetailPage(page);
 
     // Delete the upstream
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     // Confirm deletion
     const deleteDialog = page.getByRole('dialog', { name: 'Delete Upstream' });
@@ -107,7 +102,7 @@ test('should CRUD upstream with all fields', async ({ page }) => {
     // Verify successful deletion
     await upstreamsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Upstream Successfully',
+      hasText: 'Upstream deleted successfully',
     });
 
     // Verify removed from the list

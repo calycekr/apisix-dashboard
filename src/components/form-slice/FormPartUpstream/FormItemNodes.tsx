@@ -16,11 +16,9 @@
  */
 import { EditableProTable, type ProColumns } from '@ant-design/pro-components';
 import { Alert, Button, Typography } from 'antd';
-import { toJS } from 'mobx';
-import { useLocalObservable } from 'mobx-react-lite';
 import { nanoid } from 'nanoid';
 import { equals, isNil } from 'rambdax';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   type FieldValues,
   useController,
@@ -32,7 +30,6 @@ import { InputWrapper } from '@/components/form/InputWrapper';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import type { InputWrapperProps } from '@/types/input-wrapper';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
-import { useClickOutside } from '@/utils/hooks';
 import { zGetDefault } from '@/utils/zod';
 
 import { genControllerProps } from '../../form/util';
@@ -87,9 +84,12 @@ const parseToUpstreamNodes = (data: DataSource[] | undefined) => {
   return data.map((item) => {
     const d: APISIXType['UpstreamNode'] = {
       host: item.host,
-      port: item.port,
-      weight: item.weight,
-      priority: item.priority,
+      port: Number(item.port),
+      weight: Number(item.weight),
+      priority:
+        item.priority === undefined || item.priority === null
+          ? undefined
+          : Number(item.priority),
     };
     return d;
   });
@@ -112,7 +112,7 @@ export type FormItemNodesProps<T extends FieldValues> =
     defaultValue?: APISIXType['UpstreamNode'][];
   } & Pick<InputWrapperProps, 'label' | 'required' | 'withAsterisk'>;
 
-export const FormItemNodes = <T extends FieldValues>(
+const FormItemNodesInner = <T extends FieldValues>(
   props: FormItemNodesProps<T>
 ) => {
   const { controllerProps, restProps } = useMemo(
@@ -186,40 +186,21 @@ export const FormItemNodes = <T extends FieldValues>(
     [disabled]
   );
   const { label, required, withAsterisk } = props;
-  const ob = useLocalObservable(() => ({
-    disabled: false,
-    setDisabled(disabled: boolean | undefined) {
-      this.disabled = disabled || false;
-    },
-    values: [] as DataSource[],
-    setValues(data: DataSource[]) {
-      if (equals(toJS(this.values), data)) return;
-      this.values = data;
-    },
-    append(data: DataSource) {
-      this.values.push(data);
-    },
-    remove(id: string) {
-      const index = this.values.findIndex((item) => item.id === id);
-      if (index === -1) return;
-      this.values.splice(index, 1);
-    },
-    get editableKeys() {
-      return this.disabled ? [] : this.values.map((item) => item.id);
-    },
-  }));
+  const [values, setValues] = useState<DataSource[]>([]);
+  const [isDisabled, setIsDisabled] = useState(false);
+  const setNodeValues = useCallback((data: DataSource[]) => {
+    setValues((prev) => (equals(prev, data) ? prev : data));
+  }, []);
   useEffect(() => {
-    ob.setValues(parseToDataSource(value));
-  }, [ob, value]);
+    setNodeValues(parseToDataSource(value));
+  }, [setNodeValues, value]);
   useEffect(() => {
-    ob.setDisabled(disabled);
-  }, [disabled, ob]);
+    setIsDisabled(disabled || false);
+  }, [disabled]);
 
-  const ref = useClickOutside<HTMLDivElement>(() => {
-    syncFormValue(toJS(ob.values));
-  });
-  const nodeCount = ob.values.length;
-  const totalWeight = ob.values.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
+  const editableKeys = isDisabled ? [] : values.map((item) => item.id);
+  const nodeCount = values.length;
+  const totalWeight = values.reduce((sum, item) => sum + (Number(item.weight) || 0), 0);
 
   return (
     <InputWrapper
@@ -228,7 +209,6 @@ export const FormItemNodes = <T extends FieldValues>(
       label={label}
       required={required}
       withAsterisk={withAsterisk}
-      ref={ref}
     >
       <input name={fName} type="hidden" />
       <div style={{ marginBottom: 8 }}>
@@ -250,15 +230,15 @@ export const FormItemNodes = <T extends FieldValues>(
           defaultSize="small"
           rowKey="id"
           bordered
-          controlled={false}
-          value={ob.values}
+          controlled
+          value={values}
           recordCreatorProps={false}
           columns={columns}
           editable={{
             type: 'multiple',
-            editableKeys: ob.editableKeys,
+            editableKeys,
             onValuesChange(_, dataSource) {
-              ob.setValues(dataSource);
+              setNodeValues(dataSource);
               syncFormValue(dataSource);
             },
             actionRender: (row) => {
@@ -269,8 +249,8 @@ export const FormItemNodes = <T extends FieldValues>(
                   size="small"
                   style={{ padding: 0 }}
                   onClick={() => {
-                    const next = toJS(ob.values).filter((item) => item.id !== row.id);
-                    ob.setValues(next);
+                    const next = values.filter((item) => item.id !== row.id);
+                    setNodeValues(next);
                     syncFormValue(next);
                   }}
                 >
@@ -285,8 +265,8 @@ export const FormItemNodes = <T extends FieldValues>(
         style={{ marginTop: 8, width: '100%', borderColor: 'whitesmoke', ...(disabled && { display: 'none' }) }}
         size="small"
         onClick={() => {
-          const next = [...toJS(ob.values), genRecord()];
-          ob.setValues(next);
+          const next = [...values, genRecord()];
+          setNodeValues(next);
           syncFormValue(next);
         }}
       >
@@ -295,3 +275,5 @@ export const FormItemNodes = <T extends FieldValues>(
     </InputWrapper>
   );
 };
+
+export const FormItemNodes = FormItemNodesInner;

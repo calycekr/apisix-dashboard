@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getRouteNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Routes', exact: true }),
+    page.getByRole('menuitem', { name: 'Routes', exact: true }),
   getAddRouteBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Route', exact: true }),
   getAddBtn: (page: Page) =>

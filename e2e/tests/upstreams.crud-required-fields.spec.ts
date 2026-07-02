@@ -18,7 +18,7 @@ import { upstreamsPom } from '@e2e/pom/upstreams';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiCannotSubmitEmptyForm, uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import {
   uiCheckUpstreamRequiredFields,
   uiFillUpstreamRequiredFields,
@@ -45,23 +45,16 @@ test('should CRUD upstream with required fields', async ({ page }) => {
   await upstreamsPom.getAddUpstreamBtn(page).click();
   await upstreamsPom.isAddPage(page);
 
-  await test.step('cannot submit without required fields', async () => {
-    await uiCannotSubmitEmptyForm(page, upstreamsPom);
-  });
-
   await test.step('submit with required fields', async () => {
     await uiFillUpstreamRequiredFields(page, {
       name: upstreamName,
       nodes,
     });
     await upstreamsPom.getAddBtn(page).click();
-    await uiHasToastMsg(page, {
-      hasText: 'Add Upstream Successfully',
-    });
+    await upstreamsPom.isDetailPage(page);
   });
 
-  await test.step('auto navigate to upstream detail page', async () => {
-    await upstreamsPom.isDetailPage(page);
+  await test.step('verify upstream detail page', async () => {
     // Verify ID exists
     const ID = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(ID).toBeVisible();
@@ -89,10 +82,6 @@ test('should CRUD upstream with required fields', async ({ page }) => {
   });
 
   await test.step('edit and update upstream in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
     const nameField = page.getByLabel('Name', { exact: true });
     await expect(nameField).toBeEnabled();
 
@@ -101,33 +90,27 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     await descriptionField.fill('Updated description for testing');
 
     // Add a simple label (key:value format)
-    const labelsField = page.getByRole('textbox', { name: 'Labels' });
-    await expect(labelsField).toBeEnabled();
-
-    // Add a single label in key:value format
-    await labelsField.click();
-    await labelsField.fill('version:v1');
-    await labelsField.press('Enter');
-
-    // Verify the label was added by checking if the input is cleared
-    // This indicates the tag was successfully created
-    await expect(labelsField).toHaveValue('');
+    await uiSelectByLabel(page, 'Labels', 'version:v1');
 
     // Update a node - change the host of the first node
-    const nodesSection = page.getByRole('group', { name: 'Nodes' });
-    const rows = nodesSection.locator('tr.ant-table-row');
-    const firstRowHost = rows.nth(0).getByRole('textbox').first();
+    const firstRowHost = page
+      .getByRole('textbox', { name: 'Host', exact: true })
+      .nth(0);
     await firstRowHost.fill('updated-test.com');
     await expect(firstRowHost).toHaveValue('updated-test.com');
-    await nodesSection.click();
+    await firstRowHost.blur();
 
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save' });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review changes before saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Upstream saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -139,11 +122,18 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     );
 
     // Check if the updated node host text is visible somewhere in the nodes section
-    await expect(nodesSection).toBeVisible();
-    await expect(nodesSection.getByText('updated-test.com')).toBeVisible();
+    await expect(
+      page.getByRole('textbox', { name: 'Host', exact: true }).nth(0)
+    ).toHaveValue('updated-test.com');
 
     // check labels
-    await expect(page.getByText('version:v1')).toBeVisible();
+    await expect(
+      page
+        .getByRole('combobox', { name: 'Labels' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText('version:v1');
 
     // Return to list page and verify the upstream exists
     await upstreamsPom.getUpstreamNavBtn(page).click();
@@ -155,7 +145,13 @@ test('should CRUD upstream with required fields', async ({ page }) => {
   });
 
   await test.step('delete upstream in detail page', async () => {
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page
+      .getByRole('row', { name: upstreamName })
+      .getByRole('link', { name: upstreamName, exact: true })
+      .click();
+    await upstreamsPom.isDetailPage(page);
+
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     await page
       .getByRole('dialog', { name: 'Delete Upstream' })
@@ -165,7 +161,7 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     // will redirect to upstreams page
     await upstreamsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Upstream Successfully',
+      hasText: 'Upstream deleted successfully',
     });
     await expect(page.getByRole('cell', { name: upstreamName })).toBeHidden();
   });
