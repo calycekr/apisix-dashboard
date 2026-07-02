@@ -48,14 +48,17 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
 
     // Add a minimal plugin (UI requires at least one plugin)
     const selectPluginsBtn = page.getByRole('button', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
     });
     await selectPluginsBtn.click();
 
     const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
+      exact: true,
     });
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
+    const searchInput = selectPluginsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('basic-auth');
 
     await selectPluginsDialog
@@ -63,17 +66,22 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
       .getByRole('button', { name: 'Add' })
       .click();
 
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: basic-auth',
+    });
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(page, pluginEditor, '{"hide_credentials": true}');
 
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(addPluginDialog).toBeHidden();
+    await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
+    await expect(selectPluginsDialog).toBeHidden();
 
     // Submit the form
     await consumerGroupsPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Consumer Group Successfully',
+      hasText: 'Consumer Group created and verified',
     });
 
     // Should navigate to detail page
@@ -94,7 +102,7 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
 
     // Verify consumer group exists in list
     await expect(
-      page.getByRole('cell', { name: testId, exact: true })
+      page.getByRole('link', { name: testId, exact: true })
     ).toBeVisible();
   });
 
@@ -106,10 +114,7 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
       .click();
     await consumerGroupsPom.isDetailPage(page);
 
-    // Click Edit button
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode
+    // Detail pages are immediately editable
     const descField = page.getByRole('textbox', { name: 'Description' });
     await expect(descField).toBeEnabled();
 
@@ -117,12 +122,7 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
     const idField = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(idField).toBeDisabled();
 
-    // Cancel without making changes
-    await page.getByRole('button', { name: 'Cancel' }).click();
-
-    // Verify we're back in detail view
     await consumerGroupsPom.isDetailPage(page);
-    await expect(descField).toBeDisabled();
   });
 
   await test.step('delete consumer group', async () => {
@@ -137,10 +137,13 @@ test('should CRUD Consumer Group with required fields', async ({ page }) => {
 
     // Should redirect to list page
     await consumerGroupsPom.isIndexPage(page);
+    await uiHasToastMsg(page, {
+      hasText: 'Consumer Group deleted successfully',
+    });
 
     // Verify consumer group is deleted
     await expect(
-      page.getByRole('cell', { name: testId, exact: true })
+      page.getByRole('link', { name: testId, exact: true })
     ).toBeHidden();
   });
 });

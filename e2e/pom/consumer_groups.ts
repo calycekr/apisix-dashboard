@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getConsumerGroupNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Consumer Groups' }),
+    page.getByRole('menuitem', { name: 'Consumer Groups' }),
   getAddConsumerGroupBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Consumer Group' }),
   getAddBtn: (page: Page) =>
