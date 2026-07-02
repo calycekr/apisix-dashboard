@@ -20,10 +20,11 @@ import { expect } from '@playwright/test';
 import type { APISIXType } from '@/types/schema/apisix';
 
 import { genTLS } from '../common';
+import { uiSelectByLabel } from '.';
 import { uiCheckLabels, uiFillLabels } from './labels';
 
 export async function uiFillSSLRequiredFields(
-  ctx: Page | Locator,
+  ctx: Page,
   ssl: Partial<APISIXType['SSL']>
 ) {
   // Generate TLS certificate if not provided
@@ -35,12 +36,8 @@ export async function uiFillSSLRequiredFields(
     await ctx.getByLabel('SNI', { exact: true }).fill(ssl.sni);
   }
   if (ssl.snis && ssl.snis.length > 0) {
-    const snisField = ctx.getByRole('textbox', { name: 'SNIs' });
     for (const sni of ssl.snis) {
-      await snisField.click();
-      await snisField.fill(sni);
-      await snisField.press('Enter');
-      await expect(snisField).toHaveValue('');
+      await uiSelectByLabel(ctx, 'SNIs', sni);
     }
   }
   if (ssl.labels) {

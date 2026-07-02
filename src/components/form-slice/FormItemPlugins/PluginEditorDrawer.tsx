@@ -318,72 +318,72 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   );
 
   return (
-    <Drawer
-      placement="right"
-      styles={{
-        wrapper: { width: 620, maxWidth: '100vw' },
-        body: { paddingTop: '18px' },
-      }}
-      keyboard={false}
-      open={opened}
-      onClose={handleClose}
-      title={`${title}: ${name}`}
-      footer={
-        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
-          <Button onClick={handleClose}>
-            {mode === 'view' ? 'Close' : 'Cancel'}
-          </Button>
-          {mode !== 'view' && (
-            <FormSubmitBtn type="primary" onClick={handleSave}>
-              {mode === 'add' ? 'Add Plugin' : 'Save Changes'}
-            </FormSubmitBtn>
-          )}
-        </div>
-      }
-    >
-      {schema && typeof schema === 'object' && 'description' in schema && (
-        <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 'var(--app-font-size-md)' }}>
-          {String((schema as { description: string }).description)}
-        </Typography.Text>
-      )}
-      {aiTemplates.length > 0 && (
-        <Alert
-          type="info"
-          showIcon
-          message="AI Gateway quick start"
-          description={
-            <Space direction="vertical" size={8} style={{ width: '100%' }}>
-              <Typography.Text type="secondary">
-                Choose a provider template, then replace model, endpoint, and Secret
-                Reference placeholders for your environment.
-              </Typography.Text>
-              <Space wrap>
-                {aiTemplates.map((template) => (
-                  <Button
-                    key={template.key}
-                    onClick={() => applyTemplate(template.config)}
-                    title={template.description}
-                  >
-                    {template.label}
-                  </Button>
-                ))}
+    <FormProvider {...methods}>
+      <Drawer
+        placement="right"
+        styles={{
+          wrapper: { width: 620, maxWidth: '100vw' },
+          body: { paddingTop: '18px' },
+        }}
+        keyboard={false}
+        open={opened}
+        onClose={handleClose}
+        title={`${title}: ${name}`}
+        footer={
+          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 8 }}>
+            <Button onClick={handleClose}>
+              {mode === 'view' ? 'Close' : 'Cancel'}
+            </Button>
+            {mode !== 'view' && (
+              <FormSubmitBtn type="primary" onClick={handleSave}>
+                {mode === 'add' ? 'Add Plugin' : 'Save Changes'}
+              </FormSubmitBtn>
+            )}
+          </div>
+        }
+      >
+        {schema && typeof schema === 'object' && 'description' in schema && (
+          <Typography.Text type="secondary" style={{ display: 'block', marginBottom: 12, fontSize: 'var(--app-font-size-md)' }}>
+            {String((schema as { description: string }).description)}
+          </Typography.Text>
+        )}
+        {aiTemplates.length > 0 && (
+          <Alert
+            type="info"
+            showIcon
+            message="AI Gateway quick start"
+            description={
+              <Space direction="vertical" size={8} style={{ width: '100%' }}>
+                <Typography.Text type="secondary">
+                  Choose a provider template, then replace model, endpoint, and Secret
+                  Reference placeholders for your environment.
+                </Typography.Text>
+                <Space wrap>
+                  {aiTemplates.map((template) => (
+                    <Button
+                      key={template.key}
+                      onClick={() => applyTemplate(template.config)}
+                      title={template.description}
+                    >
+                      {template.label}
+                    </Button>
+                  ))}
+                </Space>
               </Space>
-            </Space>
-          }
-          style={{ marginBottom: 12 }}
-        />
-      )}
-      {compatibilityNotices.map((notice) => (
-        <Alert
-          key={notice.key}
-          type={notice.type}
-          showIcon
-          message={notice.message}
-          description={notice.description}
-          style={{ marginBottom: 12 }}
-        />
-      ))}
-      <FormProvider {...methods}>
+            }
+            style={{ marginBottom: 12 }}
+          />
+        )}
+        {compatibilityNotices.map((notice) => (
+          <Alert
+            key={notice.key}
+            type={notice.type}
+            showIcon
+            message={notice.message}
+            description={notice.description}
+            style={{ marginBottom: 12 }}
+          />
+        ))}
         <form>
           {canUseForm ? (
             <Tabs
@@ -411,7 +411,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}
           />
         )}
-      </FormProvider>
-    </Drawer>
+      </Drawer>
+    </FormProvider>
   );
 };

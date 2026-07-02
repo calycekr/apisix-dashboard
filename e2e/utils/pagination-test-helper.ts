@@ -40,9 +40,11 @@ export function setupPaginationTests<T>(
 
   const getPageSizeSelection = (page: Page, size: number) => {
     return page
-      .locator('.ant-select-selection-item')
-      .filter({ hasText: new RegExp(`${size} / page`) })
-      .first();
+      .getByRole('combobox', { name: 'Page Size' })
+      .locator(
+        'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+      )
+      .filter({ hasText: new RegExp(`${size} / page`) });
   };
 
   const getPageSizeOption = (page: Page, size: number) => {
@@ -64,6 +66,13 @@ export function setupPaginationTests<T>(
     await expect(cell).toBeHidden({ timeout: 10000 });
   };
 
+  const expectDefaultPageSizeParam = async (page: Page) => {
+    await expect(page).toHaveURL((url) => {
+      const pageSize = url.searchParams.get('page_size');
+      return pageSize === null || pageSize === defaultPageSize.toString();
+    });
+  };
+
   test('can use the pagination of the table to switch', async ({ page }) => {
     await test.step('navigate to list page', async () => {
       await pom.toIndex(page);
@@ -71,11 +80,7 @@ export function setupPaginationTests<T>(
     });
 
     await test.step('default page info should exists', async () => {
-      // page_size should exist in url
-      await expect(page).toHaveURL(
-        (url) =>
-          url.searchParams.get('page_size') === defaultPageSize.toString()
-      );
+      await expectDefaultPageSizeParam(page);
       // page_size should exist in table
       await expect(getPageSizeSelection(page, defaultPageSize)).toBeVisible();
 
@@ -153,11 +158,7 @@ export function setupPaginationTests<T>(
     });
 
     await test.step('default page info should exists', async () => {
-      // page_size should exist in url
-      await expect(page).toHaveURL(
-        (url) =>
-          url.searchParams.get('page_size') === defaultPageSize.toString()
-      );
+      await expectDefaultPageSizeParam(page);
       // page_size should exist in table
       await expect(getPageSizeSelection(page, defaultPageSize)).toBeVisible();
 

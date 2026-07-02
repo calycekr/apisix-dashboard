@@ -18,7 +18,7 @@ import { sslsPom } from '@e2e/pom/ssls';
 import { genTLS } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import { uiFillSSLRequiredFields } from '@e2e/utils/ui/ssls';
 import { expect } from '@playwright/test';
 
@@ -53,7 +53,7 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     // Submit the form
     await sslsPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add SSL Successfully',
+      hasText: 'SSL created and verified',
     });
 
     // After creation, navigate back to list
@@ -100,23 +100,21 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     await expect(certField).toBeEnabled();
 
     // Update SNIs - add a new one
-    const snisField = page.getByRole('textbox', { name: 'SNIs' });
-    await snisField.click();
-    await snisField.fill('updated.example.com');
-    await snisField.press('Enter');
-    await expect(snisField).toHaveValue('');
+    await uiSelectByLabel(page, 'SNIs', 'updated.example.com');
 
     // Verify the new SNI is displayed
-    await expect(page.getByText('updated.example.com', { exact: true })).toBeVisible();
+    await expect(
+      page
+        .getByRole('combobox', { name: 'SNIs' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText('updated.example.com');
 
     // Click Cancel to reset the form without saving
     await page.getByRole('button', { name: 'Cancel' }).click();
 
-    // Verify we're still on the detail page
-    await sslsPom.isDetailPage(page);
-
-    // Return to list page and verify the SSL exists
-    await sslsPom.getSSLNavBtn(page).click();
+    // Cancel returns to the SSL list without saving the pending edit.
     await sslsPom.isIndexPage(page);
 
     // Find the row with our SSL (by first SNI)
@@ -147,7 +145,7 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     // Will redirect to SSLs page
     await sslsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete SSL Successfully',
+      hasText: 'SSL deleted successfully',
     });
     await expect(page.getByRole('cell', { name: snis[0] })).toBeHidden();
   });

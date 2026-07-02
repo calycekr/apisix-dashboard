@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getGlobalRuleNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Global Rules', exact: true }),
+    page.getByRole('menuitem', { name: 'Global Rules', exact: true }),
   getAddGlobalRuleBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Global Rule', exact: true }),
   getAddBtn: (page: Page) =>

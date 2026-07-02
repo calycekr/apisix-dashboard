@@ -18,7 +18,7 @@ import { sslsPom } from '@e2e/pom/ssls';
 import { genTLS } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import { uiCheckLabels } from '@e2e/utils/ui/labels';
 import { uiFillSSLRequiredFields } from '@e2e/utils/ui/ssls';
 import { expect } from '@playwright/test';
@@ -65,33 +65,14 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     // Fill in required fields
     await uiFillSSLRequiredFields(page, sslDataAllFields);
 
-    // Set Status to Enabled
-    const statusField = page.getByRole('textbox', {
-      name: 'Status',
-      exact: true,
-    });
-    await statusField.click();
-    await page.getByRole('option', { name: 'Enabled' }).click();
-    await expect(statusField).toHaveValue('Enabled');
-
     // Add SSL Protocols
-    const sslProtocolsField = page.getByRole('textbox', {
-      name: 'SSL Protocols',
-    });
-    await sslProtocolsField.click();
-    await page.getByRole('option', { name: 'TLSv1.2' }).click();
-    await page.getByRole('option', { name: 'TLSv1.3' }).click();
-    await page.keyboard.press('Escape');
-
-    // Verify protocols are selected
-    const protocolsContainer = sslProtocolsField.locator('..');
-    await expect(protocolsContainer).toContainText('TLSv1.2');
-    await expect(protocolsContainer).toContainText('TLSv1.3');
+    await uiSelectByLabel(page, 'SSL Protocols', 'TLSv1.2');
+    await uiSelectByLabel(page, 'SSL Protocols', 'TLSv1.3');
 
     // Submit the form
     await sslsPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add SSL Successfully',
+      hasText: 'SSL created and verified',
     });
 
     // Navigate back to list
@@ -120,32 +101,36 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     // Verify certificate
     const cert1Field = page.getByRole('textbox', { name: 'Certificate 1' });
     await expect(cert1Field).toBeVisible();
-    await expect(cert1Field).toBeDisabled();
-
     // Verify Status
-    const statusField = page.getByRole('textbox', {
-      name: 'Status',
-      exact: true,
-    });
-    await expect(statusField).toHaveValue('Enabled');
+    await expect(
+      page
+        .getByRole('combobox', { name: 'Status' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText('Enabled');
 
     // Verify SSL Protocols
-    const protocolsField = page.getByRole('textbox', {
-      name: 'SSL Protocols',
-    });
-    const protocolsContainer = protocolsField.locator('..');
-    await expect(protocolsContainer).toContainText('TLSv1.2');
-    await expect(protocolsContainer).toContainText('TLSv1.3');
+    await expect(
+      page
+        .getByRole('combobox', { name: 'SSL Protocols' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText('TLSv1.2');
+    await expect(
+      page
+        .getByRole('combobox', { name: 'SSL Protocols' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText('TLSv1.3');
 
     // Verify Labels
     await uiCheckLabels(page, initialLabels);
   });
 
-  await test.step('verify can enter edit mode', async () => {
-    // Click the Edit button
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode
+  await test.step('verify detail form is editable', async () => {
     const cert1Field = page.getByRole('textbox', { name: 'Certificate 1' });
     await expect(cert1Field).toBeEnabled();
 
@@ -177,7 +162,7 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     // Will redirect to SSLs page
     await sslsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete SSL Successfully',
+      hasText: 'SSL deleted successfully',
     });
     await expect(page.getByRole('cell', { name: firstSni })).toBeHidden();
 

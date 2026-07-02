@@ -39,7 +39,9 @@ export const selectPluginNamesWithSchema = (
 ) => {
   const names: string[] = [];
   for (const [name, config] of Object.entries(plugins)) {
-    if (config[schema]) names.push(name);
+    if (config[schema] || (schema === 'metadata_schema' && config.schema)) {
+      names.push(name);
+    }
   }
   return names;
 };

@@ -19,9 +19,9 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getPluginMetadataNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Plugin Metadata', exact: true }),
+    page.getByRole('menuitem', { name: 'Plugin Metadata', exact: true }),
   getSelectPluginsBtn: (page: Page) =>
-    page.getByRole('button', { name: 'Select Plugins' }),
+    page.getByRole('button', { name: 'Add Plugin' }),
 };
 
 const assert = {

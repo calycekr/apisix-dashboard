@@ -18,7 +18,7 @@ import { uiGoto } from '@e2e/utils/ui';
 import { expect, type Page } from '@playwright/test';
 
 const locator = {
-  getSSLNavBtn: (page: Page) => page.getByRole('link', { name: 'SSLs' }),
+  getSSLNavBtn: (page: Page) => page.getByRole('menuitem', { name: 'SSLs' }),
   getAddSSLBtn: (page: Page) => page.getByRole('link', { name: 'Add SSL' }),
   getAddBtn: (page: Page) =>
     page.getByRole('button', { name: 'Add', exact: true }),

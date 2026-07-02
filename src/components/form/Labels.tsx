@@ -25,7 +25,7 @@ import {
 import type { APISIXType } from '@/types/schema/apisix';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 export type FormItemLabelsProps<T extends FieldValues> = UseControllerProps<T> &
   Omit<SelectProps, 'value' | 'onChange' | 'onBlur' | 'defaultValue' | 'mode'> & {
@@ -48,6 +48,8 @@ export const FormItemLabels = <T extends FieldValues>(
     fieldState,
   } = useController<T>(controllerProps);
   const [internalError, setInternalError] = useState<string | null>();
+  const accessibleLabel =
+    restProps['aria-label'] ?? getAccessibleFieldLabel(label);
 
   const values = useMemo(() => {
     if (!value) return [];
@@ -98,6 +100,7 @@ export const FormItemLabels = <T extends FieldValues>(
       <Select
         mode="tags"
         allowClear
+        aria-label={accessibleLabel}
         value={values}
         onSearch={handleSearch}
         tokenSeparators={[',']}

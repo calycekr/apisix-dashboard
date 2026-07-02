@@ -87,6 +87,7 @@ export const uiSelectByLabel = async (
     await page.keyboard.press('Enter');
   }
   await expect(select).toContainText(value, { timeout: 10000 });
+  await page.keyboard.press('Escape').catch(() => {});
 };
 
 export const uiClearMonacoEditor = async (page: Page) => {

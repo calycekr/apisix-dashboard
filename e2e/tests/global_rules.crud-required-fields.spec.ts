@@ -34,23 +34,28 @@ test('should CRUD global rule with required fields only', async ({ page }) => {
 
   await test.step('add global rule with plugins only', async () => {
     // ID field should be auto-generated
-    const idInput = page.getByLabel('ID');
+    const idInput = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(idInput).toBeVisible();
     await expect(idInput).not.toHaveValue('');
     globalRuleId = await idInput.inputValue();
 
     // Select a plugin - using response-rewrite as it's simple
     const selectPluginBtn = page.getByRole('button', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
     });
     await selectPluginBtn.click();
 
     // Plugin selection dialog should appear
-    const dialog = page.getByRole('dialog', { name: 'Select Plugins' });
+    const dialog = page.getByRole('dialog', {
+      name: 'Add Plugin',
+      exact: true,
+    });
     await expect(dialog).toBeVisible();
 
     // Search and add response-rewrite plugin
-    const searchInput = dialog.getByPlaceholder('Search');
+    const searchInput = dialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('response-rewrite');
 
     // Click Add button for the plugin
@@ -60,23 +65,28 @@ test('should CRUD global rule with required fields only', async ({ page }) => {
       .click();
 
     // Plugin dialog should appear
-    const pluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const pluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: response-rewrite',
+    });
     await expect(pluginDialog).toBeVisible();
+    await pluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Add minimal plugin configuration using Monaco editor
     const pluginEditor = await uiGetMonacoEditor(page, pluginDialog);
     await uiFillMonacoEditor(page, pluginEditor, '{"body": "test response"}');
 
     // Submit plugin
-    await pluginDialog.getByRole('button', { name: 'Add' }).click();
+    await pluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(pluginDialog).toBeHidden();
+    await dialog.getByLabel('Close', { exact: true }).click();
+    await expect(dialog).toBeHidden();
 
     // Submit the form
     await globalRulePom.getAddBtn(page).click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Global Rule created and verified',
     });
 
     // Should redirect to detail page
@@ -102,9 +112,9 @@ test('should CRUD global rule with required fields only', async ({ page }) => {
       .click();
 
     await globalRulePom.isIndexPage(page);
-    
+
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Global Rule deleted successfully',
     });
   });
 });

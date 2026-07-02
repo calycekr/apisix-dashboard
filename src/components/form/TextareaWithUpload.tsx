@@ -26,7 +26,7 @@ import {
 import IconUpload from '~icons/material-symbols/upload';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 export type FormItemTextareaWithUploadProps<T extends FieldValues> =
   UseControllerProps<T> &
@@ -65,6 +65,8 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
     autoSize,
     ...textareaProps
   } = restProps;
+  const accessibleLabel =
+    textareaProps['aria-label'] ?? getAccessibleFieldLabel(label);
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -104,6 +106,7 @@ export const FormItemTextareaWithUpload = <T extends FieldValues>(
     >
       <Input.TextArea
         value={value}
+        aria-label={accessibleLabel}
         status={fieldState.error ? 'error' : undefined}
         onChange={(e) => {
           fOnChange(e);

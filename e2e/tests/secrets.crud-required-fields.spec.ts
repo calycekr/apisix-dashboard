@@ -45,12 +45,12 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
       await secretsPom.getAddSecretBtn(page).click();
       await secretsPom.isAddPage(page);
 
-      await page.getByLabel('ID').fill(createdSecretId);
+      await page.getByLabel('ID', { exact: true }).fill(createdSecretId);
 
       // Vault is default
-      await page.getByLabel('URI').fill('http://vault.example.com:8200');
-      await page.getByLabel('Prefix').fill('/secret/test');
-      await page.getByLabel('Token').fill('test-vault-token-123');
+      await page.getByLabel('URI', { exact: true }).fill('http://vault.example.com:8200');
+      await page.getByLabel('Prefix', { exact: true }).fill('/secret/test');
+      await page.getByLabel('Token', { exact: true }).fill('test-vault-token-123');
 
       await secretsPom.getAddBtn(page).click();
     });
@@ -73,9 +73,9 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
       await secretsPom.isDetailPage(page);
 
       // Assert Vault field values using input selectors
-      await expect(page.getByLabel('URI')).toHaveValue('http://vault.example.com:8200');
-      await expect(page.getByLabel('Prefix')).toHaveValue('/secret/test');
-      await expect(page.getByLabel('Token')).toHaveValue('test-vault-token-123');
+      await expect(page.getByLabel('URI', { exact: true })).toHaveValue('http://vault.example.com:8200');
+      await expect(page.getByLabel('Prefix', { exact: true })).toHaveValue('/secret/test');
+      await expect(page.getByLabel('Token', { exact: true })).toHaveValue('test-vault-token-123');
     });
   });
 
@@ -96,23 +96,24 @@ test.describe('CRUD secret with required fields only (Vault)', () => {
     });
 
     await test.step('enter edit mode and update fields', async () => {
-      await page.getByRole('button', { name: 'Edit' }).click();
-
-      // Update Vault fields
       for (const [label, value] of Object.entries(updatedFields)) {
-        await page.getByLabel(label).clear();
-        await page.getByLabel(label).fill(value);
+        await page.getByLabel(label, { exact: true }).clear();
+        await page.getByLabel(label, { exact: true }).fill(value);
       }
     });
 
     await test.step('save the changes', async () => {
       await page.getByRole('button', { name: 'Save' }).click();
+      await page
+        .getByRole('dialog', { name: 'Review changes before saving' })
+        .getByRole('button', { name: 'Confirm & Save' })
+        .click();
       await secretsPom.isDetailPage(page);
     });
 
     await test.step('verify secret was updated via UI', async () => {
       for (const [label, value] of Object.entries(updatedFields)) {
-        await expect(page.getByLabel(label)).toHaveValue(value);
+        await expect(page.getByLabel(label, { exact: true })).toHaveValue(value);
       }
     });
   });

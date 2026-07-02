@@ -35,8 +35,10 @@ test('should navigate to global rules list page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'ID' })).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'RAW' })
+    ).toBeVisible();
   });
 });
 

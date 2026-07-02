@@ -21,7 +21,7 @@ export async function uiFillLabels(
   ctx: Page | Locator,
   labels: Record<string, string>
 ) {
-  const labelsField = ctx.getByRole('textbox', { name: 'Labels' });
+  const labelsField = ctx.getByRole('combobox', { name: 'Labels' });
   await expect(labelsField).toBeEnabled();
 
   for (const [key, value] of Object.entries(labels)) {

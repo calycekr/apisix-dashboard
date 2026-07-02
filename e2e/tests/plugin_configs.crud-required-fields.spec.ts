@@ -69,16 +69,17 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
       .fill(pluginConfigName);
 
     // Add plugins
-    const selectPluginsBtn = page.getByRole('button', {
-      name: 'Select Plugins',
-    });
+    const selectPluginsBtn = page.getByRole('button', { name: 'Add Plugin' });
     await selectPluginsBtn.click();
 
     // Add response-rewrite plugin
     const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
+      exact: true,
     });
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
+    const searchInput = selectPluginsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('response-rewrite');
 
     await selectPluginsDialog
@@ -86,17 +87,22 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
       .getByRole('button', { name: 'Add' })
       .click();
 
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: response-rewrite',
+    });
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(page, pluginEditor, '{"body": "test response"}');
     // add plugin
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(addPluginDialog).toBeHidden();
+    await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
+    await expect(selectPluginsDialog).toBeHidden();
 
     // Submit the form
     await pluginConfigsPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Plugin Config Successfully',
+      hasText: 'Plugin Config created and verified',
     });
   });
 
@@ -112,17 +118,12 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     // Verify the plugin config name
     const name = page.getByLabel('Name', { exact: true }).first();
     await expect(name).toHaveValue(pluginConfigName);
-    await expect(name).toBeDisabled();
 
     // Verify the plugin exists
     await expect(page.getByTestId('plugin-response-rewrite')).toBeVisible();
   });
 
   await test.step('edit and update plugin config in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
     const nameField = page.getByLabel('Name', { exact: true }).first();
     await expect(nameField).toBeEnabled();
 
@@ -130,29 +131,31 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     await nameField.fill(`${pluginConfigName}-updated`);
 
     // Update plugin configuration
-    const pluginsSection = page.getByRole('group', { name: 'Plugins' });
-    const responseRewritePlugin = pluginsSection.getByTestId(
-      'plugin-response-rewrite'
-    );
+    const responseRewritePlugin = page.getByTestId('plugin-response-rewrite');
     await responseRewritePlugin.getByRole('button', { name: 'Edit' }).click();
 
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: response-rewrite',
+    });
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
     await uiFillMonacoEditor(
       page,
       pluginEditor,
       '{"body": "updated response"}'
     );
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
+    await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
     await expect(editPluginDialog).toBeHidden();
 
     // Click the Save button to save changes
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
-
-    // Verify the update was successful
-    await uiHasToastMsg(page, {
-      hasText: 'success',
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+    await expect(page.getByText('No pending changes')).toBeVisible({
+      timeout: 30000,
     });
 
     // Verify we're back in detail view mode
@@ -203,7 +206,7 @@ test('should CRUD plugin config with required fields', async ({ page }) => {
     // Will redirect to plugin configs page
     await pluginConfigsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Plugin Config Successfully',
+      hasText: 'Plugin Config deleted successfully',
     });
     await expect(
       page.getByRole('cell', { name: `${pluginConfigName}-updated` })

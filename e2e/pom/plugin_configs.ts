@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getPluginConfigNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Plugin Configs', exact: true }),
+    page.getByRole('menuitem', { name: 'Plugin Configs', exact: true }),
   getAddPluginConfigBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Plugin Config', exact: true }),
   getAddBtn: (page: Page) =>

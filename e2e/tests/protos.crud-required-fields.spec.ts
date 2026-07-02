@@ -59,8 +59,7 @@ test.describe('CRUD proto with required fields only', () => {
     await test.step('submit the form', async () => {
       await page.getByRole('button', { name: 'Add', exact: true }).click();
 
-      // Should redirect to list page after successful creation
-      await protosPom.isIndexPage(page);
+      await protosPom.isDetailPage(page);
     });
 
     await test.step('verify proto was created via API', async () => {
@@ -137,20 +136,18 @@ message UpdatedTestMessage {
     });
 
     await test.step('enter edit mode and update content', async () => {
-      // Click Edit button to enter edit mode
-      await page.getByRole('button', { name: 'Edit' }).click();
-
-      // Clear and fill the content field
       const contentField = page.getByLabel('Content');
       await contentField.clear();
       await contentField.fill(updatedContent);
     });
 
     await test.step('save the changes', async () => {
-      // Click Save button
       await page.getByRole('button', { name: 'Save' }).click();
+      await page
+        .getByRole('dialog', { name: 'Review changes before saving' })
+        .getByRole('button', { name: 'Confirm & Save' })
+        .click();
 
-      // Verify we're back in detail view mode
       await protosPom.isDetailPage(page);
     });
 

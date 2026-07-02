@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useQuery } from '@tanstack/react-query';
-import { useDeepCompareEffect } from 'react-use';
+import { useMemo } from 'react';
 
 import {
   getPluginMetadataListQueryOptions,
@@ -23,7 +23,6 @@ import {
 } from '@/apis/plugins';
 import type { PluginConfig } from '@/components/form-slice/FormItemPlugins/PluginEditorDrawer';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
-import { useListState, useMap } from '@/utils/hooks';
 
 export type PluginInfo = PluginConfig & { schema: object };
 
@@ -37,13 +36,9 @@ export const usePluginMetadataList = () => {
 
   const { names = [], originObj = {} } = pluginsListQuery.data ?? {};
 
-  const [hasConfigNames, hasConfigNamesOp] = useListState<string>();
-  const [pluginInfoMap, pluginInfoMapOp] = useMap<string, PluginInfo>();
   const isLoading = pluginsListQuery.isPending || metadataListQuery.isPending;
 
-  useDeepCompareEffect(() => {
-    if (isLoading) return;
-
+  const { hasConfigNames, pluginInfoMap } = useMemo(() => {
     // Map configured plugin metadata items by their plugin name
     const configuredMetadataMap = new Map<string, Record<string, unknown>>();
     const configuredMetadataList = metadataListQuery.data?.list ?? [];
@@ -54,9 +49,8 @@ export const usePluginMetadataList = () => {
       }
     }
 
-    // clear the list first
-    hasConfigNamesOp.setState([]);
-    pluginInfoMapOp.clear();
+    const nextHasConfigNames: string[] = [];
+    const nextPluginInfoMap = new Map<string, PluginInfo>();
 
     for (const pluginName of names) {
       const hasConfig = configuredMetadataMap.has(pluginName);
@@ -64,14 +58,22 @@ export const usePluginMetadataList = () => {
       const info = {
         name: pluginName,
         config: stripSystemReadonlyFields(configVal),
-        schema: (originObj[pluginName]?.metadata_schema as object | undefined) ?? {},
+        schema:
+          (originObj[pluginName]?.metadata_schema as object | undefined) ??
+          (originObj[pluginName]?.schema as object | undefined) ??
+          {},
       };
-      pluginInfoMapOp.set(pluginName, info);
+      nextPluginInfoMap.set(pluginName, info);
       if (hasConfig) {
-        hasConfigNamesOp.append(pluginName);
+        nextHasConfigNames.push(pluginName);
       }
     }
-  }, [names, metadataListQuery.data, originObj, isLoading]);
+
+    return {
+      hasConfigNames: nextHasConfigNames,
+      pluginInfoMap: nextPluginInfoMap,
+    };
+  }, [metadataListQuery.data, names, originObj]);
 
   return {
     isLoading,

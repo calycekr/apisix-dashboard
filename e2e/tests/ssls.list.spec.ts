@@ -38,10 +38,16 @@ test('should navigate to SSLs page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('SNI', { exact: true })).toBeVisible();
-    await expect(table.getByText('Status', { exact: true })).toBeVisible();
-    await expect(table.getByText('RAW', { exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'ID' })).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'SNI' })
+    ).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'Status' })
+    ).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'RAW' })
+    ).toBeVisible();
   });
 });
 

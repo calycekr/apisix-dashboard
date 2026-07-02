@@ -48,17 +48,18 @@ test('should CRUD plugin metadata with required fields only', async ({
   await pluginMetadataPom.isIndexPage(page);
 
   await test.step('add plugin metadata with simple configuration', async () => {
-    // Click Select Plugins button
     await pluginMetadataPom.getSelectPluginsBtn(page).click();
 
-    // Select Plugins dialog should appear
     const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
+      exact: true,
     });
     await expect(selectPluginsDialog).toBeVisible();
 
     // Search for syslog plugin
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
+    const searchInput = selectPluginsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('syslog');
 
     // Click Add button for syslog
@@ -68,19 +69,22 @@ test('should CRUD plugin metadata with required fields only', async ({
       .click();
 
     // Add Plugin dialog should appear
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: syslog',
+    });
     await expect(addPluginDialog).toBeVisible();
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Fill in minimal required configuration
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(page, pluginEditor, '{"host": "127.0.0.1"}');
 
     // Click Add button
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Metadata for syslog saved and verified',
     });
 
     // Dialog should close
@@ -99,8 +103,11 @@ test('should CRUD plugin metadata with required fields only', async ({
     await syslogCard.getByRole('button', { name: 'Edit' }).click();
 
     // Edit Plugin dialog should appear
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: syslog',
+    });
     await expect(editPluginDialog).toBeVisible();
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Verify existing configuration is shown
     await expect(editPluginDialog.getByText('host')).toBeVisible();
@@ -114,11 +121,11 @@ test('should CRUD plugin metadata with required fields only', async ({
     );
 
     // Click Save button
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
+    await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Metadata for syslog saved and verified',
     });
 
     // Dialog should close
@@ -129,12 +136,15 @@ test('should CRUD plugin metadata with required fields only', async ({
     // Find the syslog card
     const syslogCard = page.getByTestId('plugin-syslog');
 
-    // Click Delete button
-    await syslogCard.getByRole('button', { name: 'Delete' }).click();
+    await syslogCard.getByRole('button', { name: 'Remove' }).click();
+    await page
+      .getByRole('tooltip')
+      .getByRole('button', { name: 'Remove' })
+      .click();
 
     // Should show success message
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Metadata for syslog deleted and verified',
     });
 
     // Card should be removed

@@ -56,7 +56,7 @@ test('should navigate to plugin metadata page', async ({ page }) => {
 
   await test.step('verify plugin metadata page components', async () => {
     // Search box should be visible
-    const searchBox = page.getByPlaceholder('Search');
+    const searchBox = page.getByRole('textbox', { name: 'Search', exact: true });
     await expect(searchBox).toBeVisible();
 
     // Select Plugins button should be visible
@@ -69,7 +69,7 @@ test('should search for plugin metadata', async ({ page }) => {
   await pluginMetadataPom.isIndexPage(page);
 
   await test.step('search filters plugin cards', async () => {
-    const searchBox = page.getByPlaceholder('Search');
+    const searchBox = page.getByRole('textbox', { name: 'Search', exact: true });
     await searchBox.fill('http-logger');
 
     // Only http-logger related cards should be visible if they exist
