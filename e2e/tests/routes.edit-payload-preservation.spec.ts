@@ -17,7 +17,7 @@
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiGoto, uiHasToastMsg } from '@e2e/utils/ui';
+import { uiGoto } from '@e2e/utils/ui';
 import { expect, type Request } from '@playwright/test';
 
 import { deleteAllRoutes, getRouteReq } from '@/apis/routes';
@@ -54,12 +54,11 @@ test('route form save preserves raw payload and strips readonly fields', async (
   await uiGoto(page, '/routes/detail/$id', { id: routeId });
 
   const tabs = page.getByRole('tablist');
-  await expect(tabs.getByRole('tab', { name: 'Admin API JSON' })).toHaveAttribute(
+  await expect(tabs.getByRole('tab', { name: 'Configuration' })).toHaveAttribute(
     'aria-selected',
     'true'
   );
 
-  await tabs.getByRole('tab', { name: 'Form' }).click();
   await page.getByLabel('Description').first().fill(updatedDesc);
 
   let capturedRequest: Request | undefined;
@@ -80,7 +79,9 @@ test('route form save preserves raw payload and strips readonly fields', async (
     .getByRole('button', { name: 'Confirm & Save' })
     .click();
   await putRequest;
-  await uiHasToastMsg(page, { hasText: 'Edit Route Successfully' });
+  await expect(page.getByText('No pending changes')).toBeVisible({
+    timeout: 30000,
+  });
 
   const body = capturedRequest?.postDataJSON() as Record<string, unknown>;
   expect(body).toBeDefined();

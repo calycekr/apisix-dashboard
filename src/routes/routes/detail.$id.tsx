@@ -51,10 +51,11 @@ import { showNotification } from '@/utils/notification';
 
 type Props = {
   id: string;
+  enforcedValues?: Partial<RoutePutType>;
 };
 
 const RouteDetailForm = (props: Props) => {
-  const { id } = props;
+  const { id, enforcedValues } = props;
 
   const routeQuery = useQuery(getRouteQueryOptions(id));
   const { data: routeData, isLoading, refetch } = routeQuery;
@@ -72,13 +73,21 @@ const RouteDetailForm = (props: Props) => {
         routeData.value.upstream || {},
         routeData.value
       );
-      form.reset(produceVarsToForm(upstreamProduced) as RoutePutType);
+      form.reset(
+        produceVarsToForm({
+          ...upstreamProduced,
+          ...enforcedValues,
+        }) as RoutePutType
+      );
     }
-  }, [routeData, form, isLoading]);
+  }, [enforcedValues, routeData, form, isLoading]);
 
   const putRoute = useMutation({
     mutationFn: (d: RoutePutType) =>
-      putRouteReq(req, produceRoute(d) as APISIXType['Route']),
+      putRouteReq(
+        req,
+        produceRoute({ ...d, ...enforcedValues }) as APISIXType['Route']
+      ),
     async onSuccess() {
       await refetch({ throwOnError: true });
       showNotification({
@@ -112,9 +121,10 @@ const RouteDetailForm = (props: Props) => {
 
 type RouteDetailProps = Pick<Props, 'id'> & {
   onDeleteSuccess: () => void;
+  enforcedValues?: Partial<RoutePutType>;
 };
 export const RouteDetail = (props: RouteDetailProps) => {
-  const { id, onDeleteSuccess } = props;
+  const { id, onDeleteSuccess, enforcedValues } = props;
   const { data: routeData } = useQuery(getRouteQueryOptions(id));
 
   return (
@@ -141,6 +151,7 @@ export const RouteDetail = (props: RouteDetailProps) => {
       <FormTOCBox>
         <RouteDetailForm
           id={id}
+          enforcedValues={enforcedValues}
         />
       </FormTOCBox>
     </>

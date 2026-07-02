@@ -41,10 +41,10 @@ export const putConsumerReq = (
   req: AxiosInstance,
   data: APISIXType['ConsumerPut']
 ) => {
-  const { username, ...rest } = data;
+  const { username } = data;
   return req.put<APISIXType['ConsumerPut'], APISIXType['RespConsumerDetail']>(
     `${API_CONSUMERS}/${username}`,
-    stripSystemReadonlyFields(rest)
+    stripSystemReadonlyFields(data)
   );
 };
 

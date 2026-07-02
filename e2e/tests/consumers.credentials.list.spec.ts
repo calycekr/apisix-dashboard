@@ -24,7 +24,7 @@ import { expect } from '@playwright/test';
 
 import { deleteAllConsumers, putConsumerReq } from '@/apis/consumers';
 import { putCredentialReq } from '@/apis/credentials';
-import { API_CONSUMERS } from '@/config/constant';
+import { API_CONSUMERS, API_CREDENTIALS } from '@/config/constant';
 import type { APISIXType } from '@/types/schema/apisix';
 
 const testConsumerUsername = randomId('test-consumer');
@@ -137,8 +137,10 @@ test('should navigate to consumer credentials page', async ({ page }) => {
     // list table exists
     const table = page.getByRole('table');
     await expect(table).toBeVisible();
-    await expect(table.getByText('ID', { exact: true })).toBeVisible();
-    await expect(table.getByText('Actions', { exact: true })).toBeVisible();
+    await expect(table.getByRole('columnheader', { name: 'ID' })).toBeVisible();
+    await expect(
+      table.getByRole('columnheader', { name: 'Actions' })
+    ).toBeVisible();
   });
 });
 
@@ -209,9 +211,9 @@ test('should display credentials list under consumer', async ({ page }) => {
   });
 
   await test.step('should show correct credential count', async () => {
-    // Check that all 3 credentials are displayed in the table
-    const tableRows = page.locator('tbody tr');
-    await expect(tableRows).toHaveCount(credentials.length);
+    await expect(page.getByRole('link', { name: /^cred-/ })).toHaveCount(
+      credentials.length
+    );
   });
 });
 
@@ -335,12 +337,6 @@ test('should be able to edit credential', async ({ page }) => {
     await credentialsPom.isCredentialDetailPage(page);
   });
 
-  await test.step('enable edit mode', async () => {
-    const editBtn = page.getByRole('button', { name: 'Edit' });
-    await expect(editBtn).toBeVisible();
-    await editBtn.click();
-  });
-
   await test.step('update credential description', async () => {
     const descField = page.getByLabel('Description', { exact: true });
     await expect(descField).toBeEnabled();
@@ -349,12 +345,24 @@ test('should be able to edit credential', async ({ page }) => {
   });
 
   await test.step('save changes', async () => {
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await expect(saveBtn).toBeVisible();
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(
+          `${API_CREDENTIALS(testConsumerUsername)}/${credentialToEdit.id}`
+        )
+    );
     await saveBtn.click();
-
-    // Wait for success notification
-    await expect(page.getByRole('alert')).toBeVisible();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+    await saveResponse;
+    await expect(page.getByText('No pending changes')).toBeVisible({
+      timeout: 30000,
+    });
   });
 
   await test.step('verify changes are saved', async () => {
@@ -367,18 +375,27 @@ test('should be able to edit credential', async ({ page }) => {
   });
 
   await test.step('restore original description', async () => {
-    // Edit again to restore original value
-    const editBtn = page.getByRole('button', { name: 'Edit' });
-    await editBtn.click();
-
     const descField = page.getByLabel('Description', { exact: true });
     await descField.clear();
     await descField.fill(credentialToEdit.desc || '');
 
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(
+          `${API_CREDENTIALS(testConsumerUsername)}/${credentialToEdit.id}`
+        )
+    );
     await saveBtn.click();
-
-    await expect(page.getByRole('alert')).toBeVisible();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+    await saveResponse;
+    await expect(page.getByText('No pending changes')).toBeVisible({
+      timeout: 30000,
+    });
   });
 });
 

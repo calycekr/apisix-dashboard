@@ -19,6 +19,7 @@ import {
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
+import { useMemo } from 'react';
 
 import { RouteDetail } from '@/routes/routes/detail.$id';
 import { CommonFormContext } from '@/utils/form-context';
@@ -28,10 +29,12 @@ function RouteComponent() {
     from: '/services/detail/$id/routes/detail/$routeId',
   });
   const navigate = useNavigate();
+  const enforcedValues = useMemo(() => ({ service_id: id }), [id]);
   return (
     <CommonFormContext.Provider value={{ readOnlyFields: ['service_id'] }}>
       <RouteDetail
         id={routeId}
+        enforcedValues={enforcedValues}
         onDeleteSuccess={() =>
           navigate({
             to: '/services/detail/$id/routes',

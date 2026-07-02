@@ -67,6 +67,28 @@ export async function uiFillHTTPStatuses(
   }
 }
 
+export const uiSelectByLabel = async (
+  page: Page,
+  label: string,
+  value: string
+) => {
+  const select = page
+    .getByRole('combobox', { name: label })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    );
+  await select.click();
+  await page.keyboard.type(value);
+  const option = page.getByRole('option').filter({ hasText: value }).first();
+  try {
+    await expect(option).toBeVisible({ timeout: 3000 });
+    await option.click();
+  } catch {
+    await page.keyboard.press('Enter');
+  }
+  await expect(select).toContainText(value, { timeout: 10000 });
+};
+
 export const uiClearMonacoEditor = async (page: Page) => {
   await page.evaluate(() => {
     const editor = window.__monacoEditor__;

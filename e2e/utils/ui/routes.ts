@@ -27,7 +27,7 @@ export async function uiDeleteRoute(page: Page) {
     .getByRole('button', { name: 'Delete' })
     .click();
   await uiHasToastMsg(page, {
-    hasText: 'Delete Route Successfully',
+    hasText: 'Route deleted successfully',
   });
   await routesPom.isIndexPage(page);
 }

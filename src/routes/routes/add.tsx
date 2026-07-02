@@ -43,14 +43,15 @@ import { showNotification } from '@/utils/notification';
 type Props = {
   navigate: (res: APISIXType['RespRouteDetail']) => Promise<void>;
   defaultValues?: Partial<RoutePostType>;
+  enforcedValues?: Partial<RoutePostType>;
 };
 
 export const RouteAddForm = (props: Props) => {
-  const { navigate, defaultValues } = props;
+  const { navigate, defaultValues, enforcedValues } = props;
 
   const postRoute = useMutation({
     mutationFn: async (d: RoutePostType) => {
-      const payload = produceRoute(d);
+      const payload = produceRoute({ ...d, ...enforcedValues });
       const response = await postRouteReq(req, payload);
       const id = response.data.value.id;
       await verifyAdminApiResource(
@@ -80,7 +81,7 @@ export const RouteAddForm = (props: Props) => {
     shouldUnregister: true,
     shouldFocusError: true,
     mode: 'all',
-    defaultValues,
+    defaultValues: { ...defaultValues, ...enforcedValues },
   });
 
   return (

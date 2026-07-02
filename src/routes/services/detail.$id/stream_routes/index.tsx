@@ -19,6 +19,7 @@ import { createFileRoute, Link, useParams } from '@tanstack/react-router';
 import { getStreamRouteListQueryOptions } from '@/apis/hooks';
 import idClasses from '@/components/CopyableID.module.css';
 import PageHeader from '@/components/page/PageHeader';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { StreamRoutesErrorComponent } from '@/components/page-slice/stream_routes/ErrorComponent';
 import { queryClient } from '@/config/global';
 import { StreamRouteList } from '@/routes/stream_routes';
@@ -28,7 +29,16 @@ function StreamRouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/stream_routes/' });
   return (
     <>
-      <PageHeader title="Stream Routes" />
+      <PageHeader
+        title="Stream Routes"
+        extra={
+          <ToAddPageBtn
+            label="Add Stream Route"
+            to="/services/detail/$id/stream_routes/add"
+            params={{ id }}
+          />
+        }
+      />
       <StreamRouteList
         routeKey="/services/detail/$id/stream_routes/"
         detailLink={(record) => (

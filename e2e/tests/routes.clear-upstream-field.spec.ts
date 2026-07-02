@@ -18,9 +18,8 @@ import { routesPom } from '@e2e/pom/routes';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import { uiDeleteRoute } from '@e2e/utils/ui/routes';
-import { uiFillUpstreamRequiredFields } from '@e2e/utils/ui/upstreams';
 import { expect, type Page } from '@playwright/test';
 
 import { deleteAllRoutes, getRouteReq } from '@/apis/routes';
@@ -43,6 +42,8 @@ const upstreamNodes: APISIXType['UpstreamNode'][] = [
 let testUpstreamId: string;
 let testServiceId: string;
 
+test.describe.configure({ mode: 'serial' });
+
 // Common helper functions
 async function fillBasicRouteFields(
   page: Page,
@@ -53,28 +54,40 @@ async function fillBasicRouteFields(
   await page.locator('input[name="name"]').fill(routeName);
   await page.locator('input[name="uri"]').fill(routeUri);
 
-  // Select HTTP method
-  await page.getByRole('textbox', { name: 'HTTP Methods' }).click();
-  await page.getByRole('option', { name: method }).click();
+  await uiSelectByLabel(page, 'HTTP Methods', method);
 }
 
-async function fillUpstreamFields(
+async function selectTargetMode(page: Page, label: string) {
+  await page
+    .getByRole('radiogroup')
+    .getByText(label, { exact: true })
+    .click();
+}
+
+async function fillInlineUpstreamFields(
   page: Page,
   upstreamName: string,
   upstreamDesc: string
 ) {
-  const upstreamSection = page.getByRole('group', {
-    name: 'Upstream',
-    exact: true,
+  await selectTargetMode(page, 'Define inline Upstream');
+  const inlineTarget = page.getByRole('group', {
+    name: 'Inline Upstream target',
   });
 
-  await uiFillUpstreamRequiredFields(upstreamSection, {
-    nodes: upstreamNodes,
-    name: upstreamName,
-    desc: upstreamDesc,
-  });
+  await inlineTarget.getByLabel('Name', { exact: true }).fill(upstreamName);
+  await inlineTarget.getByLabel('Description').fill(upstreamDesc);
+  await inlineTarget.getByRole('button', { name: 'Add a Node' }).click();
+  await inlineTarget
+    .getByRole('textbox', { name: 'Host', exact: true })
+    .fill(upstreamNodes[0].host);
+  await inlineTarget
+    .getByRole('spinbutton', { name: 'Port' })
+    .fill(String(upstreamNodes[0].port));
+  await inlineTarget
+    .getByRole('spinbutton', { name: 'Weight' })
+    .fill(String(upstreamNodes[0].weight));
 
-  return upstreamSection;
+  return inlineTarget;
 }
 
 async function verifyRouteData(
@@ -99,10 +112,12 @@ async function verifyRouteData(
   // Verify upstream field is cleared (should be undefined or empty)
   expect(routeData.upstream).toBeUndefined();
 
-  // Verify in UI - the ID field should have the value and be disabled
-  const idField = page.locator(`input[name="${expectedIdField}"]`);
-  await expect(idField).toHaveValue(expectedIdValue);
-  await expect(idField).toBeDisabled();
+  const label = expectedIdField === 'service_id' ? 'Service ID' : 'Upstream ID';
+  await expect(
+    page.getByRole('combobox', { name: label }).locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+  ).toContainText(expectedIdValue);
 
   return routeId!;
 }
@@ -112,20 +127,21 @@ async function editRouteAndAddUpstream(
   upstreamName: string,
   upstreamDesc: string
 ) {
-  // Click Edit button to enter edit mode
-  await page.getByRole('button', { name: 'Edit' }).click();
-
-  // Verify we're in edit mode
   const nameField = page.getByLabel('Name', { exact: true }).first();
   await expect(nameField).toBeEnabled();
 
-  // Add upstream configuration
-  await fillUpstreamFields(page, upstreamName, upstreamDesc);
+  await fillInlineUpstreamFields(page, upstreamName, upstreamDesc);
+}
 
-  // Submit the changes
+async function saveRouteChanges(page: Page) {
   await page.getByRole('button', { name: 'Save' }).click();
-  await uiHasToastMsg(page, {
-    hasText: 'success',
+  const dialog = page.getByRole('dialog', {
+    name: 'Review Changes Before Saving',
+  });
+  await expect(dialog).toBeVisible();
+  await dialog.getByRole('button', { name: 'Confirm & Save' }).click();
+  await expect(page.getByText('No pending changes')).toBeVisible({
+    timeout: 30000,
   });
 }
 
@@ -159,32 +175,25 @@ test.afterAll(async () => {
 test('should clear upstream field when upstream_id exists (create and edit)', async ({
   page,
 }) => {
+  expect(testUpstreamId).toBeTruthy();
   await routesPom.toAdd(page);
 
   await test.step('create route with both upstream and upstream_id', async () => {
     // Fill basic route fields
     await fillBasicRouteFields(page, routeNameForUpstreamId, routeUri1, 'GET');
 
-    // Fill upstream fields
-    const upstreamSection = await fillUpstreamFields(
+    await fillInlineUpstreamFields(
       page,
       'test-upstream-inline',
       'test inline upstream'
     );
 
-    // Set upstream_id (this should cause upstream field to be cleared)
-    const upstreamIdInput = upstreamSection.locator(
-      'input[name="upstream_id"]'
-    );
-    await upstreamIdInput.fill(testUpstreamId);
+    await selectTargetMode(page, 'Use existing Upstream');
+    await uiSelectByLabel(page, 'Upstream ID', testUpstreamId);
 
-    // verify upstream_id has value
-    await expect(upstreamIdInput).toHaveValue(testUpstreamId);
-
-    // Submit the form
     await routesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Route Successfully',
+      hasText: 'Route created and verified',
     });
   });
 
@@ -198,6 +207,9 @@ test('should clear upstream field when upstream_id exists (create and edit)', as
       'test-upstream-edit-1',
       'test upstream for editing'
     );
+    await selectTargetMode(page, 'Use existing Upstream');
+    await uiSelectByLabel(page, 'Upstream ID', testUpstreamId);
+    await saveRouteChanges(page);
   });
 
   await test.step('verify upstream field is still cleared after editing', async () => {
@@ -209,33 +221,25 @@ test('should clear upstream field when upstream_id exists (create and edit)', as
 test('should clear upstream field when service_id exists (create and edit)', async ({
   page,
 }) => {
+  expect(testServiceId).toBeTruthy();
   await routesPom.toAdd(page);
 
   await test.step('create route with both upstream and service_id', async () => {
     // Fill basic route fields
-    await fillBasicRouteFields(page, routeNameForServiceId, routeUri2, 'POST');
+    await fillBasicRouteFields(page, routeNameForServiceId, routeUri2, 'GET');
 
-    // Fill upstream fields
-    await fillUpstreamFields(
+    await fillInlineUpstreamFields(
       page,
       'test-upstream-inline-2',
       'test inline upstream 2'
     );
 
-    // Set service_id (this should cause upstream field to be cleared)
-    const serviceSection = page.getByRole('group', { name: 'Service' });
-    await serviceSection
-      .locator('input[name="service_id"]')
-      .fill(testServiceId);
-    // verify service_id has value
-    await expect(page.getByLabel('Service ID', { exact: true })).toHaveValue(
-      testServiceId
-    );
+    await selectTargetMode(page, 'Use Service');
+    await uiSelectByLabel(page, 'Service ID', testServiceId);
 
-    // Submit the form
     await routesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Route Successfully',
+      hasText: 'Route created and verified',
     });
   });
 
@@ -249,6 +253,9 @@ test('should clear upstream field when service_id exists (create and edit)', asy
       'test-upstream-edit-2',
       'test upstream for editing 2'
     );
+    await selectTargetMode(page, 'Use Service');
+    await uiSelectByLabel(page, 'Service ID', testServiceId);
+    await saveRouteChanges(page);
   });
 
   await test.step('verify upstream field is still cleared after editing', async () => {

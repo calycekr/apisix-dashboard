@@ -18,6 +18,7 @@ import { createFileRoute, useParams } from '@tanstack/react-router';
 
 import { getRouteListQueryOptions } from '@/apis/hooks';
 import PageHeader from '@/components/page/PageHeader';
+import { ToAddPageBtn } from '@/components/page/ToAddPageBtn';
 import { queryClient } from '@/config/global';
 import { RouteList } from '@/routes/routes';
 import { pageSearchSchema } from '@/types/schema/pageSearch';
@@ -26,7 +27,16 @@ function RouteComponent() {
   const { id } = useParams({ from: '/services/detail/$id/routes/' });
   return (
     <>
-      <PageHeader title="Routes" />
+      <PageHeader
+        title="Routes"
+        extra={
+          <ToAddPageBtn
+            label="Add Route"
+            to="/services/detail/$id/routes/add"
+            params={{ id }}
+          />
+        }
+      />
       <RouteList
         routeKey="/services/detail/$id/routes/"
         tablePersistenceKey="table-v4:service-routes"

@@ -42,6 +42,9 @@ function RouteComponent() {
           defaultValues={{
             service_id: id,
           }}
+          enforcedValues={{
+            service_id: id,
+          }}
         />
       </FormTOCBox>
     </CommonFormContext.Provider>
