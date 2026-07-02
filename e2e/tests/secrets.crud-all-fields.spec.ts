@@ -17,6 +17,7 @@
 import { secretsPom } from '@e2e/pom/secrets';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
+import { uiHasToastMsg } from '@e2e/utils/ui';
 import { expect } from '@playwright/test';
 
 import { API_SECRETS } from '@/config/constant';
@@ -46,20 +47,30 @@ test.describe('CRUD secret with all fields (AWS)', () => {
       await secretsPom.getAddSecretBtn(page).click();
       await secretsPom.isAddPage(page);
 
-      await page.getByLabel('ID').fill(createdSecretId);
+      await page
+        .getByRole('textbox', { name: 'ID', exact: true })
+        .fill(createdSecretId);
 
       // Select Manager AWS
-      const managerSection = page.getByRole('group', { name: 'Secret Manager' });
-      await managerSection.locator('input.mantine-Select-input').click();
-      await page.getByRole('option', { name: 'aws' }).click();
+      await page
+        .getByRole('combobox')
+        .first()
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+        .click();
+      await page.getByText('aws', { exact: true }).last().click();
 
-      await page.getByLabel('Access Key ID').fill('AKIAIOSFODNN7EXAMPLE');
-      await page.getByLabel('Secret Access Key').fill('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
-      await page.getByLabel('Session Token').fill('test-session-token-123');
-      await page.getByLabel('Region').fill('us-west-2');
-      await page.getByLabel('Endpoint URL').fill('https://secretsmanager.us-west-2.amazonaws.com');
+      await page.getByLabel('Access Key ID', { exact: true }).fill('AKIAIOSFODNN7EXAMPLE');
+      await page.getByLabel('Secret Access Key', { exact: true }).fill('wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY');
+      await page.getByLabel('Session Token', { exact: true }).fill('test-session-token-123');
+      await page.getByLabel('Region', { exact: true }).fill('us-west-2');
+      await page.getByLabel('Endpoint URL', { exact: true }).fill('https://secretsmanager.us-west-2.amazonaws.com');
 
       await secretsPom.getAddBtn(page).click();
+      await uiHasToastMsg(page, {
+        hasText: 'Secret created and verified',
+      });
     });
 
     await test.step('verify secret appears in UI', async () => {
@@ -78,13 +89,12 @@ test.describe('CRUD secret with all fields (AWS)', () => {
       await row.getByRole('link', { name: createdSecretId, exact: true }).click();
       await secretsPom.isDetailPage(page);
 
-      const pageContent = await page.textContent('body');
-      expect(pageContent).toContain('Secret Manager');
-      await expect(page.locator('input[name="id"]')).toHaveValue(createdSecretId);
-      // Verify AWS-specific fields are present (labels)
-      expect(pageContent).toContain('Access Key ID');
-      expect(pageContent).toContain('Secret Access Key');
-      expect(pageContent).toContain('Region');
+      await expect(
+        page.getByRole('textbox', { name: 'ID', exact: true })
+      ).toHaveValue(createdSecretId);
+      await expect(page.getByLabel('Access Key ID', { exact: true })).toBeVisible();
+      await expect(page.getByLabel('Secret Access Key', { exact: true })).toBeVisible();
+      await expect(page.getByLabel('Region', { exact: true })).toBeVisible();
     });
   });
 
@@ -107,24 +117,29 @@ test.describe('CRUD secret with all fields (AWS)', () => {
     });
 
     await test.step('enter edit mode and update fields', async () => {
-      await page.getByRole('button', { name: 'Edit' }).click();
-
       // Update AWS fields
       for (const [label, value] of Object.entries(updatedFields)) {
-        await page.getByLabel(label).clear();
-        await page.getByLabel(label).fill(value);
+        await page.getByLabel(label, { exact: true }).clear();
+        await page.getByLabel(label, { exact: true }).fill(value);
       }
     });
 
     await test.step('save the changes', async () => {
-      await page.getByRole('button', { name: 'Save' }).click();
+      await page.getByRole('button', { name: 'Save', exact: true }).click();
+      await page
+        .getByRole('dialog', { name: 'Review changes before saving' })
+        .getByRole('button', { name: 'Confirm & Save' })
+        .click();
       await secretsPom.isDetailPage(page);
+      await uiHasToastMsg(page, {
+        hasText: 'Secret saved and reloaded from APISIX',
+      });
     });
 
     await test.step('verify secret was updated via UI', async () => {
       // Check the actual field values in the detail page
       for (const [label, value] of Object.entries(updatedFields)) {
-        await expect(page.getByLabel(label)).toHaveValue(value);
+        await expect(page.getByLabel(label, { exact: true })).toHaveValue(value);
       }
     });
   });
@@ -148,6 +163,9 @@ test.describe('CRUD secret with all fields (AWS)', () => {
     await test.step('verify deletion and redirect', async () => {
       await secretsPom.isIndexPage(page);
       await expect(page.getByRole('cell', { name: createdSecretId })).toBeHidden();
+      await uiHasToastMsg(page, {
+        hasText: 'Secret deleted successfully',
+      });
     });
 
     await test.step('verify secret was deleted via API', async () => {
