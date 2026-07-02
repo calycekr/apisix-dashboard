@@ -20,6 +20,8 @@ import { expect, test } from '@playwright/test';
 import {
   buildConfigValidationPayload,
   type ExportData,
+  getExportedCredentialItems,
+  getImportRequest,
 } from '../../src/apis/export-import';
 import { selectPluginNamesWithSchema } from '../../src/apis/plugins';
 import { validatePluginCompatibility } from '../../src/components/form-slice/FormItemPlugins/pluginCompatibility';
@@ -510,6 +512,79 @@ test('maps dashboard exports to the APISIX config validation endpoint', () => {
       },
     ],
   });
+});
+
+test('normalizes dashboard import requests before PUT', () => {
+  expect(
+    getImportRequest('secrets', {
+      id: 'vault-secret',
+      manager: 'vault',
+      uri: 'http://vault:8200',
+      prefix: 'apisix',
+      token: 'root',
+      create_time: 1,
+      update_time: 2,
+    })
+  ).toEqual({
+    url: '/secrets/vault/vault-secret',
+    body: {
+      uri: 'http://vault:8200',
+      prefix: 'apisix',
+      token: 'root',
+    },
+  });
+
+  expect(
+    getImportRequest('credentials', {
+      username: 'alice',
+      id: 'alice/credentials/key-auth-main',
+      plugins: { 'key-auth': { key: 'secret-reference' } },
+      create_time: 1,
+      update_time: 2,
+    })
+  ).toEqual({
+    url: '/consumers/alice/credentials/key-auth-main',
+    body: {
+      plugins: { 'key-auth': { key: 'secret-reference' } },
+    },
+  });
+
+  expect(
+    getImportRequest('pluginMetadata', {
+      id: 'batch-requests',
+      max_body_size: 1048576,
+      create_time: 1,
+      update_time: 2,
+    })
+  ).toEqual({
+    url: '/plugin_metadata/batch-requests',
+    body: {
+      max_body_size: 1048576,
+    },
+  });
+});
+
+test('exports consumer credentials as importable resource payloads', () => {
+  expect(
+    getExportedCredentialItems('alice', [
+      {
+        value: {
+          id: 'key-auth-main',
+          plugins: { 'key-auth': { key: 'secret-reference' } },
+          create_time: 1,
+          update_time: 2,
+        },
+      },
+    ])
+  ).toEqual([
+    {
+      username: 'alice',
+      id: 'key-auth-main',
+      plugins: { 'key-auth': { key: 'secret-reference' } },
+      create_time: 1,
+      update_time: 2,
+    },
+  ]);
 });
 
 test('discovers every recently added plugin dynamically from APISIX', () => {

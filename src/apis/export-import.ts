@@ -281,7 +281,7 @@ async function exportCredentials(
       const username = String(consumer.username ?? '');
       if (!username) return [];
       const response = await getCredentialListReq(req, { username });
-      return response.list.map((credential) => ({ ...credential, username }));
+      return getExportedCredentialItems(username, response.list);
     })
   );
   return {
@@ -290,6 +290,16 @@ async function exportCredentials(
     ),
     hadFailures: credentialLists.some((result) => result.status === 'rejected'),
   };
+}
+
+export function getExportedCredentialItems(
+  username: string,
+  credentials: Array<{ value: Record<string, unknown> }>
+): Record<string, unknown>[] {
+  return credentials.map((credential) => ({
+    ...credential.value,
+    username,
+  }));
 }
 
 async function exportPluginMetadata(): Promise<{
@@ -346,9 +356,15 @@ export type ImportResult = {
   errors: Array<{ id: string; error: string }>;
 };
 
+function getCredentialId(item: Record<string, unknown>): string {
+  const id = String(item.id ?? '');
+  const match = id.match(/(?:^|\/)credentials\/([^/]+)$/);
+  return match?.[1] ?? id;
+}
+
 function getResourceId(resourceType: ResourceKey, item: Record<string, unknown>): string {
   if (resourceType === 'consumers') return String(item.username ?? item.id ?? '');
-  if (resourceType === 'credentials') return String(item.id ?? '');
+  if (resourceType === 'credentials') return getCredentialId(item);
   if (resourceType === 'secrets') {
     // secrets have composite IDs like "vault/1"
     const manager = item.manager ?? '';
@@ -356,6 +372,30 @@ function getResourceId(resourceType: ResourceKey, item: Record<string, unknown>)
     return manager ? `${manager}/${id}` : String(id);
   }
   return String(item.id ?? '');
+}
+
+export function getImportRequest(
+  resourceType: ResourceKey,
+  item: Record<string, unknown>
+): { url: string; body: Record<string, unknown> } {
+  const id = getResourceId(resourceType, item);
+  const body = stripTimestamps(item);
+  delete body.id;
+  delete body.username;
+  delete body.manager;
+
+  if (resourceType === 'credentials') {
+    const username = String(item.username ?? '');
+    return {
+      url: `${API_CONSUMERS}/${username}/credentials/${id}`,
+      body,
+    };
+  }
+
+  return {
+    url: `${RESOURCE_API_MAP[resourceType]}/${id}`,
+    body,
+  };
 }
 
 export async function importResources(
@@ -376,24 +416,15 @@ export async function importResources(
       continue;
     }
 
-    const apiPath = RESOURCE_API_MAP[resourceType];
     const result: ImportResult = { resourceType, total: items.length, success: 0, errors: [] };
 
     for (const item of items) {
       const id = getResourceId(resourceType, item);
-      const body = stripTimestamps(item);
+      const request = getImportRequest(resourceType, item);
 
       try {
         // Use PUT with ID to create or update
-        const putBody = { ...body };
-        delete putBody.id;
-        delete putBody.username;
-        if (resourceType === 'credentials') {
-          const username = String(item.username ?? '');
-          await req.put(`${API_CONSUMERS}/${username}/credentials/${id}`, putBody);
-        } else {
-          await req.put(`${apiPath}/${id}`, putBody);
-        }
+        await req.put(request.url, request.body);
         result.success++;
       } catch (e) {
         const msg = e instanceof Error ? e.message : String(e);
