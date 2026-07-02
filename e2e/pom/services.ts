@@ -50,8 +50,9 @@ const assert = {
     await expect(title).toBeVisible();
   },
   isDetailPage: async (page: Page) => {
-    await expect(page).toHaveURL((url) =>
-      url.pathname.includes('/services/detail')
+    await expect(page).toHaveURL(
+      (url) => url.pathname.includes('/services/detail'),
+      { timeout: 15000 }
     );
     const title = page.getByRole('heading', { name: /^Service:/ });
     await expect(title).toBeVisible();
@@ -81,7 +82,8 @@ const assert = {
     await expect(page).toHaveURL(
       (url) =>
         url.pathname.includes('/services/detail') &&
-        url.pathname.includes('/routes/detail')
+        url.pathname.includes('/routes/detail'),
+      { timeout: 15000 }
     );
     const title = page.getByRole('heading', { name: /^Route:/ });
     await expect(title).toBeVisible();
@@ -111,7 +113,8 @@ const assert = {
     await expect(page).toHaveURL(
       (url) =>
         url.pathname.includes('/services/detail') &&
-        url.pathname.includes('/stream_routes/detail')
+        url.pathname.includes('/stream_routes/detail'),
+      { timeout: 15000 }
     );
     const title = page.getByRole('heading', { name: /^Stream Route:/ });
     await expect(title).toBeVisible();

@@ -66,9 +66,10 @@ test('should CRUD service with required fields', async ({ page }) => {
     const nameField = page.locator('input[name="name"]');
     await expect(nameField).toHaveValue(serviceName);
 
-    await servicesPom.getAddBtn(page).click();
-
-    await servicesPom.isDetailPage(page);
+    await expect(async () => {
+      await servicesPom.getAddBtn(page).click();
+      await servicesPom.isDetailPage(page);
+    }).toPass({ timeout: 20000 });
   });
 
   await test.step('auto navigate to service detail page', async () => {

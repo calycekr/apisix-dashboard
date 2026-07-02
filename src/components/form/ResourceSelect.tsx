@@ -49,7 +49,7 @@ export const ResourceSelect = <T extends FieldValues>(
   const {
     field: { value, onChange: fOnChange, ...restField },
     fieldState,
-  } = useController<T>(controllerProps);
+  } = useController<T>({ ...controllerProps, disabled: undefined });
   const [open, setOpen] = useState(false);
   const fieldLabel = label ?? `${resourceLabel} ID`;
 

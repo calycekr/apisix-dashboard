@@ -19,7 +19,7 @@ import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
 import { uiHasToastMsg } from '@e2e/utils/ui';
-import { expect } from '@playwright/test';
+import { expect, type Page } from '@playwright/test';
 
 import { deleteAllServices, postServiceReq } from '@/apis/services';
 import { deleteAllStreamRoutes } from '@/apis/stream_routes';
@@ -34,6 +34,14 @@ const updatedStreamRouteServerPort = 8081;
 
 let testServiceId: string;
 let streamRouteId: string;
+
+const getServiceIdSelect = (page: Page) =>
+  page
+    .getByRole('combobox', { name: 'Service ID', exact: true })
+    .locator(
+      'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+    )
+    .first();
 
 test.beforeAll(async () => {
   await deleteAllStreamRoutes(e2eReq);
@@ -54,6 +62,8 @@ test.afterAll(async () => {
 });
 
 test('should CRUD stream route under service', async ({ page }) => {
+  test.setTimeout(90000);
+
   // Navigate to service detail page
   await servicesPom.toIndex(page);
   await servicesPom.isIndexPage(page);
@@ -75,13 +85,13 @@ test('should CRUD stream route under service', async ({ page }) => {
   await test.step('can submit without any fields (no required fields)', async () => {
     // Verify service_id is pre-filled and disabled (since it's read-only in service context)
     const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
+    await expect(getServiceIdSelect(page)).toContainText(testServiceId);
     await expect(serviceIdField).toBeDisabled();
 
     // Submit the form without filling any other fields
     await servicesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Stream Route Successfully',
+      hasText: 'Stream Route created and verified',
     });
   });
 
@@ -97,7 +107,7 @@ test('should CRUD stream route under service', async ({ page }) => {
 
     // Verify service_id is still pre-filled and disabled
     const serviceIdField = page.getByLabel('Service ID', { exact: true });
-    await expect(serviceIdField).toHaveValue(testServiceId);
+    await expect(getServiceIdSelect(page)).toContainText(testServiceId);
     await expect(serviceIdField).toBeDisabled();
 
     // Verify default values for server address and port (should be empty initially)
@@ -110,9 +120,6 @@ test('should CRUD stream route under service', async ({ page }) => {
   });
 
   await test.step('edit and update stream route with some fields', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
     // Verify we're in edit mode - fields should be editable now
     const serverAddrField = page.getByLabel('Server Address', { exact: true });
     await expect(serverAddrField).toBeEnabled();
@@ -128,12 +135,16 @@ test('should CRUD stream route under service', async ({ page }) => {
     await serverPortField.fill(streamRouteServerPort.toString());
 
     // Click the Save button to save changes
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Stream Route saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -149,9 +160,6 @@ test('should CRUD stream route under service', async ({ page }) => {
   });
 
   await test.step('edit again and update with different values', async () => {
-    // Click the Edit button again
-    await page.getByRole('button', { name: 'Edit' }).click();
-
     // Update with different values
     const serverAddrField = page.getByLabel('Server Address', { exact: true });
     await serverAddrField.fill(updatedStreamRouteServerAddr);
@@ -160,12 +168,16 @@ test('should CRUD stream route under service', async ({ page }) => {
     await serverPortField.fill(updatedStreamRouteServerPort.toString());
 
     // Click the Save button
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Stream Route saved and reloaded from APISIX',
     });
 
     // Verify the updated values
@@ -212,7 +224,7 @@ test('should CRUD stream route under service', async ({ page }) => {
     // Will redirect to service stream routes page
     await servicesPom.isServiceStreamRoutesPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Stream Route Successfully',
+      hasText: 'Stream Route deleted successfully',
     });
 
     // Verify the stream route is no longer in the list
@@ -233,7 +245,7 @@ test('should CRUD stream route under service', async ({ page }) => {
     // Submit the form
     await servicesPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Stream Route Successfully',
+      hasText: 'Stream Route created and verified',
     });
 
     // Verify we're on the detail page

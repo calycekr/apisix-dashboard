@@ -39,7 +39,7 @@ export const uiHasToastMsg = async (
   page: Page,
   ...filterOpts: Parameters<Locator['filter']>
 ) => {
-  const alertMsg = page.getByRole('alert').filter(...filterOpts);
+  const alertMsg = page.getByRole('alert').filter(...filterOpts).last();
   // Increased timeout for CI environment (30s instead of default 5s)
   await expect(alertMsg).toBeVisible({ timeout: 30000 });
   const closeButton = alertMsg.getByRole('button').first();
