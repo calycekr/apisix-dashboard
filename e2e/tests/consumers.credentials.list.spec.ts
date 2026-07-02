@@ -20,6 +20,11 @@ import { credentialsPom } from '@e2e/pom/credentials';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
+import {
+  uiFillMonacoEditor,
+  uiGetMonacoEditor,
+  uiHasToastMsg,
+} from '@e2e/utils/ui';
 import { expect } from '@playwright/test';
 
 import { deleteAllConsumers, putConsumerReq } from '@/apis/consumers';
@@ -243,13 +248,17 @@ test('should be able to navigate to credential detail', async ({ page }) => {
   });
 });
 
-test('should have Add Credential button', async ({ page }) => {
+test('should create credential from the UI', async ({ page }) => {
+  const credentialId = randomId('ui-cred');
+  const credentialDescription = randomId('ui-credential-desc');
+  const credentialKey = randomId('ui-key');
+
   await test.step('navigate to credentials list', async () => {
     await credentialsPom.toCredentialsIndex(page, testConsumerUsername);
     await credentialsPom.isCredentialsIndexPage(page, testConsumerUsername);
   });
 
-  await test.step('verify Add Credential button exists and works', async () => {
+  await test.step('open add credential page', async () => {
     const addCredentialBtn = credentialsPom.getAddCredentialBtn(page);
     await expect(addCredentialBtn).toBeVisible();
 
@@ -257,14 +266,87 @@ test('should have Add Credential button', async ({ page }) => {
     await credentialsPom.isCredentialAddPage(page, testConsumerUsername);
   });
 
-  await test.step('verify add page has required fields', async () => {
-    // Verify ID field exists
+  await test.step('submit credential with key-auth plugin', async () => {
     const idField = page.getByLabel('ID', { exact: true }).first();
-    await expect(idField).toBeVisible();
+    await idField.clear();
+    await idField.fill(credentialId);
 
-    // Verify Description field exists
     const descField = page.getByLabel('Description', { exact: true });
-    await expect(descField).toBeVisible();
+    await descField.fill(credentialDescription);
+
+    const selectPluginsBtn = page.getByRole('button', { name: 'Add Plugin' });
+    await selectPluginsBtn.click();
+
+    const selectPluginsDialog = page.getByRole('dialog', {
+      name: 'Add Plugin',
+      exact: true,
+    });
+    await selectPluginsDialog
+      .getByPlaceholder('Search by name, capability, or description')
+      .fill('key-auth');
+    await selectPluginsDialog
+      .getByTestId('plugin-key-auth')
+      .getByRole('button', { name: 'Add' })
+      .click();
+
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: key-auth',
+    });
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
+    await uiFillMonacoEditor(
+      page,
+      pluginEditor,
+      JSON.stringify({ key: credentialKey })
+    );
+
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
+    await expect(addPluginDialog).toBeHidden();
+    await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
+    await expect(selectPluginsDialog).toBeHidden();
+
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(
+          `${API_CREDENTIALS(testConsumerUsername)}/${credentialId}`
+        )
+    );
+    await credentialsPom.getAddBtn(page).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      desc: credentialDescription,
+      plugins: {
+        'key-auth': {
+          key: credentialKey,
+        },
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('username');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
+
+    await uiHasToastMsg(page, {
+      hasText: 'Credential created and verified',
+    });
+    await credentialsPom.isCredentialDetailPage(page);
+  });
+
+  await test.step('verify created credential appears in list', async () => {
+    await credentialsPom.toCredentialsIndex(page, testConsumerUsername);
+    await credentialsPom.isCredentialsIndexPage(page, testConsumerUsername);
+
+    await expect(
+      page.getByRole('cell', { name: credentialId })
+    ).toBeVisible();
+    await expect(
+      page.getByRole('cell', { name: credentialDescription })
+    ).toBeVisible();
   });
 });
 
@@ -359,7 +441,19 @@ test('should be able to edit credential', async ({ page }) => {
       .getByRole('dialog', { name: 'Review Changes Before Saving' })
       .getByRole('button', { name: 'Confirm & Save' })
       .click();
-    await saveResponse;
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      desc: updatedDesc,
+      plugins: credentialToEdit.plugins,
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('username');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
     await expect(page.getByText('No pending changes')).toBeVisible({
       timeout: 30000,
     });
