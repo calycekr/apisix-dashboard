@@ -34,21 +34,26 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
 
   await test.step('add global rule with multiple plugins', async () => {
     // ID field should be auto-generated
-    const idInput = page.getByLabel('ID');
+    const idInput = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(idInput).toBeVisible();
     await expect(idInput).not.toHaveValue('');
     globalRuleId = await idInput.inputValue();
 
     // Add first plugin - response-rewrite
     const selectPluginBtn = page.getByRole('button', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
     });
     await selectPluginBtn.click();
 
-    const dialog = page.getByRole('dialog', { name: 'Select Plugins' });
+    const dialog = page.getByRole('dialog', {
+      name: 'Add Plugin',
+      exact: true,
+    });
     await expect(dialog).toBeVisible();
 
-    const searchInput = dialog.getByPlaceholder('Search');
+    const searchInput = dialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('response-rewrite');
 
     await dialog
@@ -56,8 +61,11 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       .getByRole('button', { name: 'Add' })
       .click();
 
-    const pluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const pluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: response-rewrite',
+    });
     await expect(pluginDialog).toBeVisible();
+    await pluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Configure response-rewrite with custom configuration using Monaco editor
     const pluginEditor = await uiGetMonacoEditor(page, pluginDialog);
@@ -74,16 +82,23 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       })
     );
 
-    await pluginDialog.getByRole('button', { name: 'Add' }).click();
+    await pluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(pluginDialog).toBeHidden();
+    await dialog.getByLabel('Close', { exact: true }).click();
+    await expect(dialog).toBeHidden();
 
     // Add second plugin - cors
     await selectPluginBtn.click();
 
-    const corsDialog = page.getByRole('dialog', { name: 'Select Plugins' });
+    const corsDialog = page.getByRole('dialog', {
+      name: 'Add Plugin',
+      exact: true,
+    });
     await expect(corsDialog).toBeVisible();
 
-    const corsSearchInput = corsDialog.getByPlaceholder('Search');
+    const corsSearchInput = corsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await corsSearchInput.fill('cors');
 
     await corsDialog
@@ -91,21 +106,26 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       .getByRole('button', { name: 'Add' })
       .click();
 
-    const corsPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const corsPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: cors',
+    });
     await expect(corsPluginDialog).toBeVisible();
+    await corsPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
     // Submit with simple configuration for cors
     const corsEditor = await uiGetMonacoEditor(page, corsPluginDialog);
     await uiFillMonacoEditor(page, corsEditor, '{}');
 
-    await corsPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await corsPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(corsPluginDialog).toBeHidden();
+    await corsDialog.getByLabel('Close', { exact: true }).click();
+    await expect(corsDialog).toBeHidden();
 
     // Submit the form
     await globalRulePom.getAddBtn(page).click();
 
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Global Rule created and verified',
     });
 
     await globalRulePom.isDetailPage(page);
@@ -129,9 +149,9 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       .click();
 
     await globalRulePom.isIndexPage(page);
-    
+
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Global Rule deleted successfully',
     });
   });
 });
