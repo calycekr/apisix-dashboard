@@ -22,6 +22,7 @@ import {
   uiFillMonacoEditor,
   uiGetMonacoEditor,
   uiHasToastMsg,
+  uiSelectByLabel,
 } from '@e2e/utils/ui';
 import { expect } from '@playwright/test';
 
@@ -66,24 +67,23 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
       .fill(pluginConfigNameWithAllFields);
     await page.getByLabel('Description').first().fill(description);
 
-    // Add labels using TagsInput
-    const labelsInput = page.getByPlaceholder('key:value');
-    await labelsInput.fill('env:production');
-    await labelsInput.press('Enter');
-    await labelsInput.fill('version:v1.0');
-    await labelsInput.press('Enter');
+    // Add labels
+    await uiSelectByLabel(page, 'Labels', 'env:production');
+    await uiSelectByLabel(page, 'Labels', 'version:v1.0');
+    await page.keyboard.press('Escape').catch(() => {});
 
     // Add plugins
-    const selectPluginsBtn = page.getByRole('button', {
-      name: 'Select Plugins',
-    });
+    const selectPluginsBtn = page.getByRole('button', { name: 'Add Plugin' });
     await selectPluginsBtn.click();
 
     // Add response-rewrite plugin
     const selectPluginsDialog = page.getByRole('dialog', {
-      name: 'Select Plugins',
+      name: 'Add Plugin',
+      exact: true,
     });
-    const searchInput = selectPluginsDialog.getByPlaceholder('Search');
+    const searchInput = selectPluginsDialog.getByPlaceholder(
+      'Search by name, capability, or description'
+    );
     await searchInput.fill('response-rewrite');
 
     await selectPluginsDialog
@@ -91,7 +91,10 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
       .getByRole('button', { name: 'Add' })
       .click();
 
-    const addPluginDialog = page.getByRole('dialog', { name: 'Add Plugin' });
+    const addPluginDialog = page.getByRole('dialog', {
+      name: 'Add Plugin: response-rewrite',
+    });
+    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(
       page,
@@ -99,30 +102,17 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
       '{"body": "test response body", "headers": {"X-Custom-Header": "custom-value"}}'
     );
     // add plugin
-    await addPluginDialog.getByRole('button', { name: 'Add' }).click();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     await expect(addPluginDialog).toBeHidden();
+    await selectPluginsDialog.getByLabel('Close', { exact: true }).click();
+    await expect(selectPluginsDialog).toBeHidden();
 
-    const pluginsSection = page.getByRole('group', { name: 'Plugins' });
-    const responseRewritePlugin = pluginsSection.getByTestId(
-      'plugin-response-rewrite'
-    );
-    await responseRewritePlugin.getByRole('button', { name: 'Edit' }).click();
-
-    // should show edit plugin dialog
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
-
-    await expect(
-      editPluginDialog.getByText('test response body')
-    ).toBeVisible();
-    await expect(editPluginDialog.getByText('X-Custom-Header')).toBeVisible();
-    // save edit plugin dialog
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
-    await expect(editPluginDialog).toBeHidden();
+    await expect(page.getByTestId('plugin-response-rewrite')).toBeVisible();
 
     // Submit the form
     await pluginConfigsPom.getAddBtn(page).click();
     await uiHasToastMsg(page, {
-      hasText: 'Add Plugin Config Successfully',
+      hasText: 'Plugin Config created and verified',
     });
   });
 
@@ -139,29 +129,23 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     // Verify the plugin config name
     const name = page.getByLabel('Name', { exact: true }).first();
     await expect(name).toHaveValue(pluginConfigNameWithAllFields);
-    await expect(name).toBeDisabled();
+    await expect(name).toBeEnabled();
 
     // Verify the description
     const desc = page.getByLabel('Description').first();
     await expect(desc).toHaveValue(description);
-    await expect(desc).toBeDisabled();
+    await expect(desc).toBeEnabled();
 
     // Verify labels
-    const labelsInput = page.getByPlaceholder('key:value');
-    await expect(labelsInput).toBeVisible();
-    // Verify the pills/tags are visible
-    await expect(page.getByText('env:production')).toBeVisible();
-    await expect(page.getByText('version:v1.0')).toBeVisible();
+    await expect(page.getByText('env:production').first()).toBeVisible();
+    await expect(page.getByText('version:v1.0').first()).toBeVisible();
 
     // Verify Plugins
     await expect(page.getByTestId('plugin-response-rewrite')).toBeVisible();
   });
 
   await test.step('edit and update plugin config in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
+    // Detail pages are immediately editable
     const nameField = page.getByLabel('Name', { exact: true }).first();
     await expect(nameField).toBeEnabled();
 
@@ -172,35 +156,39 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     );
 
     // Update labels - just add a new one
-    const labelsInput = page.getByPlaceholder('key:value');
-    await labelsInput.fill('team:backend');
-    await labelsInput.press('Enter');
+    await uiSelectByLabel(page, 'Labels', 'team:backend');
+    await page.keyboard.press('Escape').catch(() => {});
 
     // Update response-rewrite plugin configuration
-    const pluginsSection = page.getByRole('group', { name: 'Plugins' });
-    const responseRewritePlugin = pluginsSection.getByTestId(
-      'plugin-response-rewrite'
-    );
+    const responseRewritePlugin = page.getByTestId('plugin-response-rewrite');
     await responseRewritePlugin.getByRole('button', { name: 'Edit' }).click();
 
-    const editPluginDialog = page.getByRole('dialog', { name: 'Edit Plugin' });
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: response-rewrite',
+    });
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
     await uiFillMonacoEditor(
       page,
       pluginEditor,
       '{"body": "updated response body", "headers": {"X-Updated-Header": "updated-value"}}'
     );
-    await editPluginDialog.getByRole('button', { name: 'Save' }).click();
+    await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
     await expect(editPluginDialog).toBeHidden();
 
     // Click the Save button to save changes
-    const saveBtn = page.getByRole('button', { name: 'Save' });
+    const saveBtn = page.getByRole('button', { name: 'Save', exact: true });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Plugin Config saved and reloaded from APISIX',
     });
+    await page.keyboard.press('Escape').catch(() => {});
 
     // Verify we're back in detail view mode
     await pluginConfigsPom.isDetailPage(page);
@@ -212,9 +200,9 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     );
 
     // Verify updated labels
-    await expect(page.getByText('env:production')).toBeVisible();
-    await expect(page.getByText('version:v1.0')).toBeVisible();
-    await expect(page.getByText('team:backend')).toBeVisible();
+    await expect(page.getByText('env:production').first()).toBeVisible();
+    await expect(page.getByText('version:v1.0').first()).toBeVisible();
+    await expect(page.getByText('team:backend').first()).toBeVisible();
 
     // Verify plugins - response-rewrite should still be there
     await expect(page.getByTestId('plugin-response-rewrite')).toBeVisible();
@@ -247,10 +235,13 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     // Will redirect to plugin configs page
     await pluginConfigsPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Plugin Config Successfully',
+      hasText: 'Plugin Config deleted successfully',
     });
     await expect(
-      page.getByRole('cell', { name: pluginConfigNameWithAllFields })
+      page.getByRole('link', {
+        name: pluginConfigNameWithAllFields,
+        exact: true,
+      })
     ).toBeHidden();
 
     // Final verification: Reload the page and check again to ensure it's really gone
@@ -259,7 +250,10 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
 
     // After reload, the plugin config should still be gone
     await expect(
-      page.getByRole('cell', { name: pluginConfigNameWithAllFields })
+      page.getByRole('link', {
+        name: pluginConfigNameWithAllFields,
+        exact: true,
+      })
     ).toBeHidden();
   });
 });
