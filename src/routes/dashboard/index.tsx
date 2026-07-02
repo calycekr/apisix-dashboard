@@ -44,11 +44,15 @@ import { TableEllipsisText } from '@/components/TableEllipsisText';
 import IconArrowForward from '~icons/material-symbols/arrow-forward';
 import IconCheckCircle from '~icons/material-symbols/check-circle';
 import IconCloudUpload from '~icons/material-symbols/cloud-upload';
+import IconCode from '~icons/material-symbols/code';
+import IconDataObject from '~icons/material-symbols/data-object';
 import IconDns from '~icons/material-symbols/dns';
+import IconExtension from '~icons/material-symbols/extension';
 import IconGroup from '~icons/material-symbols/group';
 import IconKey from '~icons/material-symbols/key';
 import IconLock from '~icons/material-symbols/lock';
 import IconPerson from '~icons/material-symbols/person';
+import IconPublic from '~icons/material-symbols/public';
 import IconRefresh from '~icons/material-symbols/refresh';
 import IconRoute from '~icons/material-symbols/route';
 import IconStream from '~icons/material-symbols/stream';
@@ -72,6 +76,10 @@ const RESOURCE_CARDS: {
   { key: 'ssls', label: 'SSL Certificates', icon: <IconLock />, color: '#c41d7f', to: '/ssls' },
   { key: 'streamRoutes', label: 'Stream Routes', icon: <IconStream />, color: '#08979c', to: '/stream_routes' },
   { key: 'consumerGroups', label: 'Consumer Groups', icon: <IconGroup />, color: '#2f54eb', to: '/consumer_groups' },
+  { key: 'globalRules', label: 'Global Rules', icon: <IconPublic />, color: '#d4380d', to: '/global_rules' },
+  { key: 'pluginConfigs', label: 'Plugin Configs', icon: <IconExtension />, color: '#7cb305', to: '/plugin_configs' },
+  { key: 'pluginMetadata', label: 'Plugin Metadata', icon: <IconDataObject />, color: '#531dab', to: '/plugin_metadata' },
+  { key: 'protos', label: 'Protos', icon: <IconCode />, color: '#595959', to: '/protos' },
   { key: 'secrets', label: 'Secrets', icon: <IconKey />, color: '#ad6800', to: '/secrets' },
 ];
 
@@ -85,6 +93,7 @@ const RESOURCE_TYPE_COLORS: Record<string, string> = {
   consumerGroups: 'geekblue',
   globalRules: 'volcano',
   pluginConfigs: 'lime',
+  pluginMetadata: 'purple',
   secrets: 'gold',
   protos: 'default',
 };
@@ -99,6 +108,7 @@ const RESOURCE_TYPE_LABELS: Record<string, string> = {
   consumerGroups: 'Consumer Group',
   globalRules: 'Global Rule',
   pluginConfigs: 'Plugin Config',
+  pluginMetadata: 'Plugin Metadata',
   secrets: 'Secret',
   protos: 'Proto',
 };

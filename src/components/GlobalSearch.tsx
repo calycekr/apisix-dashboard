@@ -18,7 +18,11 @@ import { useNavigate } from '@tanstack/react-router';
 import { Input, Modal, Spin, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
-import { RESOURCES } from '@/apis/dashboard';
+import {
+  getResourceDetailPath,
+  getResourceId,
+  RESOURCES,
+} from '@/apis/dashboard';
 import { PAGE_SIZE_MAX, SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
 import { req } from '@/config/req';
 import IconSearch from '~icons/material-symbols/search';
@@ -170,12 +174,12 @@ export const GlobalSearch = () => {
         for (const item of list) {
           const v = item.value as Record<string, unknown>;
           if (!resourceMatchesQuery(v, normalizedQuery)) continue;
-          const id = String(v.id || v.username || '');
+          const id = getResourceId(r.key, v);
           searchResults.push({
             resourceType: r.key,
             id,
             name: String(v.name || v.desc || v.sni || ''),
-            detailPath: `${r.detailPrefix}/${id}`,
+            detailPath: getResourceDetailPath(r, v),
           });
         }
       } catch {

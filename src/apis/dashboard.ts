@@ -19,6 +19,7 @@ import {
   API_CONSUMERS,
   API_GLOBAL_RULES,
   API_PLUGIN_CONFIGS,
+  API_PLUGIN_METADATA,
   API_PROTOS,
   API_ROUTES,
   API_SECRETS,
@@ -60,9 +61,35 @@ const RESOURCES = [
   { key: 'consumerGroups', api: API_CONSUMER_GROUPS, labelKey: 'sources.consumerGroups', detailPrefix: '/consumer_groups/detail' },
   { key: 'globalRules', api: API_GLOBAL_RULES, labelKey: 'sources.globalRules', detailPrefix: '/global_rules/detail' },
   { key: 'pluginConfigs', api: API_PLUGIN_CONFIGS, labelKey: 'sources.pluginConfigs', detailPrefix: '/plugin_configs/detail' },
+  { key: 'pluginMetadata', api: API_PLUGIN_METADATA, labelKey: 'sources.pluginMetadata', detailPrefix: '/plugin_metadata' },
   { key: 'secrets', api: API_SECRETS, labelKey: 'sources.secrets', detailPrefix: '/secrets/detail' },
   { key: 'protos', api: API_PROTOS, labelKey: 'sources.protos', detailPrefix: '/protos/detail' },
 ] as const;
+
+type DashboardResource = (typeof RESOURCES)[number];
+
+export function getResourceId(
+  resourceKey: DashboardResource['key'],
+  value: Record<string, unknown>
+): string {
+  if (resourceKey === 'consumers') return String(value.username ?? value.id ?? '');
+  return String(value.id ?? value.username ?? '');
+}
+
+export function getResourceDetailPath(
+  resource: Pick<DashboardResource, 'key' | 'detailPrefix'>,
+  value: Record<string, unknown>
+): string {
+  const id = getResourceId(resource.key, value);
+  if (resource.key === 'secrets') {
+    const manager = String(value.manager ?? '');
+    return manager && id
+      ? `${resource.detailPrefix}/${manager}/${id}`
+      : resource.detailPrefix;
+  }
+  if (resource.key === 'pluginMetadata') return resource.detailPrefix;
+  return id ? `${resource.detailPrefix}/${id}` : resource.detailPrefix;
+}
 
 export type ResourceCounts = Record<string, number>;
 
@@ -187,13 +214,13 @@ export const getDashboardData = async (): Promise<DashboardData> => {
       }
 
       if (!v?.update_time) continue;
-      const id = v.id || v.username || '';
+      const id = getResourceId(key, v);
       items.push({
         resourceType: key,
         id,
         name: v.name || v.desc || undefined,
         updateTime: v.update_time,
-        detailPath: `${detailPrefix}/${id}`,
+        detailPath: getResourceDetailPath({ key, detailPrefix }, v),
       });
     }
   }
