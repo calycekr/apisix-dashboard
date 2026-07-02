@@ -100,7 +100,8 @@ test('should CRUD SSL with required fields', async ({ page }) => {
     await expect(certField).toBeEnabled();
 
     // Update SNIs - add a new one
-    await uiSelectByLabel(page, 'SNIs', 'updated.example.com');
+    const updatedSni = 'updated.example.com';
+    await uiSelectByLabel(page, 'SNIs', updatedSni);
 
     // Verify the new SNI is displayed
     await expect(
@@ -109,18 +110,50 @@ test('should CRUD SSL with required fields', async ({ page }) => {
         .locator(
           'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
         )
-    ).toContainText('updated.example.com');
+    ).toContainText(updatedSni);
 
-    // Click Cancel to reset the form without saving
-    await page.getByRole('button', { name: 'Cancel' }).click();
+    await page.getByRole('textbox', { name: 'Private Key 1' }).fill(key);
 
-    // Cancel returns to the SSL list without saving the pending edit.
-    await sslsPom.isIndexPage(page);
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes('/apisix/admin/ssls/')
+    );
 
-    // Find the row with our SSL (by first SNI)
-    const firstSni = snis[0];
-    const row = page.getByRole('row', { name: firstSni });
-    await expect(row).toBeVisible();
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      cert,
+      key,
+      snis: [...snis, updatedSni],
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
+    expect(requestPayload).not.toHaveProperty('validity_start');
+    expect(requestPayload).not.toHaveProperty('validity_end');
+
+    await uiHasToastMsg(page, {
+      hasText: 'SSL saved and reloaded from APISIX',
+    });
+    await sslsPom.isDetailPage(page);
+    await page.keyboard.press('Escape').catch(() => {});
+    await expect(
+      page
+        .getByRole('combobox', { name: 'SNIs' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText(updatedSni);
   });
 
   await test.step('delete SSL from list page', async () => {

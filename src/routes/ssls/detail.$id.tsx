@@ -30,6 +30,7 @@ import { putSSLReq } from '@/apis/ssls';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartSSL } from '@/components/form-slice/FormPartSSL';
 import {
+  produceSSLSubmitPayload,
   produceToSSLForm,
   SSLPutSchema,
   type SSLPutType,
@@ -84,7 +85,9 @@ const SSLDetailForm = (props: { id: string }) => {
       <FormProvider {...form}>
         <FormJsonTabs
           form={form}
-          onSubmit={(d) => putSSL.mutateAsync(pipeProduce()(d))}
+          onSubmit={(d) =>
+            putSSL.mutateAsync(pipeProduce(produceSSLSubmitPayload)(d))
+          }
           submitLabel="Save"
           rawData={sslData}
           adminApi={`${API_SSLS}/${id}`}

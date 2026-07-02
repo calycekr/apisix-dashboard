@@ -130,14 +130,58 @@ test('should CRUD SSL with all fields', async ({ page }) => {
     await uiCheckLabels(page, initialLabels);
   });
 
-  await test.step('verify detail form is editable', async () => {
+  await test.step('edit and update SSL in detail page', async () => {
     const cert1Field = page.getByRole('textbox', { name: 'Certificate 1' });
     await expect(cert1Field).toBeEnabled();
 
-    // Cancel without making changes
-    await page.getByRole('button', { name: 'Cancel' }).click();
+    const updatedSni = 'updated-full.example.com';
+    await uiSelectByLabel(page, 'SNIs', updatedSni);
+    await page.getByRole('textbox', { name: 'Private Key 1' }).fill(key);
 
-    // Return to list page
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes('/apisix/admin/ssls/')
+    );
+
+    await page.getByRole('button', { name: 'Save', exact: true }).click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
+
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      cert,
+      key,
+      snis: [...snis, updatedSni],
+      labels: initialLabels,
+      status: 1,
+      ssl_protocols: ['TLSv1.2', 'TLSv1.3'],
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
+    expect(requestPayload).not.toHaveProperty('validity_start');
+    expect(requestPayload).not.toHaveProperty('validity_end');
+
+    await uiHasToastMsg(page, {
+      hasText: 'SSL saved and reloaded from APISIX',
+    });
+    await sslsPom.isDetailPage(page);
+    await page.keyboard.press('Escape').catch(() => {});
+    await expect(
+      page
+        .getByRole('combobox', { name: 'SNIs' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+    ).toContainText(updatedSni);
+
     await sslsPom.getSSLNavBtn(page).click();
     await sslsPom.isIndexPage(page);
   });

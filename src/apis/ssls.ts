@@ -24,6 +24,13 @@ import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllResources } from './utils';
 
+const stripSSLReadonlyFields = (data: Record<string, unknown>) => {
+  const payload = stripSystemReadonlyFields(data);
+  delete payload.validity_start;
+  delete payload.validity_end;
+  return payload;
+};
+
 export const getSSLListReq = (req: AxiosInstance, params: PageSearchType) =>
   req
     .get<unknown, APISIXType['RespSSLList']>(API_SSLS, {
@@ -40,7 +47,7 @@ export const putSSLReq = (req: AxiosInstance, data: APISIXType['SSL']) => {
   const { id, ...rest } = data;
   return req.put<APISIXType['SSL'], APISIXType['RespSSLDetail']>(
     `${API_SSLS}/${id}`,
-    stripSystemReadonlyFields(rest)
+    stripSSLReadonlyFields(rest)
   );
 };
 

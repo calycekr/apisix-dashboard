@@ -23,6 +23,7 @@ import { postSSLReq } from '@/apis/ssls';
 import { FormJsonTabs } from '@/components/form/FormJsonTabs';
 import { FormPartSSL } from '@/components/form-slice/FormPartSSL';
 import {
+  produceSSLSubmitPayload,
   SSLPostSchema,
   type SSLPostType,
 } from '@/components/form-slice/FormPartSSL/schema';
@@ -39,7 +40,7 @@ const SSLAddForm = () => {
   const router = useRouter();
   const postSSL = useMutation({
     mutationFn: async (d: SSLPostType) => {
-      const payload = pipeProduce()(d);
+      const payload = pipeProduce(produceSSLSubmitPayload)(d);
       const response = await postSSLReq(req, payload);
       await verifyAdminApiExists(`${API_SSLS}/${response.data.value.id}`);
       return response;

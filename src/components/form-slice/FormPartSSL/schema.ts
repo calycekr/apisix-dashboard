@@ -15,7 +15,6 @@
  * limitations under the License.
  */
 import { produce } from 'immer';
-import { isNotEmpty } from 'rambdax';
 import { z } from 'zod';
 
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
@@ -23,6 +22,16 @@ import { APISIX, type APISIXType } from '@/types/schema/apisix';
 const SSLForm = z.object({
   __clientEnabled: z.boolean().optional(),
 });
+
+const isClientConfigured = (client: APISIXType['SSL']['client']) =>
+  !!client?.ca?.trim() ||
+  (Array.isArray(client?.skip_mtls_uri_regex) &&
+    client.skip_mtls_uri_regex.length > 0);
+
+const hasClientCertificate = (data: {
+  __clientEnabled?: boolean;
+  client?: APISIXType['SSL']['client'];
+}) => !data.__clientEnabled || !!data.client?.ca?.trim();
 
 export const SSLPostSchema = APISIX.SSL.omit({
   create_time: true,
@@ -39,6 +48,11 @@ export const SSLPostSchema = APISIX.SSL.omit({
   .refine((data) => data.key || (data.keys && data.keys.length > 0), {
     message: 'At least one key is required (key or keys)',
     path: ['key'],
+  })
+  .refine(hasClientCertificate, {
+    message:
+      'Client CA Certificate is required when client certificate verification is enabled',
+    path: ['client', 'ca'],
   });
 
 export type SSLPostType = z.input<typeof SSLPostSchema>;
@@ -51,11 +65,25 @@ export const SSLPutSchema = APISIX.SSL.merge(SSLForm)
   .refine((data) => data.key || (data.keys && data.keys.length > 0), {
     message: 'At least one key is required (key or keys)',
     path: ['key'],
+  })
+  .refine(hasClientCertificate, {
+    message:
+      'Client CA Certificate is required when client certificate verification is enabled',
+    path: ['client', 'ca'],
   });
 
 export type SSLPutType = z.infer<typeof SSLPutSchema>;
 
 export const produceToSSLForm = (data: APISIXType['SSL']) =>
   produce(data as SSLPutType, (draft) => {
-    draft.__clientEnabled = isNotEmpty(draft.client);
+    draft.__clientEnabled = isClientConfigured(draft.client);
+    if (!draft.__clientEnabled) {
+      delete draft.client;
+    }
   });
+
+export const produceSSLSubmitPayload = produce((draft: SSLPostType) => {
+  if (!draft.__clientEnabled || !draft.client?.ca?.trim()) {
+    delete draft.client;
+  }
+});
