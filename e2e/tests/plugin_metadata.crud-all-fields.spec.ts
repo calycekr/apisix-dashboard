@@ -94,8 +94,34 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       })
     );
 
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_PLUGIN_METADATA}/http-logger`)
+    );
+
     // Click Add button
     await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      log_format: {
+        host: '$host',
+        client_ip: '$remote_addr',
+        request_method: '$request_method',
+        request_uri: '$request_uri',
+        status: '$status',
+        body_bytes_sent: '$body_bytes_sent',
+        request_time: '$request_time',
+        upstream_response_time: '$upstream_response_time',
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
 
     // Should show success message
     await uiHasToastMsg(page, {
@@ -131,6 +157,60 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await expect(editPluginDialog.getByText('"host": "$host",').last()).toBeVisible();
 
     await editPluginDialog.getByRole('button', { name: 'Cancel' }).click();
+    await expect(editPluginDialog).toBeHidden();
+  });
+
+  await test.step('edit plugin metadata with comprehensive update', async () => {
+    const httpLoggerCard = page.getByTestId('plugin-http-logger');
+    await httpLoggerCard.getByRole('button', { name: 'Edit' }).click();
+
+    const editPluginDialog = page.getByRole('dialog', {
+      name: 'Edit Plugin: http-logger',
+    });
+    await expect(editPluginDialog).toBeVisible();
+    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+
+    const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
+    await uiFillMonacoEditor(
+      page,
+      pluginEditor,
+      JSON.stringify({
+        log_format: {
+          host: '$host',
+          service_id: '$service_id',
+          route_id: '$route_id',
+          latency: '$request_time',
+        },
+      })
+    );
+
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_PLUGIN_METADATA}/http-logger`)
+    );
+    await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
+
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      log_format: {
+        host: '$host',
+        service_id: '$service_id',
+        route_id: '$route_id',
+        latency: '$request_time',
+      },
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
+
+    await uiHasToastMsg(page, {
+      hasText: 'Plugin Metadata for http-logger saved and verified',
+    });
     await expect(editPluginDialog).toBeHidden();
   });
 

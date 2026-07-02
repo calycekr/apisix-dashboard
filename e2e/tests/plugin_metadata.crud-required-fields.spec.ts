@@ -79,8 +79,25 @@ test('should CRUD plugin metadata with required fields only', async ({
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(page, pluginEditor, '{"host": "127.0.0.1"}');
 
+    const createResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_PLUGIN_METADATA}/syslog`)
+    );
+
     // Click Add button
     await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
+    const response = await createResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      host: '127.0.0.1',
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
 
     // Should show success message
     await uiHasToastMsg(page, {
@@ -120,8 +137,26 @@ test('should CRUD plugin metadata with required fields only', async ({
       '{"host": "127.0.0.1", "port": 5140}'
     );
 
+    const saveResponse = page.waitForResponse(
+      (response) =>
+        response.request().method() === 'PUT' &&
+        response.url().includes(`${API_PLUGIN_METADATA}/syslog`)
+    );
+
     // Click Save button
     await editPluginDialog.getByRole('button', { name: 'Save Changes' }).click();
+    const response = await saveResponse;
+    const requestPayload = response.request().postDataJSON() as Record<
+      string,
+      unknown
+    >;
+    expect(requestPayload).toMatchObject({
+      host: '127.0.0.1',
+      port: 5140,
+    });
+    expect(requestPayload).not.toHaveProperty('id');
+    expect(requestPayload).not.toHaveProperty('create_time');
+    expect(requestPayload).not.toHaveProperty('update_time');
 
     // Should show success message
     await uiHasToastMsg(page, {
