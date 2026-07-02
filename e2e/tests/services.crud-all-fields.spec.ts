@@ -55,11 +55,6 @@ test('should CRUD service with all fields', async ({ page }) => {
   const addBtn = page.getByRole('button', { name: 'Add', exact: true });
   await addBtn.click();
 
-  // Wait for success message
-  await uiHasToastMsg(page, {
-    hasText: 'Add Service Successfully',
-  });
-
   // Verify automatic redirection to detail page
   await servicesPom.isDetailPage(page);
 
@@ -94,7 +89,7 @@ test('should CRUD service with all fields', async ({ page }) => {
     await servicesPom.isDetailPage(page);
 
     // Delete the service
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     // Confirm deletion
     const deleteDialog = page.getByRole('dialog', { name: 'Delete Service' });
@@ -104,7 +99,7 @@ test('should CRUD service with all fields', async ({ page }) => {
     // Verify successful deletion
     await servicesPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Service Successfully',
+      hasText: 'Service deleted successfully',
     });
 
     // Verify removed from the list

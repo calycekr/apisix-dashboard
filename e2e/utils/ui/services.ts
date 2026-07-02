@@ -20,7 +20,12 @@ import { expect } from '@playwright/test';
 import type { APISIXType } from '@/types/schema/apisix';
 
 import type { Test } from '../test';
-import { uiOpenInlineUpstream } from './upstreams';
+import { uiSelectByLabel } from '.';
+import {
+  uiCheckUpstreamAllFields,
+  uiFillUpstreamAllFields,
+  uiOpenInlineUpstream,
+} from './upstreams';
 
 /**
  * Fill the service form with required fields
@@ -43,7 +48,6 @@ export async function uiCheckServiceRequiredFields(
   // Verify the service name (not the upstream name)
   const name = ctx.locator('input[name="name"]');
   await expect(name).toHaveValue(service.name);
-  await expect(name).toBeDisabled();
 }
 
 export async function uiFillServiceAllFields(
@@ -59,83 +63,36 @@ export async function uiFillServiceAllFields(
     await ctx.getByLabel('Description').first().fill(service.desc);
 
     // 3. Labels - use placeholder to get service labels field, not upstream labels
-    const labelsField = (ctx as Page).getByPlaceholder('Input text like `key:value`,').first();
-    await expect(labelsField).toBeEnabled();
-    await labelsField.click();
-    await labelsField.fill('env:production');
-    await labelsField.press('Enter');
-    await labelsField.fill('version:v1');
-    await labelsField.press('Enter');
-    await expect(labelsField).toHaveValue('');
+    await uiSelectByLabel(ctx as Page, 'Labels', 'env:production');
+    await uiSelectByLabel(ctx as Page, 'Labels', 'version:v1');
   });
 
   await test.step('fill in upstream configuration', async () => {
     await uiOpenInlineUpstream(ctx);
-
-    // Configure upstream
-    const upstreamSection = ctx
-      .getByRole('group', { name: 'Upstream' })
-      .first();
-    
-    // Add nodes
-    const addNodeBtn = ctx.getByRole('button', { name: 'Add a Node' });
-    const noData = upstreamSection.getByText('No Data');
-    await expect(noData).toBeVisible();
-
-    // Add first node
-    await addNodeBtn.click();
-    await expect(noData).toBeHidden();
-    const rows = upstreamSection.locator('tr.ant-table-row');
-    await expect(rows.first()).toBeVisible();
-
-    const hostInput = rows.first().locator('input').first();
-    await hostInput.click();
-    await hostInput.fill('service-node1.example.com');
-    await expect(hostInput).toHaveValue('service-node1.example.com');
-
-    const portInput = rows.first().locator('input').nth(1);
-    await portInput.click();
-    await portInput.fill('8080');
-    await expect(portInput).toHaveValue('8080');
-
-    const weightInput = rows.first().locator('input').nth(2);
-    await weightInput.click();
-    await weightInput.fill('100');
-    await expect(weightInput).toHaveValue('100');
-
-    // Add second node
-    await upstreamSection.click();
-    await addNodeBtn.click();
-    await expect(rows.nth(1)).toBeVisible();
-
-    const hostInput2 = rows.nth(1).locator('input').first();
-    await hostInput2.click();
-    await hostInput2.fill('service-node2.example.com');
-    await expect(hostInput2).toHaveValue('service-node2.example.com');
-
-    const portInput2 = rows.nth(1).locator('input').nth(1);
-    await portInput2.click();
-    await portInput2.fill('8081');
-    await expect(portInput2).toHaveValue('8081');
-
-    const weightInput2 = rows.nth(1).locator('input').nth(2);
-    await weightInput2.click();
-    await weightInput2.fill('50');
-    await expect(weightInput2).toHaveValue('50');
+    await uiFillUpstreamAllFields(
+      test,
+      ctx.getByRole('group', { name: 'Inline Upstream target' }),
+      {
+        name: 'service-inline-upstream',
+        desc: 'Inline upstream for service all fields',
+      },
+      ctx as Page
+    );
   });
 
   await test.step('fill in additional fields', async () => {
+    const settingsGroup = ctx
+      .getByRole('group')
+      .filter({ has: ctx.getByText('Enable WebSocket', { exact: true }) })
+      .last();
+
     // 5. Enable WebSocket
-    const websocketSwitchInput = ctx
-      .locator('input[name="enable_websocket"]')
-      .first();
-    await websocketSwitchInput.evaluate((el) => {
-      (el as HTMLElement).click();
-    });
-    await expect(websocketSwitchInput).toBeChecked();
+    const websocketSwitch = settingsGroup.getByRole('switch').first();
+    await websocketSwitch.click();
+    await expect(websocketSwitch).toBeChecked();
 
     // 6. Hosts
-    const hostsField = ctx.getByRole('textbox', { name: 'Hosts' });
+    const hostsField = settingsGroup.getByRole('combobox', { name: 'Hosts' });
     await expect(hostsField).toBeEnabled();
     await hostsField.click();
     await hostsField.fill('api.example.com');
@@ -153,43 +110,29 @@ export async function uiCheckServiceAllFields(
   // Verify basic information - use first() to get service name, not upstream name
   const name = (ctx as Page).getByRole('textbox', { name: 'Name' }).first();
   await expect(name).toHaveValue(service.name);
-  await expect(name).toBeDisabled();
 
   const descriptionField = ctx.getByLabel('Description').first();
   await expect(descriptionField).toHaveValue(service.desc);
-  await expect(descriptionField).toBeDisabled();
 
   // Verify labels
   await expect(ctx.getByText('env:production')).toBeVisible();
   await expect(ctx.getByText('version:v1')).toBeVisible();
 
-  // Verify upstream nodes
-  const upstreamSection = ctx
-    .getByRole('group', { name: 'Upstream' })
-    .first();
-  await expect(
-    upstreamSection.getByRole('cell', { name: 'service-node1.example.com' })
-  ).toBeVisible();
-  await expect(
-    upstreamSection.getByRole('cell', { name: '8080' })
-  ).toBeVisible();
-  await expect(
-    upstreamSection.getByRole('cell', { name: '100', exact: true })
-  ).toBeVisible();
-
-  await expect(
-    upstreamSection.getByRole('cell', { name: 'service-node2.example.com' })
-  ).toBeVisible();
-  await expect(
-    upstreamSection.getByRole('cell', { name: '8081' })
-  ).toBeVisible();
-  await expect(
-    upstreamSection.getByRole('cell', { name: '50', exact: true })
-  ).toBeVisible();
+  await uiCheckUpstreamAllFields(
+    ctx.getByRole('group', { name: 'Inline Upstream target' }),
+    {
+      name: 'service-inline-upstream',
+      desc: 'Inline upstream for service all fields',
+    }
+  );
 
   // Verify WebSocket is enabled
   const websocketSwitch = ctx
-    .locator('input[name="enable_websocket"]').first();
+    .getByRole('group')
+    .filter({ has: ctx.getByText('Enable WebSocket', { exact: true }) })
+    .last()
+    .getByRole('switch')
+    .first();
   await expect(websocketSwitch).toBeChecked();
 
   // Verify hosts

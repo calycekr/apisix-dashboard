@@ -23,6 +23,11 @@ import { genTLS } from '../common';
 import type { Test } from '../test';
 
 export async function uiOpenInlineUpstream(ctx: Page | Locator) {
+  const inlineTarget = ctx.getByText('Define inline Upstream', { exact: true });
+  if (await inlineTarget.count()) {
+    await inlineTarget.first().click();
+  }
+
   const configureInline = ctx.getByRole('button', {
     name: 'Configure inline',
   });
@@ -323,11 +328,13 @@ export async function uiCheckUpstreamAllFields(
   await expect(upstreamHostField).toHaveValue('custom.upstream.host');
 
   // Verify timeout settings (Timeout)
+  await uiConfigureOptionalSection(ctx, 'Timeout');
   await expect(ctx.getByLabel('Connect', { exact: true })).toHaveValue('3');
   await expect(ctx.getByLabel('Send', { exact: true })).toHaveValue('3');
   await expect(ctx.getByLabel('Read', { exact: true })).toHaveValue('3');
 
   // Verify keepalive pool settings (Keepalive Pool)
+  await uiConfigureOptionalSection(ctx, 'Keepalive Pool');
   await expect(ctx.getByLabel('Size', { exact: true })).toHaveValue('320');
   await expect(ctx.getByLabel('IDLE Timeout', { exact: true })).toHaveValue('60');
   await expect(ctx.getByLabel('Requests', { exact: true })).toHaveValue('1000');

@@ -50,7 +50,7 @@ const ServiceDetailForm = () => {
 
   const form = useForm({
     resolver: zodResolver(APISIX.Service),
-    shouldUnregister: true,
+    shouldUnregister: false,
     shouldFocusError: true,
     mode: 'all',
   });
@@ -113,7 +113,7 @@ function RouteComponent() {
     <>
       <PageHeader showBackBtn
         title={`Service: ${serviceData.value.name || id}`}
-        desc={`ID: ${id} · Reusable policy layer between Routes and the downstream Upstream.`}
+        desc={`ID: ${id} - Reusable policy layer between Routes and the downstream Upstream.`}
         extra={(
           <Space>
             <Link to="/routes/add" search={{ service_id: id }}>

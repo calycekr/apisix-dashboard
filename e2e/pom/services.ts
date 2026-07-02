@@ -19,7 +19,7 @@ import { expect, type Page } from '@playwright/test';
 
 const locator = {
   getServiceNavBtn: (page: Page) =>
-    page.getByRole('link', { name: 'Services', exact: true }),
+    page.getByRole('menuitem', { name: 'Services', exact: true }),
   getAddServiceBtn: (page: Page) =>
     page.getByRole('link', { name: 'Add Service', exact: true }),
   getAddBtn: (page: Page) =>

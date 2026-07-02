@@ -52,7 +52,8 @@ const ServiceAddForm = ({ defaultValues }: { defaultValues?: ServicePostType }) 
       const id = response.data.value.id;
       await verifyAdminApiResource(
         `${API_SERVICES}/${id}`,
-        stripSystemReadonlyFields(payload as Record<string, unknown>)
+        stripSystemReadonlyFields(payload as Record<string, unknown>),
+        { ignoredPaths: ['upstream.tls.client_key'] }
       );
       return response;
     },

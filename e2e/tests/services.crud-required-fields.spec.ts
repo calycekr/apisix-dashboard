@@ -18,12 +18,15 @@ import { servicesPom } from '@e2e/pom/services';
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiHasToastMsg } from '@e2e/utils/ui';
+import { uiHasToastMsg, uiSelectByLabel } from '@e2e/utils/ui';
 import {
   uiCheckServiceRequiredFields,
   uiFillServiceRequiredFields,
 } from '@e2e/utils/ui/services';
-import { uiOpenInlineUpstream } from '@e2e/utils/ui/upstreams';
+import {
+  uiFillUpstreamRequiredFields,
+  uiOpenInlineUpstream,
+} from '@e2e/utils/ui/upstreams';
 import { expect } from '@playwright/test';
 
 import { deleteAllServices } from '@/apis/services';
@@ -51,14 +54,13 @@ test('should CRUD service with required fields', async ({ page }) => {
     // Ensure upstream is valid. In some configurations (e.g. http&stream),
     // the backend might require a valid upstream configuration.
     await uiOpenInlineUpstream(page);
-    const upstreamSection = page.getByRole('group', { name: 'Upstream' }).first();
-    const addNodeBtn = page.getByRole('button', { name: 'Add a Node' });
-    await addNodeBtn.click();
-
-    const rows = upstreamSection.locator('tr.ant-table-row');
-    await rows.first().locator('input').first().fill('127.0.0.1');
-    await rows.first().locator('input').nth(1).fill('80');
-    await rows.first().locator('input').nth(2).fill('1');
+    const upstreamSection = page.getByRole('group', {
+      name: 'Inline Upstream target',
+    });
+    await uiFillUpstreamRequiredFields(upstreamSection, {
+      name: 'service-required-upstream',
+      nodes: [{ host: '127.0.0.1', port: 80, weight: 1 }],
+    });
 
     // Ensure the name field is properly filled before submitting
     const nameField = page.locator('input[name="name"]');
@@ -66,11 +68,7 @@ test('should CRUD service with required fields', async ({ page }) => {
 
     await servicesPom.getAddBtn(page).click();
 
-    // Wait for either success or error toast (longer timeout for CI)
-    const successMessage = page.locator('.ant-message-notice', {
-      hasText: 'Add Service Successfully',
-    });
-    await expect(successMessage).toBeVisible({ timeout: 30000 });
+    await servicesPom.isDetailPage(page);
   });
 
   await test.step('auto navigate to service detail page', async () => {
@@ -101,10 +99,6 @@ test('should CRUD service with required fields', async ({ page }) => {
   });
 
   await test.step('edit and update service in detail page', async () => {
-    // Click the Edit button in the detail page
-    await page.getByRole('button', { name: 'Edit' }).click();
-
-    // Verify we're in edit mode - fields should be editable now
     const nameField = page.getByRole('textbox', { name: 'Name' }).first();
     await expect(nameField).toBeEnabled();
 
@@ -114,25 +108,19 @@ test('should CRUD service with required fields', async ({ page }) => {
 
     // Add a simple label (key:value format)
     // Use first() to get service labels field, not upstream labels
-    const labelsField = page.getByPlaceholder('Input text like `key:value`,').first();
-    await expect(labelsField).toBeEnabled();
-
-    // Add a single label in key:value format
-    await labelsField.click();
-    await labelsField.fill('version:v1');
-    await labelsField.press('Enter');
-
-    // Verify the label was added by checking if the input is cleared
-    // This indicates the tag was successfully created
-    await expect(labelsField).toHaveValue('');
+    await uiSelectByLabel(page, 'Labels', 'version:v1');
 
     // Click the Save button to save changes
     const saveBtn = page.getByRole('button', { name: 'Save' });
     await saveBtn.click();
+    await page
+      .getByRole('dialog', { name: 'Review Changes Before Saving' })
+      .getByRole('button', { name: 'Confirm & Save' })
+      .click();
 
     // Verify the update was successful
     await uiHasToastMsg(page, {
-      hasText: 'success',
+      hasText: 'Service saved and reloaded from APISIX',
     });
 
     // Verify we're back in detail view mode
@@ -144,7 +132,14 @@ test('should CRUD service with required fields', async ({ page }) => {
     );
 
     // check labels
-    await expect(page.getByText('version:v1')).toBeVisible();
+    await expect(
+      page
+        .getByRole('combobox', { name: 'Labels' })
+        .locator(
+          'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
+        )
+        .first()
+    ).toContainText('version:v1');
 
     // Return to list page and verify the service exists
     await servicesPom.getServiceNavBtn(page).click();
@@ -163,7 +158,7 @@ test('should CRUD service with required fields', async ({ page }) => {
       .click();
     await servicesPom.isDetailPage(page);
 
-    await page.getByRole('button', { name: 'Delete' }).click();
+    await page.getByRole('button', { name: 'Delete' }).first().click();
 
     await page
       .getByRole('dialog', { name: 'Delete Service' })
@@ -173,7 +168,7 @@ test('should CRUD service with required fields', async ({ page }) => {
     // will redirect to services page
     await servicesPom.isIndexPage(page);
     await uiHasToastMsg(page, {
-      hasText: 'Delete Service Successfully',
+      hasText: 'Service deleted successfully',
     });
     await expect(page.getByRole('cell', { name: serviceName })).toBeHidden();
   });

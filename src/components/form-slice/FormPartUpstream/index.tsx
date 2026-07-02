@@ -53,17 +53,20 @@ const OptionalNestedSection = ({
   legend: string;
   children: ReactNode;
 }) => {
-  const { control, setValue, unregister } = useFormContext<FormPartUpstreamType>();
+  const { control, getValues, setValue, unregister } =
+    useFormContext<FormPartUpstreamType>();
   const np = useNamePrefix();
   const fieldName = np(name);
   const fieldValue = useWatch({ control, name: fieldName });
-  const [enabled, setEnabled] = useState(() => hasFieldValue(fieldValue));
+  const [enabled, setEnabled] = useState(() =>
+    hasFieldValue(getValues(fieldName))
+  );
 
   useEffect(() => {
-    if (hasFieldValue(fieldValue)) {
+    if (hasFieldValue(fieldValue) || hasFieldValue(getValues(fieldName))) {
       setEnabled(true);
     }
-  }, [fieldValue]);
+  }, [fieldName, fieldValue, getValues]);
 
   const enableSection = () => {
     setEnabled(true);

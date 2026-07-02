@@ -76,7 +76,8 @@ export const uiSelectByLabel = async (
     .getByRole('combobox', { name: label })
     .locator(
       'xpath=ancestor::div[contains(concat(" ", normalize-space(@class), " "), " ant-select ")][1]'
-    );
+    )
+    .first();
   await select.click();
   await page.keyboard.type(value);
   const option = page.getByRole('option').filter({ hasText: value }).first();
