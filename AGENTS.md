@@ -72,12 +72,16 @@ Recent commits use concise Conventional Commit-style subjects, for example
 PRs should describe changed resource behavior, list verification commands, and
 include screenshots or recordings for visible UI changes.
 
-After completing and verifying each self-contained unit of work, always commit
-it immediately and push it directly to `origin/master`. Do not defer commits or
-combine multiple completed units into a later commit unless the user explicitly
-requests a different workflow. If the project is configured to maintain a single
-initial release commit, always use `git commit --amend` and force push (`git push -f`)
-to keep the commit history squashed.
+Do not push work directly to `origin/master`. Use a working tree branch for each
+self-contained unit of work. After completing and verifying the unit, commit it
+on that branch, push the branch to `origin`, open a pull request targeting
+`master`, and use the PR merge flow to land it into `origin/master`.
+
+Keep each PR focused on one coherent change. Do not defer completed work into a
+larger later batch unless the user explicitly requests that. After the PR is
+created, enable automatic merge when repository rules allow it; otherwise merge
+through the PR once checks and required review conditions are satisfied. Delete
+the source branch after the PR has been merged.
 
 ## Security And Configuration
 
