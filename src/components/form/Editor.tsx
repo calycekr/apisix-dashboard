@@ -182,7 +182,7 @@ export const FormItemEditor = <T extends FieldValues>(
             trigger(props.name);
           }}
           onMount={(editor) => {
-            if (process.env.NODE_ENV === 'test') {
+            if (process.env.NODE_ENV === 'test' || import.meta.env.DEV) {
               window.__monacoEditor__ = editor;
             }
           }}
