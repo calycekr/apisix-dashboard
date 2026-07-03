@@ -165,11 +165,11 @@ type FormJsonTabsProps = {
   rawData?: unknown;
   /** Admin API endpoint for direct JSON editing, e.g. '/routes/123'. */
   adminApi?: string;
-  /** The exact schema used by this form, also shown as guidance in create JSON mode. */
+  /** The exact schema used by this form, also shown as guidance in Payload JSON mode. */
   schema?: ZodTypeAny;
   /** Minimal create payload containing only required fields. */
   createJsonTemplate?: Record<string, unknown>;
-  /** Resource-specific detail tabs shown between Configuration and Raw JSON. */
+  /** Resource-specific detail tabs shown between Configuration and Admin API JSON. */
   detailTabs?: NonNullable<TabsProps['items']>;
   /** Resource context used to show reverse dependencies in Overview. */
   overviewReferenceContext?: {
@@ -543,13 +543,13 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   if (rawData === undefined) {
     tabItems.push({
       key: 'json',
-      label: 'Raw JSON',
+      label: 'Payload JSON',
       children: (
         <div>
           <Alert
             type="info"
             showIcon
-            message="Create this resource by editing the same payload that the form will validate and submit."
+            message="Create this resource by editing the same Payload JSON that the visual editor will validate and submit."
             style={{ marginBottom: 12, padding: '8px 12px', fontSize: 'var(--app-font-size-sm)' }}
           />
           {schema && <JsonSchemaGuide schema={schema} value={jsonStr} compact />}
@@ -604,7 +604,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
   } else {
     tabItems.push({
       key: 'raw',
-      label: 'Raw JSON',
+      label: 'Admin API JSON',
       children: (
         <AdminApiJsonEditor
           api={adminApi ?? ''}

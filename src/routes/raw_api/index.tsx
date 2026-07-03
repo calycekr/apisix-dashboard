@@ -575,10 +575,10 @@ function RawApiPage() {
         parsedBody = JSON.parse(activeBody);
       } catch (e) {
         setRequestBodyError({
-          message: 'Fix request JSON before sending.',
+          message: 'Fix Request JSON before sending.',
           details: [e instanceof Error ? e.message : String(e)],
         });
-        message.error('Fix request JSON before sending.');
+        message.error('Fix Request JSON before sending.');
         return;
       }
       if (activeRequestBodySchema) {
@@ -702,7 +702,7 @@ function RawApiPage() {
       message.success('Request JSON formatted');
     } catch (error) {
       setRequestBodyError({
-        message: 'Fix request JSON before formatting.',
+        message: 'Fix Request JSON before formatting.',
         details: [error instanceof Error ? error.message : String(error)],
       });
       message.error(`Invalid JSON: ${String(error)}`);
@@ -989,13 +989,12 @@ function RawApiPage() {
             className={classes.workspaceCard}
             title={
               <div className={classes.panelTitle}>
-                <span>Request body</span>
-                <Typography.Text type="secondary">JSON</Typography.Text>
+                <span>Request JSON</span>
               </div>
             }
             extra={
               <Button size="small" type="text" onClick={formatRequestBody}>
-                Format JSON
+                Format Request JSON
               </Button>
             }
             styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
@@ -1054,7 +1053,7 @@ function RawApiPage() {
                     action={
                       <Space wrap>
                         <Button size="small" onClick={formatRequestBody}>
-                          Format JSON
+                          Format Request JSON
                         </Button>
                         <Button size="small" onClick={resetRequestBodyTemplate}>
                           Reset to template
@@ -1085,7 +1084,7 @@ function RawApiPage() {
           className={classes.workspaceCard}
           title={
             <div className={classes.responseTitle}>
-              <span>Response</span>
+              <span>{responseView === 'Headers' ? 'Response Headers' : 'Response JSON'}</span>
               {response && statusColor && (
                 <Tag color={statusColor}>{response.status || 'Error'}</Tag>
               )}

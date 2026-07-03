@@ -42,7 +42,7 @@ test('create forms show conditional required fields and minimal JSON templates',
     expect.arrayContaining(['uri', 'uris'])
   );
 
-  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await page.getByRole('tab', { name: 'Payload JSON' }).click();
   const routeJsonEditor = page.locator(
     '.ant-tabs-tabpane-active .monaco-editor'
   );
@@ -56,7 +56,7 @@ test('create forms show conditional required fields and minimal JSON templates',
   await expect.poll(() => requiredFields(page)).not.toContain('uris');
 
   await page.goto('/ui/services/add');
-  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await page.getByRole('tab', { name: 'Payload JSON' }).click();
   await expect
     .poll(() =>
       readMonacoValue(
@@ -68,7 +68,7 @@ test('create forms show conditional required fields and minimal JSON templates',
 
   await page.goto('/ui/upstreams/add');
   await expect.poll(() => requiredFields(page)).toContain('nodes');
-  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await page.getByRole('tab', { name: 'Payload JSON' }).click();
   await expect
     .poll(() =>
       readMonacoValue(
@@ -155,7 +155,7 @@ test('plugin add JSON prefills required fields from APISIX schema', async ({
   const addPluginDialog = page.getByRole('dialog', {
     name: 'Add Plugin: limit-count',
   });
-  await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+  await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
   const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog, false);
 
   await expect

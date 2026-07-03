@@ -215,7 +215,7 @@ test('can create upstream -> service -> route', async ({ page }) => {
     const addPluginDialog = page.getByRole('dialog', {
       name: `Add Plugin: ${servicePluginName}`,
     });
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
 
     // Add plugin configuration
@@ -343,7 +343,7 @@ test('can create upstream -> service -> route', async ({ page }) => {
     const addPluginDialog = page.getByRole('dialog', {
       name: `Add Plugin: ${routePluginName}`,
     });
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
 
     // Add plugin configuration

@@ -73,7 +73,7 @@ test('should CRUD plugin metadata with required fields only', async ({
       name: 'Add Plugin: syslog',
     });
     await expect(addPluginDialog).toBeVisible();
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     // Fill in minimal required configuration
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
@@ -124,7 +124,7 @@ test('should CRUD plugin metadata with required fields only', async ({
       name: 'Edit Plugin: syslog',
     });
     await expect(editPluginDialog).toBeVisible();
-    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await editPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     // Verify existing configuration is shown
     await expect(editPluginDialog.getByText('host')).toBeVisible();

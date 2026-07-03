@@ -85,7 +85,7 @@ From this screen you can:
 *   See the upstream or service target.
 *   Review applied plugins without opening every route.
 *   Toggle route status.
-*   Open the raw payload for quick inspection.
+*   Open the Admin API payload for quick inspection.
 
 Routes are still APISIX resources. The UI does not create dashboard-only fields;
 it presents the Admin API payload with friendlier controls.
@@ -101,11 +101,12 @@ The detail page has three working modes:
 
 *   **Overview**: scan the resource without editing it.
 *   **Configuration**: update the resource through structured form controls.
-*   **Raw JSON**: edit the Admin API payload directly with schema guidance.
+*   **Admin API JSON**: patch the saved APISIX resource directly with schema guidance.
 
-Use the structured form for routine edits and the Raw JSON editor when you need
-to paste a known APISIX payload, inspect the exact object, or work with fields
-that are easier to reason about as JSON.
+Use the structured form for routine edits and the Admin API JSON editor when you
+need to inspect or patch the saved APISIX object directly. When creating a new
+resource, the **Payload JSON** tab edits the same draft payload that the visual
+editor will validate and submit.
 
 ## Understand Traffic Relationships
 

@@ -94,7 +94,7 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     const addPluginDialog = page.getByRole('dialog', {
       name: 'Add Plugin: response-rewrite',
     });
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(
       page,
@@ -196,7 +196,7 @@ test('should CRUD plugin config with all fields', async ({ page }) => {
     const editPluginDialog = page.getByRole('dialog', {
       name: 'Edit Plugin: response-rewrite',
     });
-    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await editPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
     await uiFillMonacoEditor(
       page,

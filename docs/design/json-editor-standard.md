@@ -1,10 +1,12 @@
 # JSON Editor Standard
 
-The dashboard has three JSON editing contexts:
+The dashboard has four named JSON editing contexts:
 
-- Create forms: edit the payload that the visual form will submit.
-- Resource RAW editors: PATCH an existing resource and verify the saved state.
-- API Console: build direct Admin API requests and inspect responses.
+- Payload JSON: edit the create payload that the Visual Editor will submit.
+- Admin API JSON: PATCH an existing resource and verify the saved state.
+- Plugin JSON: edit one plugin config inside the plugin Fields drawer.
+- Request JSON and Response JSON: build direct Admin API requests and inspect
+  responses in the API Console.
 
 These contexts have different actions, but they share one editing standard.
 
@@ -20,12 +22,14 @@ These contexts have different actions, but they share one editing standard.
 
 ## Contextual Actions
 
-- Create forms submit the complete create payload through the form workflow.
-- Resource RAW editors show identity fields separately as values managed by the
+- Payload JSON submits the complete create payload through the form workflow.
+- Admin API JSON editors show identity fields separately as values managed by the
   Admin API path. The editable JSON excludes read-only fields, sends changed
   editable fields with PATCH, and verifies the saved resource with a follow-up
   read.
-- API Console sends the selected method and payload exactly as configured.
+- Plugin JSON edits only the selected plugin config object, not the full APISIX
+  resource payload.
+- Request JSON sends the selected method and payload exactly as configured.
 - Read-only response editors use the same JSON presentation without editing
   controls.
 

@@ -67,7 +67,7 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       name: 'Add Plugin: response-rewrite',
     });
     await expect(pluginDialog).toBeVisible();
-    await pluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await pluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     // Configure response-rewrite with custom configuration using Monaco editor
     const pluginEditor = await uiGetMonacoEditor(page, pluginDialog);
@@ -112,7 +112,7 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
       name: 'Add Plugin: cors',
     });
     await expect(corsPluginDialog).toBeVisible();
-    await corsPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await corsPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     // Submit with simple configuration for cors
     const corsEditor = await uiGetMonacoEditor(page, corsPluginDialog);
@@ -149,7 +149,7 @@ test('should CRUD global rule with multiple plugins', async ({ page }) => {
     const editPluginDialog = page.getByRole('dialog', {
       name: 'Edit Plugin: response-rewrite',
     });
-    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await editPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
     await uiFillMonacoEditor(
       page,

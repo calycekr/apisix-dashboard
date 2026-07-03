@@ -525,10 +525,10 @@ export const AdminApiJsonEditor = ({
                   : 'No pending changes'}
           </Typography.Text>
           <Space>
-            <Tooltip title="Format JSON">
+            <Tooltip title="Format Admin API JSON">
               <Button size="small" onClick={handleFormat}>Format</Button>
             </Tooltip>
-            <Tooltip title="Copy JSON">
+            <Tooltip title="Copy Admin API JSON">
               <Button size="small" onClick={handleCopy}>Copy</Button>
             </Tooltip>
             <Button
