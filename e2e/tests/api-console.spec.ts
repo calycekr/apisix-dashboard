@@ -41,9 +41,27 @@ test.beforeEach(async ({ page }) => {
   expectedAdminKey = (await getAPISIXConf()).adminKey;
   await page.evaluate(() => sessionStorage.clear());
 
+  let retryRouteAttempts = 0;
   await page.route('**/apisix/admin/routes**', async (route) => {
     const request = route.request();
     const url = new URL(request.url());
+    if (
+      request.method() === 'GET' &&
+      url.pathname.endsWith('/apisix/admin/routes/retry-console-route')
+    ) {
+      retryRouteAttempts += 1;
+      await route.fulfill({
+        status: retryRouteAttempts === 1 ? 503 : 200,
+        contentType: 'application/json',
+        body: JSON.stringify(
+          retryRouteAttempts === 1
+            ? { error_msg: 'temporary upstream unavailable' }
+            : { value: { id: 'retry-console-route', uri: '/retry-console' } }
+        ),
+      });
+      return;
+    }
+
     if (
       request.method() === 'PUT' &&
       url.pathname.endsWith('/apisix/admin/routes/raw-console-route')
@@ -157,6 +175,38 @@ test('saves and restores session presets without executing them', async ({ page 
     method: 'GET',
     endpoint: '/routes?page=2&page_size=25',
   });
+});
+
+test('restores failed requests for correction and rerun', async ({ page }) => {
+  await selectMethod(page, 'GET');
+
+  const pathInput = page.getByRole('combobox', { name: /Path suffix/ });
+  await pathInput.fill('retry-console-route');
+
+  const failedResponse = page.waitForResponse((response) =>
+    response.url().includes('/apisix/admin/routes/retry-console-route')
+  );
+  await page.getByRole('button', { name: /Send GET/ }).click();
+  expect((await failedResponse).status()).toBe(503);
+
+  await expect(page.getByText('Request failed', { exact: true })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Restore request' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Retry' })).toBeVisible();
+
+  await pathInput.fill('edited-away');
+  await page.getByRole('button', { name: 'Restore request' }).click();
+  await expect(pathInput).toHaveValue('retry-console-route');
+
+  const retriedResponse = page.waitForResponse((response) =>
+    response.url().includes('/apisix/admin/routes/retry-console-route')
+  );
+  await page.getByRole('button', { name: /Send GET/ }).click();
+  expect((await retriedResponse).status()).toBe(200);
+
+  await expect(
+    page.locator('.ant-tag').filter({ hasText: '200' }).first()
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'History (2)' })).toBeVisible();
 });
 
 test('executes confirmed PUT requests with JSON body and history', async ({

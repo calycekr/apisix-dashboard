@@ -140,6 +140,14 @@ type RequestPreset = {
   endpoint: string;
   createdAt: number;
 };
+type ConsoleRequestSnapshot = {
+  method: string;
+  resource: string;
+  pathSuffix: string;
+  queryString: string;
+  body: string;
+  endpoint: string;
+};
 
 const REQUEST_HISTORY_KEY = 'api-console:session-history';
 const REQUEST_PRESETS_KEY = 'api-console:session-presets';
@@ -391,6 +399,7 @@ function RawApiPage() {
   const [requestPresets, setRequestPresets] = useState<RequestPreset[]>(
     readRequestPresets
   );
+  const [lastRequest, setLastRequest] = useState<ConsoleRequestSnapshot | null>(null);
 
   const { items: existingResources, loading: resourcesLoading } = useExistingResources(resource);
 
@@ -437,16 +446,12 @@ function RawApiPage() {
 
   const addHistoryEntry = useCallback((
     status: number,
-    elapsed: number
+    elapsed: number,
+    requestSnapshot: ConsoleRequestSnapshot
   ) => {
     const entry: RequestHistoryEntry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-      method,
-      resource,
-      pathSuffix: normalizedPathSuffix,
-      queryString: normalizedQueryString,
-      body: needsBody ? body : '',
-      endpoint: requestUrl,
+      ...requestSnapshot,
       status,
       time: elapsed,
       createdAt: Date.now(),
@@ -456,35 +461,67 @@ function RawApiPage() {
       sessionStorage.setItem(REQUEST_HISTORY_KEY, JSON.stringify(next));
       return next;
     });
-  }, [
-    body,
-    method,
-    needsBody,
-    normalizedPathSuffix,
-    normalizedQueryString,
-    requestUrl,
-    resource,
-  ]);
+  }, []);
 
-  const doExecute = useCallback(async () => {
+  const restoreRequest = useCallback((requestSnapshot: ConsoleRequestSnapshot) => {
+    setMethod(requestSnapshot.method);
+    setResource(requestSnapshot.resource);
+    setPathSuffix(requestSnapshot.pathSuffix);
+    setQueryString(requestSnapshot.queryString);
+    setBody(requestSnapshot.body);
+    setResponse(null);
+    setResponseError(null);
+    setResponseView('Body');
+    message.success('Request restored. Review it before sending.');
+  }, []);
+
+  const doExecute = useCallback(async (requestOverride?: ConsoleRequestSnapshot) => {
+    const activeMethod = requestOverride?.method ?? method;
+    const activeResource = requestOverride?.resource ?? resource;
+    const activePathSuffix = requestOverride?.pathSuffix ?? normalizedPathSuffix;
+    const activeQueryString = requestOverride?.queryString ?? normalizedQueryString;
+    const activeNeedsBody = activeMethod !== 'GET' && activeMethod !== 'DELETE';
+    const activeBody = requestOverride?.body ?? (activeNeedsBody ? body : '');
+    const activeEndpoint =
+      requestOverride?.endpoint
+      ?? (activePathSuffix ? `${activeResource}/${activePathSuffix}` : activeResource);
+    const activeRequestUrl = requestOverride
+      ? requestOverride.endpoint
+      : activeQueryString
+      ? `${activeEndpoint}?${activeQueryString}`
+      : activeEndpoint;
+    const activeRequestBodySchema = getRequestBodySchema(
+      activeResource,
+      activeMethod,
+      activePathSuffix
+    );
+    const requestSnapshot: ConsoleRequestSnapshot = {
+      method: activeMethod,
+      resource: activeResource,
+      pathSuffix: activePathSuffix,
+      queryString: activeQueryString,
+      body: activeNeedsBody ? activeBody : '',
+      endpoint: activeRequestUrl,
+    };
+
     if (
-      METHODS_REQUIRING_RESOURCE_PATH.has(method) &&
-      !normalizedPathSuffix
+      METHODS_REQUIRING_RESOURCE_PATH.has(activeMethod) &&
+      !activePathSuffix
     ) {
-      message.error(`${method} requires a resource path suffix.`);
+      message.error(`${activeMethod} requires a resource path suffix.`);
       return;
     }
 
     let parsedBody: unknown = undefined;
-    if (needsBody) {
+    if (activeNeedsBody) {
       try {
-        parsedBody = JSON.parse(body);
+        parsedBody = JSON.parse(activeBody);
       } catch (e) {
         message.error('Invalid JSON: ' + String(e));
         return;
       }
-      if (requestBodySchema) {
-        const feedback = getJsonSchemaFeedback(requestBodySchema, body);
+      if (activeRequestBodySchema) {
+        const feedback = getJsonSchemaFeedback(activeRequestBodySchema, activeBody);
         if (feedback.syntaxError || feedback.issues.length > 0) {
           message.error('Resolve the APISIX schema issues before executing this request.');
           return;
@@ -492,13 +529,14 @@ function RawApiPage() {
       }
     }
     setLoading(true);
+    setLastRequest(requestSnapshot);
     setResponse(null);
     setResponseError(null);
     const start = performance.now();
     try {
       const res = await req.request({
-        method: method.toLowerCase(),
-        url: requestUrl,
+        method: activeMethod.toLowerCase(),
+        url: activeRequestUrl,
         data: parsedBody,
         headers: { [SKIP_INTERCEPTOR_HEADER]: CONSOLE_INTERCEPTOR_SKIPS },
       });
@@ -509,43 +547,72 @@ function RawApiPage() {
         headers: stringifyHeaders(res.headers),
         time: elapsed,
       });
-      addHistoryEntry(res.status, elapsed);
+      addHistoryEntry(res.status, elapsed, requestSnapshot);
     } catch (e) {
       const failure = getErrorResponse(e, Math.round(performance.now() - start));
       setResponseError(failure.error);
       setResponse(failure);
-      addHistoryEntry(failure.status, failure.time);
+      addHistoryEntry(failure.status, failure.time, requestSnapshot);
     } finally {
       setLoading(false);
     }
   }, [
+    addHistoryEntry,
+    body,
     method,
     normalizedPathSuffix,
-    requestUrl,
-    body,
-    needsBody,
-    requestBodySchema,
-    addHistoryEntry,
+    normalizedQueryString,
+    resource,
   ]);
 
-  const handleExecute = useCallback(() => {
-    if (method === 'DELETE') {
+  const executeWithConfirmation = useCallback((
+    requestSnapshot: ConsoleRequestSnapshot,
+    action: () => void | Promise<void>
+  ) => {
+    if (requestSnapshot.method === 'DELETE') {
       Modal.confirm({
         centered: true, okButtonProps: { danger: true },
-        title: `DELETE ${requestUrl}`,
+        title: `DELETE ${requestSnapshot.endpoint}`,
         content: 'This will permanently delete the resource.',
-        okText: 'Delete', onOk: doExecute,
+        okText: 'Delete', onOk: action,
       });
-    } else if (method === 'PUT') {
+    } else if (requestSnapshot.method === 'PUT') {
       Modal.confirm({
-        centered: true, title: `PUT ${requestUrl}`,
+        centered: true, title: `PUT ${requestSnapshot.endpoint}`,
         content: 'PUT replaces the entire resource. Omitted fields will be removed.',
-        okText: 'Execute', onOk: doExecute,
+        okText: 'Execute', onOk: action,
       });
     } else {
-      doExecute();
+      action();
     }
-  }, [method, requestUrl, doExecute]);
+  }, []);
+
+  const handleExecute = useCallback(() => {
+    const requestSnapshot: ConsoleRequestSnapshot = {
+      method,
+      resource,
+      pathSuffix: normalizedPathSuffix,
+      queryString: normalizedQueryString,
+      body: needsBody ? body : '',
+      endpoint: requestUrl,
+    };
+    executeWithConfirmation(requestSnapshot, () => doExecute(requestSnapshot));
+  }, [
+    body,
+    doExecute,
+    executeWithConfirmation,
+    method,
+    needsBody,
+    normalizedPathSuffix,
+    normalizedQueryString,
+    requestUrl,
+    resource,
+  ]);
+
+  const retryLastRequest = useCallback(() => {
+    if (!lastRequest) return;
+    executeWithConfirmation(lastRequest, () => doExecute(lastRequest));
+  }, [doExecute, executeWithConfirmation, lastRequest]);
 
   useEffect(() => {
     const handleShortcut = (event: KeyboardEvent) => {
@@ -568,17 +635,9 @@ function RawApiPage() {
   }, [body]);
 
   const restoreHistoryEntry = useCallback((entry: RequestHistoryEntry) => {
-    setMethod(entry.method);
-    setResource(entry.resource);
-    setPathSuffix(entry.pathSuffix);
-    setQueryString(entry.queryString ?? '');
-    if (entry.body) setBody(entry.body);
-    setResponse(null);
-    setResponseError(null);
-    setResponseView('Body');
+    restoreRequest(entry);
     setHistoryOpen(false);
-    message.success('Request restored. Review it before sending.');
-  }, []);
+  }, [restoreRequest]);
 
   const clearHistory = useCallback(() => {
     sessionStorage.removeItem(REQUEST_HISTORY_KEY);
@@ -625,17 +684,9 @@ function RawApiPage() {
   ]);
 
   const restorePreset = useCallback((preset: RequestPreset) => {
-    setMethod(preset.method);
-    setResource(preset.resource);
-    setPathSuffix(preset.pathSuffix);
-    setQueryString(preset.queryString);
-    if (preset.body) setBody(preset.body);
-    setResponse(null);
-    setResponseError(null);
-    setResponseView('Body');
+    restoreRequest(preset);
     setPresetsOpen(false);
-    message.success(`Restored "${preset.name}". Review it before sending.`);
-  }, []);
+  }, [restoreRequest]);
 
   const deletePreset = useCallback((id: string) => {
     setRequestPresets((current) => {
@@ -658,7 +709,7 @@ function RawApiPage() {
     }
     try {
       await navigator.clipboard.writeText(lines.join(' \\\n'));
-      message.success('Copied as curl (Admin Key masked — replace the masked value with your key)');
+      message.success('Copied as curl (Admin Key masked - replace the masked value with your key)');
     } catch { message.error('Failed to copy'); }
   }, [method, requestUrl, body, needsBody, adminKey]);
 
@@ -908,8 +959,18 @@ function RawApiPage() {
               )}
             </div>
           }
-          extra={response && (
+        extra={response && (
             <Space size={4}>
+              {lastRequest && (responseError || response.status >= 400) && (
+                <>
+                  <Button size="small" type="text" onClick={() => restoreRequest(lastRequest)}>
+                    Restore request
+                  </Button>
+                  <Button size="small" type="text" onClick={retryLastRequest}>
+                    Retry
+                  </Button>
+                </>
+              )}
               <Button size="small" type="text" onClick={() => {
                 setResponse(null);
                 setResponseError(null);
@@ -926,6 +987,15 @@ function RawApiPage() {
           )}
           styles={{ body: { flex: 1, padding: 0, overflow: 'hidden' } }}
         >
+          {responseError && response?.data && (
+            <Alert
+              type="error"
+              showIcon
+              message="Request failed"
+              description={responseError}
+              className={classes.responseAlert}
+            />
+          )}
           {responseError && !response?.data && (
             <div className={classes.responseError}>
               <Typography.Text type="danger">{responseError}</Typography.Text>

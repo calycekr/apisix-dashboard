@@ -254,6 +254,10 @@
   padding: 20px;
 }
 
+.responseAlert {
+  margin: 12px;
+}
+
 .emptyResponse {
   display: flex;
   height: 100%;

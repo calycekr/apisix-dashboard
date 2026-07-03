@@ -93,6 +93,19 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
         },
       })
     );
+    await expect(
+      addPluginDialog.getByRole('button', { name: 'Format plugin JSON' })
+    ).toBeVisible();
+    await expect(
+      addPluginDialog.getByRole('button', { name: 'Copy plugin JSON' })
+    ).toBeVisible();
+    await expect(
+      addPluginDialog.getByRole('button', { name: 'Reset plugin JSON' })
+    ).toBeVisible();
+    await addPluginDialog
+      .getByRole('button', { name: 'Format plugin JSON' })
+      .click();
+    await expect(pluginEditor.getByText('"log_format": {')).toBeVisible();
 
     const createResponse = page.waitForResponse(
       (response) =>

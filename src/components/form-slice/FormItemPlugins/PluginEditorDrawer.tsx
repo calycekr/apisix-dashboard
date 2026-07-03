@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Alert, Button, Drawer, Space, Tabs, Typography } from 'antd';
+import { Alert, Button, Drawer, message, Space, Tabs, Tooltip, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
 import { useCallback, useEffect, useState } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
@@ -28,6 +28,9 @@ import {
   type JSONSchema,
   validateSchemaValue,
 } from '@/components/schema-form/schemaValidation';
+import IconContentCopy from '~icons/material-symbols/content-copy';
+import IconFormatAlignLeft from '~icons/material-symbols/format-align-left';
+import IconRefresh from '~icons/material-symbols/refresh';
 
 import {
   getAIGatewayTemplates,
@@ -240,6 +243,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
           name="config"
           customSchema={schema}
           isLoading={!schema}
+          height={420}
           required
         />
       ),
@@ -259,6 +263,39 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     setActiveTab(canUseForm ? 'form' : 'json');
     setSaveError(null);
   };
+
+  const formatJsonConfig = useCallback(() => {
+    try {
+      const parsed = JSON.parse(methods.getValues('config') || '{}');
+      if (!isRecord(parsed)) {
+        setSaveError('Plugin config must be a JSON object.');
+        return;
+      }
+      const formatted = toConfigStr(parsed);
+      methods.setValue('config', formatted, { shouldDirty: true });
+      setFormValue(parsed);
+      setSaveError(null);
+      message.success('Plugin JSON formatted');
+    } catch (error) {
+      setSaveError(`Invalid JSON: ${String(error)}`);
+    }
+  }, [methods]);
+
+  const copyJsonConfig = useCallback(async () => {
+    try {
+      await navigator.clipboard.writeText(methods.getValues('config') || '{}');
+      message.success('Plugin JSON copied');
+    } catch {
+      message.error('Failed to copy plugin JSON');
+    }
+  }, [methods]);
+
+  const resetJsonConfig = useCallback(() => {
+    const nextValue = getEditableConfig(schema, config, mode);
+    methods.setValue('config', toConfigStr(nextValue), { shouldDirty: true });
+    setFormValue(nextValue);
+    setSaveError(null);
+  }, [config, methods, mode, schema]);
 
   const handleSave = methods.handleSubmit(
     async () => {
@@ -379,6 +416,34 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             style={{ marginBottom: 12 }}
           />
         ))}
+        {activeTab === 'json' && mode !== 'view' && (
+          <Space style={{ width: '100%', justifyContent: 'flex-end', marginBottom: 8 }}>
+            <Tooltip title="Format JSON">
+              <Button
+                size="small"
+                icon={<IconFormatAlignLeft />}
+                onClick={formatJsonConfig}
+                aria-label="Format plugin JSON"
+              />
+            </Tooltip>
+            <Tooltip title="Copy JSON">
+              <Button
+                size="small"
+                icon={<IconContentCopy />}
+                onClick={copyJsonConfig}
+                aria-label="Copy plugin JSON"
+              />
+            </Tooltip>
+            <Tooltip title="Reset JSON">
+              <Button
+                size="small"
+                icon={<IconRefresh />}
+                onClick={resetJsonConfig}
+                aria-label="Reset plugin JSON"
+              />
+            </Tooltip>
+          </Space>
+        )}
         <form>
           {canUseForm ? (
             <Tabs
@@ -391,6 +456,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
               name="config"
               customSchema={schema}
               isLoading={!schema}
+              height={420}
               required
             />
           )}
