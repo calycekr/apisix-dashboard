@@ -75,7 +75,10 @@ import {
   stripPatchReadonlyFields,
 } from '@/utils/apisixEditable';
 import { createRequiredJsonTemplate } from '@/utils/jsonRequiredTemplate';
-import { getJsonSchemaFeedback } from '@/utils/jsonSchemaFeedback';
+import {
+  formatJsonSchemaPath,
+  getJsonSchemaFeedback,
+} from '@/utils/jsonSchemaFeedback';
 import { getResourceConditionalRequirements } from '@/utils/resourceJsonSchema';
 
 import classes from './index.module.css';
@@ -157,6 +160,10 @@ type ConsoleRequestSnapshot = {
 type LoadedBodyNotice = {
   rawBody: string;
   removedKeys: string[];
+};
+type RequestBodyError = {
+  message: string;
+  details: string[];
 };
 
 const REQUEST_HISTORY_KEY = 'api-console:session-history';
@@ -429,6 +436,8 @@ function RawApiPage() {
   const [presetName, setPresetName] = useState('');
   const [loadedBodyNotice, setLoadedBodyNotice] =
     useState<LoadedBodyNotice | null>(null);
+  const [requestBodyError, setRequestBodyError] =
+    useState<RequestBodyError | null>(null);
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>(
     readRequestHistory
   );
@@ -464,6 +473,7 @@ function RawApiPage() {
       const value = res.data?.value ?? res.data;
       const editableBody = getEditableLoadedBody(value);
       setBody(editableBody.body);
+      setRequestBodyError(null);
       setLoadedBodyNotice(
         editableBody.removedKeys.length > 0
           ? {
@@ -515,6 +525,7 @@ function RawApiPage() {
     setQueryString(requestSnapshot.queryString);
     setBody(requestSnapshot.body);
     setLoadedBodyNotice(null);
+    setRequestBodyError(null);
     setResponse(null);
     setResponseError(null);
     setResponseView('Body');
@@ -563,18 +574,31 @@ function RawApiPage() {
       try {
         parsedBody = JSON.parse(activeBody);
       } catch (e) {
-        message.error('Invalid JSON: ' + String(e));
+        setRequestBodyError({
+          message: 'Fix request JSON before sending.',
+          details: [e instanceof Error ? e.message : String(e)],
+        });
+        message.error('Fix request JSON before sending.');
         return;
       }
       if (activeRequestBodySchema) {
         const feedback = getJsonSchemaFeedback(activeRequestBodySchema, activeBody);
         if (feedback.syntaxError || feedback.issues.length > 0) {
+          setRequestBodyError({
+            message: 'Resolve APISIX schema issues before sending.',
+            details: feedback.syntaxError
+              ? [feedback.syntaxError]
+              : feedback.issues.map(
+                  (issue) => `${formatJsonSchemaPath(issue)}: ${issue.message}`
+                ),
+          });
           message.error('Resolve the APISIX schema issues before executing this request.');
           return;
         }
       }
     }
     setLoading(true);
+    setRequestBodyError(null);
     setLastRequest(requestSnapshot);
     setResponse(null);
     setResponseError(null);
@@ -674,11 +698,23 @@ function RawApiPage() {
   const formatRequestBody = useCallback(() => {
     try {
       setBody(JSON.stringify(JSON.parse(body), null, 2));
+      setRequestBodyError(null);
       message.success('Request JSON formatted');
     } catch (error) {
+      setRequestBodyError({
+        message: 'Fix request JSON before formatting.',
+        details: [error instanceof Error ? error.message : String(error)],
+      });
       message.error(`Invalid JSON: ${String(error)}`);
     }
   }, [body]);
+
+  const resetRequestBodyTemplate = useCallback(() => {
+    setBody(stringifyRequiredRequestTemplate(resource, method, normalizedPathSuffix));
+    setLoadedBodyNotice(null);
+    setRequestBodyError(null);
+    message.success('Request JSON reset to template');
+  }, [method, normalizedPathSuffix, resource]);
 
   const restoreHistoryEntry = useCallback((entry: RequestHistoryEntry) => {
     restoreRequest(entry);
@@ -819,6 +855,7 @@ function RawApiPage() {
               onChange={(value) => {
                 setMethod(value);
                 setLoadedBodyNotice(null);
+                setRequestBodyError(null);
                 setBody(
                   stringifyRequiredRequestTemplate(
                     resource,
@@ -844,6 +881,7 @@ function RawApiPage() {
               onChange={(v) => {
                 setResource(v);
                 setLoadedBodyNotice(null);
+                setRequestBodyError(null);
                 setBody(stringifyRequiredRequestTemplate(v, method, ''));
                 setPathSuffix('');
                 setQueryString('');
@@ -866,6 +904,7 @@ function RawApiPage() {
                 onChange={(value) => {
                   setPathSuffix(value);
                   setLoadedBodyNotice(null);
+                  setRequestBodyError(null);
                 }}
                 options={existingResources.map((r) => ({
                   value: r.path,
@@ -997,6 +1036,34 @@ function RawApiPage() {
                     className={classes.loadedBodyAlert}
                   />
                 )}
+                {requestBodyError && (
+                  <Alert
+                    type="error"
+                    showIcon
+                    message={requestBodyError.message}
+                    description={
+                      <ul style={{ margin: 0, paddingLeft: 18 }}>
+                        {requestBodyError.details.slice(0, 5).map((detail) => (
+                          <li key={detail}>{detail}</li>
+                        ))}
+                        {requestBodyError.details.length > 5 && (
+                          <li>{requestBodyError.details.length - 5} more issue(s)</li>
+                        )}
+                      </ul>
+                    }
+                    action={
+                      <Space wrap>
+                        <Button size="small" onClick={formatRequestBody}>
+                          Format JSON
+                        </Button>
+                        <Button size="small" onClick={resetRequestBodyTemplate}>
+                          Reset to template
+                        </Button>
+                      </Space>
+                    }
+                    className={classes.requestBodyError}
+                  />
+                )}
               </div>
               <div className={classes.editor}>
                 <JsonCodeEditor
@@ -1005,6 +1072,7 @@ function RawApiPage() {
                   onChange={(nextValue) => {
                     setBody(nextValue ?? '');
                     setLoadedBodyNotice(null);
+                    setRequestBodyError(null);
                   }}
                   variant="flush"
                 />

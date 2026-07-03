@@ -257,6 +257,48 @@ test('loads existing resources as editable request bodies', async ({ page }) => 
   await expect(requestEditor).toContainText('"create_time": 1710000000');
 });
 
+test('keeps blocked request body errors visible with recovery actions', async ({
+  page,
+}) => {
+  const routeId = 'invalid-json-console-route';
+  let blockedRequests = 0;
+  page.on('request', (request) => {
+    if (
+      request.method() === 'PUT' &&
+      request.url().includes(`/apisix/admin/routes/${routeId}`)
+    ) {
+      blockedRequests += 1;
+    }
+  });
+
+  await page.getByRole('combobox', { name: /Path suffix/ }).fill(routeId);
+
+  const requestEditor = page.locator('.monaco-editor').first();
+  await uiFillMonacoEditor(page, requestEditor, '{');
+
+  await page.getByRole('button', { name: /Send PUT/ }).click();
+  await page
+    .getByRole('dialog', { name: `PUT /routes/${routeId}` })
+    .getByRole('button', { name: 'Execute' })
+    .click();
+
+  const requestBodyError = page.getByRole('alert').filter({
+    hasText: 'Resolve APISIX schema issues before sending.',
+  });
+  await expect(requestBodyError).toBeVisible();
+  await expect(
+    requestBodyError.getByRole('button', { name: 'Format JSON' })
+  ).toBeVisible();
+  await expect(
+    requestBodyError.getByRole('button', { name: 'Reset to template' })
+  ).toBeVisible();
+  expect(blockedRequests).toBe(0);
+
+  await requestBodyError.getByRole('button', { name: 'Reset to template' }).click();
+  await expect(requestBodyError).toBeHidden();
+  await expect(requestEditor).toContainText('"uri": "/"');
+});
+
 test('executes confirmed PUT requests with JSON body and history', async ({
   page,
 }) => {

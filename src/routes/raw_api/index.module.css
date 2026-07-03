@@ -249,6 +249,10 @@
   margin-top: 10px;
 }
 
+.requestBodyError {
+  margin-top: 10px;
+}
+
 .editor {
   flex: 1;
   min-height: 0;
