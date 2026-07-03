@@ -68,6 +68,12 @@ import {
 import { adminKeyAtom } from '@/stores/global';
 import { APISIX } from '@/types/schema/apisix';
 import { APISIXProtos } from '@/types/schema/apisix/protos';
+import {
+  isRecord,
+  PATCH_READONLY_KEYS,
+  sortJsonKeys,
+  stripPatchReadonlyFields,
+} from '@/utils/apisixEditable';
 import { createRequiredJsonTemplate } from '@/utils/jsonRequiredTemplate';
 import { getJsonSchemaFeedback } from '@/utils/jsonSchemaFeedback';
 import { getResourceConditionalRequirements } from '@/utils/resourceJsonSchema';
@@ -147,6 +153,10 @@ type ConsoleRequestSnapshot = {
   queryString: string;
   body: string;
   endpoint: string;
+};
+type LoadedBodyNotice = {
+  rawBody: string;
+  removedKeys: string[];
 };
 
 const REQUEST_HISTORY_KEY = 'api-console:session-history';
@@ -317,6 +327,30 @@ const stringifyResponseData = (data: unknown) => {
   }
 };
 
+const getEditableLoadedBody = (value: unknown) => {
+  const sortedRaw = sortJsonKeys(value);
+  const rawBody = JSON.stringify(sortedRaw, null, 2);
+
+  if (!isRecord(value)) {
+    return {
+      body: rawBody,
+      rawBody,
+      removedKeys: [],
+    };
+  }
+
+  const editableValue = stripPatchReadonlyFields(value);
+  const removedKeys = PATCH_READONLY_KEYS.filter((key) =>
+    Object.prototype.hasOwnProperty.call(value, key)
+  );
+
+  return {
+    body: JSON.stringify(sortJsonKeys(editableValue), null, 2),
+    rawBody,
+    removedKeys,
+  };
+};
+
 const getErrorResponse = (error: unknown, elapsed: number): ConsoleResponse & { error: string } => {
   const response = (error as {
     response?: { status?: number; data?: unknown; headers?: unknown };
@@ -393,6 +427,8 @@ function RawApiPage() {
   const [presetsOpen, setPresetsOpen] = useState(false);
   const [savePresetOpen, setSavePresetOpen] = useState(false);
   const [presetName, setPresetName] = useState('');
+  const [loadedBodyNotice, setLoadedBodyNotice] =
+    useState<LoadedBodyNotice | null>(null);
   const [requestHistory, setRequestHistory] = useState<RequestHistoryEntry[]>(
     readRequestHistory
   );
@@ -426,7 +462,16 @@ function RawApiPage() {
         headers: { [SKIP_INTERCEPTOR_HEADER]: CONSOLE_INTERCEPTOR_SKIPS },
       });
       const value = res.data?.value ?? res.data;
-      setBody(JSON.stringify(value, null, 2));
+      const editableBody = getEditableLoadedBody(value);
+      setBody(editableBody.body);
+      setLoadedBodyNotice(
+        editableBody.removedKeys.length > 0
+          ? {
+              rawBody: editableBody.rawBody,
+              removedKeys: editableBody.removedKeys,
+            }
+          : null
+      );
       setResponse({
         status: res.status,
         data: stringifyResponseData(res.data),
@@ -469,6 +514,7 @@ function RawApiPage() {
     setPathSuffix(requestSnapshot.pathSuffix);
     setQueryString(requestSnapshot.queryString);
     setBody(requestSnapshot.body);
+    setLoadedBodyNotice(null);
     setResponse(null);
     setResponseError(null);
     setResponseView('Body');
@@ -713,6 +759,13 @@ function RawApiPage() {
     } catch { message.error('Failed to copy'); }
   }, [method, requestUrl, body, needsBody, adminKey]);
 
+  const restoreLoadedRawBody = useCallback(() => {
+    if (!loadedBodyNotice) return;
+    setBody(loadedBodyNotice.rawBody);
+    setLoadedBodyNotice(null);
+    message.success('Restored raw response body');
+  }, [loadedBodyNotice]);
+
   const statusColor = response ? (response.status < 300 ? 'success' : response.status < 400 ? 'warning' : 'error') : undefined;
 
   return (
@@ -765,6 +818,7 @@ function RawApiPage() {
               value={method}
               onChange={(value) => {
                 setMethod(value);
+                setLoadedBodyNotice(null);
                 setBody(
                   stringifyRequiredRequestTemplate(
                     resource,
@@ -789,6 +843,7 @@ function RawApiPage() {
               value={resource}
               onChange={(v) => {
                 setResource(v);
+                setLoadedBodyNotice(null);
                 setBody(stringifyRequiredRequestTemplate(v, method, ''));
                 setPathSuffix('');
                 setQueryString('');
@@ -808,7 +863,10 @@ function RawApiPage() {
               <span aria-hidden="true">/</span>
               <AutoComplete
                 value={pathSuffix}
-                onChange={setPathSuffix}
+                onChange={(value) => {
+                  setPathSuffix(value);
+                  setLoadedBodyNotice(null);
+                }}
                 options={existingResources.map((r) => ({
                   value: r.path,
                   label: (
@@ -925,12 +983,29 @@ function RawApiPage() {
                     style={{ padding: '8px 12px', fontSize: 'var(--app-font-size-sm)' }}
                   />
                 )}
+                {loadedBodyNotice && (
+                  <Alert
+                    type="info"
+                    showIcon
+                    message="Loaded as editable request body"
+                    description={`Removed read-only fields: ${loadedBodyNotice.removedKeys.join(', ')}.`}
+                    action={
+                      <Button size="small" onClick={restoreLoadedRawBody}>
+                        Use raw response
+                      </Button>
+                    }
+                    className={classes.loadedBodyAlert}
+                  />
+                )}
               </div>
               <div className={classes.editor}>
                 <JsonCodeEditor
                   height="100%"
                   value={body}
-                  onChange={(nextValue) => setBody(nextValue ?? '')}
+                  onChange={(nextValue) => {
+                    setBody(nextValue ?? '');
+                    setLoadedBodyNotice(null);
+                  }}
                   variant="flush"
                 />
               </div>
