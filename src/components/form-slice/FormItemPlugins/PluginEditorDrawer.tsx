@@ -16,8 +16,8 @@
  */
 import { Alert, Button, Drawer, message, Space, Tabs, Tooltip, Typography } from 'antd';
 import { isEmpty, isNil } from 'rambdax';
-import { useCallback, useEffect, useState } from 'react';
-import { FormProvider, useForm } from 'react-hook-form';
+import { useCallback, useEffect, useMemo, useState } from 'react';
+import { FormProvider, useForm, useWatch } from 'react-hook-form';
 
 import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
@@ -143,6 +143,8 @@ const getEditableConfig = (
   return mode === 'add' ? applySchemaDefaults(schema, base) : base;
 };
 
+const MAX_LIVE_ISSUES = 5;
+
 export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   const { opened, onSave, onClose, plugin, mode, schema } = props;
   const { name, config } = plugin;
@@ -159,6 +161,10 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     criteriaMode: 'all',
     disabled: mode === 'view',
     defaultValues: { config: toConfigStr(getEditableConfig(schema, config, mode)) },
+  });
+  const jsonConfigText = useWatch({
+    control: methods.control,
+    name: 'config',
   });
   const handleClose = () => {
     onClose();
@@ -296,6 +302,38 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     setFormValue(nextValue);
     setSaveError(null);
   }, [config, methods, mode, schema]);
+  const jsonValidation = useMemo(() => {
+    if (activeTab !== 'json' || mode === 'view') return null;
+
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(jsonConfigText || '{}');
+    } catch (error) {
+      return {
+        message: 'Fix JSON syntax before saving.',
+        issues: [error instanceof Error ? error.message : String(error)],
+      };
+    }
+
+    if (!isRecord(parsed)) {
+      return {
+        message: 'Plugin config must be a JSON object.',
+        issues: ['The top-level JSON value is not an object.'],
+      };
+    }
+
+    const issues = [
+      ...validateSchemaValue(schema as JSONSchema | undefined, parsed),
+      ...validateAIGatewayConfig(name, parsed),
+      ...validatePluginCompatibility(name, parsed),
+    ];
+    if (issues.length === 0) return null;
+
+    return {
+      message: `${issues.length} plugin config issue${issues.length === 1 ? '' : 's'}`,
+      issues,
+    };
+  }, [activeTab, jsonConfigText, mode, name, schema]);
   const saveErrorActions =
     activeTab === 'json' && mode !== 'view' ? (
       <Space wrap>
@@ -464,6 +502,27 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
               />
             </Tooltip>
           </Space>
+        )}
+        {jsonValidation && (
+          <Alert
+            type="warning"
+            showIcon
+            message={jsonValidation.message}
+            description={
+              <ul style={{ margin: 0, paddingLeft: 18 }}>
+                {jsonValidation.issues.slice(0, MAX_LIVE_ISSUES).map((issue) => (
+                  <li key={issue}>{issue}</li>
+                ))}
+                {jsonValidation.issues.length > MAX_LIVE_ISSUES && (
+                  <li>
+                    {jsonValidation.issues.length - MAX_LIVE_ISSUES} more issue
+                    {jsonValidation.issues.length - MAX_LIVE_ISSUES === 1 ? '' : 's'}
+                  </li>
+                )}
+              </ul>
+            }
+            style={{ marginBottom: 8 }}
+          />
         )}
         {mode !== 'view' && saveError && (
           <Alert

@@ -84,6 +84,9 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     );
     await pluginEditor.blur();
     await expect(pluginEditor.getByText('{')).toBeVisible();
+    await expect(
+      addPluginDialog.getByText('Fix JSON syntax before saving.')
+    ).toBeVisible();
     await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     const jsonErrorAlert = addPluginDialog.getByRole('alert').filter({
       hasText: /Invalid JSON:|JSON format is not valid/,
