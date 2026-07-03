@@ -23,6 +23,8 @@ These contexts have different actions, but they share one editing standard.
 ## Contextual Actions
 
 - Payload JSON submits the complete create payload through the form workflow.
+- Same-draft editors such as Payload JSON and Plugin JSON provide an explicit
+  apply action for reviewing valid JSON edits in the paired visual editor.
 - Admin API JSON editors show identity fields separately as values managed by the
   Admin API path. The editable JSON excludes read-only fields, sends changed
   editable fields with PATCH, and verifies the saved resource with a follow-up

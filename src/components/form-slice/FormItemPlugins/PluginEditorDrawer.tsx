@@ -117,23 +117,39 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     setActiveTab(canUseForm ? 'form' : 'json');
   }, [canUseForm, name]);
 
+  const applyJsonToFields = useCallback(() => {
+    try {
+      const parsed = JSON.parse(methods.getValues('config') || '{}') as unknown;
+      if (!isRecord(parsed)) {
+        setSaveError('Plugin config must be a JSON object.');
+        return false;
+      }
+      setFormValue(parsed);
+      setSaveError(null);
+      return true;
+    } catch {
+      setSaveError('Fix the Plugin JSON syntax error before switching to Fields.');
+      return false;
+    }
+  }, [methods]);
+
+  const handleApplyJsonToFields = useCallback(() => {
+    if (applyJsonToFields()) {
+      setActiveTab('form');
+    }
+  }, [applyJsonToFields]);
+
   const handleTabChange = useCallback((key: string) => {
     if (key === 'json' && activeTab === 'form') {
       // Serialize form values to JSON editor
       methods.setValue('config', toConfigStr(formValue as object));
     } else if (key === 'form' && activeTab === 'json') {
-      // Parse JSON editor to form values. If the JSON is currently invalid, stay
-      // on the JSON tab and surface the error rather than silently discarding edits.
-      try {
-        const parsed = JSON.parse(methods.getValues('config') || '{}') as Record<string, unknown>;
-        setFormValue(parsed);
-      } catch {
-        setSaveError('Fix the Plugin JSON syntax error before switching to Fields.');
+      if (!applyJsonToFields()) {
         return;
       }
     }
     setActiveTab(key);
-  }, [activeTab, formValue, methods]);
+  }, [activeTab, applyJsonToFields, formValue, methods]);
 
   const handleFormChange = useCallback((val: Record<string, unknown>) => {
     setFormValue(val);
@@ -412,6 +428,11 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
         ))}
         {activeTab === 'json' && mode !== 'view' && (
           <Space style={{ width: '100%', justifyContent: 'flex-end', marginBottom: 8 }}>
+            {canUseForm && (
+              <Button size="small" onClick={handleApplyJsonToFields}>
+                Apply to Fields
+              </Button>
+            )}
             <Tooltip title="Format Plugin JSON">
               <Button
                 size="small"

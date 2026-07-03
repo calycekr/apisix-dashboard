@@ -412,6 +412,27 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     }
   }, [doSubmit]);
 
+  const applyJsonToForm = useCallback(() => {
+    try {
+      const parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
+      const sanitizedParsed = rawData ? stripSystemReadonlyFields(parsed) : parsed;
+      form.reset(sanitizedParsed, { keepDefaultValues: true });
+      setJsonTabDirty(false);
+      setJsonError(null);
+      void form.trigger();
+      return true;
+    } catch (e) {
+      setJsonError('Invalid JSON: ' + String(e));
+      return false;
+    }
+  }, [form, jsonStr, rawData]);
+
+  const handleApplyJsonToForm = useCallback(() => {
+    if (applyJsonToForm()) {
+      setActiveTab('form');
+    }
+  }, [applyJsonToForm]);
+
   const handleTabChange = useCallback(
     (key: string) => {
       if (saveInProgress) return;
@@ -431,15 +452,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         setJsonTabDirty(false);
         setJsonError(null);
       } else if (key === 'form' && activeTab === 'json') {
-        // Parse JSON editor back into form
-        try {
-          const parsed = JSON.parse(jsonStr || '{}') as Record<string, unknown>;
-          const sanitizedParsed = rawData ? stripSystemReadonlyFields(parsed) : parsed;
-          form.reset(sanitizedParsed, { keepDefaultValues: true });
-          setJsonTabDirty(false);
-          setJsonError(null);
-        } catch (e) {
-          setJsonError('Invalid JSON: ' + String(e));
+        if (!applyJsonToForm()) {
           return;
         }
       }
@@ -447,9 +460,9 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
     },
     [
       activeTab,
+      applyJsonToForm,
       createJsonTemplate,
       form,
-      jsonStr,
       rawData,
       saveInProgress,
     ]
@@ -550,6 +563,7 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
             type="info"
             showIcon
             message="Create this resource by editing the same Payload JSON that the visual editor will validate and submit."
+            description="Apply JSON edits to review them in the Visual Editor before submitting."
             style={{ marginBottom: 12, padding: '8px 12px', fontSize: 'var(--app-font-size-sm)' }}
           />
           {schema && <JsonSchemaGuide schema={schema} value={jsonStr} compact />}
@@ -584,6 +598,13 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
               onFocusFirstError={focusFirstFormError}
               onRevert={handleRevert}
             >
+              <Button
+                size="middle"
+                disabled={isSubmitting || isSaving}
+                onClick={handleApplyJsonToForm}
+              >
+                Apply to Visual Editor
+              </Button>
               <Button
                 type="primary"
                 size="middle"

@@ -15,7 +15,10 @@
  * limitations under the License.
  */
 import { test } from '@e2e/utils/test';
-import { uiGetMonacoEditor, uiSelectByLabel } from '@e2e/utils/ui';
+import {
+  uiGetMonacoEditor,
+  uiSelectByLabel,
+} from '@e2e/utils/ui';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 const requiredFields = (page: Page) =>
@@ -54,6 +57,21 @@ test('create forms show conditional required fields and minimal JSON templates',
   await page.getByRole('tab', { name: 'Visual Editor' }).click();
   await page.locator('input[name="uri"]').fill('/orders');
   await expect.poll(() => requiredFields(page)).not.toContain('uris');
+
+  await page.getByRole('tab', { name: 'Payload JSON' }).click();
+  await expect.poll(async () => {
+    const payload = JSON.parse(await readMonacoValue(page, routeJsonEditor)) as {
+      uri?: string;
+    };
+    return payload.uri;
+  }).toBe('/orders');
+
+  await page.getByRole('button', { name: 'Apply to Visual Editor' }).click();
+  await expect(page.getByRole('tab', { name: 'Visual Editor' })).toHaveAttribute(
+    'aria-selected',
+    'true'
+  );
+  await expect(page.locator('input[name="uri"]')).toHaveValue('/orders');
 
   await page.goto('/ui/services/add');
   await page.getByRole('tab', { name: 'Payload JSON' }).click();
@@ -177,4 +195,10 @@ test('plugin add JSON prefills required fields from APISIX schema', async ({
       count: 1,
       time_window: 1,
     });
+
+  await addPluginDialog.getByRole('button', { name: 'Apply to Fields' }).click();
+  await expect(addPluginDialog.getByRole('tab', { name: 'Fields' })).toHaveAttribute(
+    'aria-selected',
+    'true'
+  );
 });
