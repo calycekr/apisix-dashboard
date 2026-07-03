@@ -63,6 +63,26 @@ test.beforeEach(async ({ page }) => {
     }
 
     if (
+      request.method() === 'GET' &&
+      url.pathname.endsWith('/apisix/admin/routes/editable-console-route')
+    ) {
+      await route.fulfill({
+        status: 200,
+        contentType: 'application/json',
+        body: JSON.stringify({
+          value: {
+            id: 'editable-console-route',
+            uri: '/editable-console',
+            name: 'Editable Console Route',
+            create_time: 1710000000,
+            update_time: 1710000100,
+          },
+        }),
+      });
+      return;
+    }
+
+    if (
       request.method() === 'PUT' &&
       url.pathname.endsWith('/apisix/admin/routes/raw-console-route')
     ) {
@@ -207,6 +227,34 @@ test('restores failed requests for correction and rerun', async ({ page }) => {
     page.locator('.ant-tag').filter({ hasText: '200' }).first()
   ).toBeVisible();
   await expect(page.getByRole('button', { name: 'History (2)' })).toBeVisible();
+});
+
+test('loads existing resources as editable request bodies', async ({ page }) => {
+  const pathInput = page.getByRole('combobox', { name: /Path suffix/ });
+  await pathInput.fill('editable-console-route');
+
+  const loadedResponse = page.waitForResponse((response) =>
+    response.url().includes('/apisix/admin/routes/editable-console-route')
+  );
+  await page.getByRole('button', { name: 'Load resource' }).click();
+  expect((await loadedResponse).status()).toBe(200);
+
+  await expect(
+    page.getByText('Loaded as editable request body', { exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByText('Removed read-only fields: id, create_time, update_time.')
+  ).toBeVisible();
+
+  const requestEditor = page.locator('.monaco-editor').first();
+  await expect(requestEditor).toContainText('"uri": "/editable-console"');
+  await expect(requestEditor).not.toContainText('"id":');
+  await expect(requestEditor).not.toContainText('"create_time":');
+  await expect(requestEditor).not.toContainText('"update_time":');
+
+  await page.getByRole('button', { name: 'Use raw response' }).click();
+  await expect(requestEditor).toContainText('"id": "editable-console-route"');
+  await expect(requestEditor).toContainText('"create_time": 1710000000');
 });
 
 test('executes confirmed PUT requests with JSON body and history', async ({

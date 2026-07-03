@@ -245,6 +245,10 @@
   padding: 12px 12px 0;
 }
 
+.loadedBodyAlert {
+  margin-top: 10px;
+}
+
 .editor {
   flex: 1;
   min-height: 0;
