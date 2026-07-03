@@ -184,6 +184,37 @@ export const AdminApiJsonEditor = ({
     userEditedRef.current = false;
   }, [api]);
 
+  const handleResetDraft = useCallback(() => {
+    userEditedRef.current = false;
+    setValue(original);
+    setError(null);
+    setSaveFeedback(null);
+  }, [original]);
+
+  const handleReloadLatest = useCallback(async () => {
+    if (!api || saving) return;
+    setLoading(true);
+    setError(null);
+    setSaveFeedback(null);
+    try {
+      const res = await req.get(api);
+      const data = res.data?.value as Record<string, unknown> | undefined;
+      if (!isRecord(data)) {
+        throw new Error('Admin API returned no resource value');
+      }
+      loadData(data);
+      setSaveFeedback({
+        type: 'success',
+        message: 'Reloaded latest APISIX resource state.',
+        at: new Date().toLocaleTimeString(),
+      });
+    } catch (e) {
+      setError('Reload failed: ' + getAdminApiErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  }, [api, loadData, saving]);
+
   useEffect(() => {
     if (!active || !api) return;
 
@@ -413,6 +444,18 @@ export const AdminApiJsonEditor = ({
           type="error"
           showIcon
           message={<div style={{ whiteSpace: 'pre-wrap', fontFamily: 'var(--app-font-monospace)', fontSize: 'var(--app-font-size-sm)' }}>{error}</div>}
+          action={
+            !disabled && (
+              <Space>
+                <Button size="small" onClick={handleResetDraft} disabled={!isDirty || saving}>
+                  Reset draft
+                </Button>
+                <Button size="small" onClick={handleReloadLatest} loading={loading}>
+                  Reload latest
+                </Button>
+              </Space>
+            )
+          }
           style={{ marginBottom: 12 }}
           closable
           onClose={() => setError(null)}
@@ -490,10 +533,7 @@ export const AdminApiJsonEditor = ({
             </Tooltip>
             <Button
               size="small"
-              onClick={() => {
-                userEditedRef.current = false;
-                setValue(original);
-              }}
+              onClick={handleResetDraft}
               disabled={!isDirty}
             >
               Reset
