@@ -128,7 +128,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
         const parsed = JSON.parse(methods.getValues('config') || '{}') as Record<string, unknown>;
         setFormValue(parsed);
       } catch {
-        setSaveError('Fix the JSON syntax error before switching to the fields view.');
+        setSaveError('Fix the Plugin JSON syntax error before switching to Fields.');
         return;
       }
     }
@@ -176,7 +176,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       : []),
     {
       key: 'json',
-      label: 'JSON',
+      label: 'Plugin JSON',
       children: (
         <FormItemEditor
           name="config"
@@ -227,7 +227,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       await navigator.clipboard.writeText(methods.getValues('config') || '{}');
       message.success('Plugin JSON copied');
     } catch {
-      message.error('Failed to copy plugin JSON');
+      message.error('Failed to copy Plugin JSON');
     }
   }, [methods]);
 
@@ -245,7 +245,7 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
       parsed = JSON.parse(jsonConfigText || '{}');
     } catch (error) {
       return {
-        message: 'Fix JSON syntax before saving.',
+        message: 'Fix Plugin JSON syntax before saving.',
         issues: [error instanceof Error ? error.message : String(error)],
       };
     }
@@ -276,17 +276,17 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
           size="small"
           icon={<IconFormatAlignLeft />}
           onClick={formatJsonConfig}
-          aria-label="Format JSON after error"
+          aria-label="Format Plugin JSON after error"
         >
-          Format JSON
+          Format Plugin JSON
         </Button>
         <Button
           size="small"
           icon={<IconRefresh />}
           onClick={resetJsonConfig}
-          aria-label="Reset JSON after error"
+          aria-label="Reset Plugin JSON after error"
         >
-          Reset JSON
+          Reset Plugin JSON
         </Button>
       </Space>
     ) : undefined;
@@ -412,28 +412,28 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
         ))}
         {activeTab === 'json' && mode !== 'view' && (
           <Space style={{ width: '100%', justifyContent: 'flex-end', marginBottom: 8 }}>
-            <Tooltip title="Format JSON">
+            <Tooltip title="Format Plugin JSON">
               <Button
                 size="small"
                 icon={<IconFormatAlignLeft />}
                 onClick={formatJsonConfig}
-                aria-label="Format plugin JSON"
+                aria-label="Format Plugin JSON"
               />
             </Tooltip>
-            <Tooltip title="Copy JSON">
+            <Tooltip title="Copy Plugin JSON">
               <Button
                 size="small"
                 icon={<IconContentCopy />}
                 onClick={copyJsonConfig}
-                aria-label="Copy plugin JSON"
+                aria-label="Copy Plugin JSON"
               />
             </Tooltip>
-            <Tooltip title="Reset JSON">
+            <Tooltip title="Reset Plugin JSON">
               <Button
                 size="small"
                 icon={<IconRefresh />}
                 onClick={resetJsonConfig}
-                aria-label="Reset plugin JSON"
+                aria-label="Reset Plugin JSON"
               />
             </Tooltip>
           </Space>

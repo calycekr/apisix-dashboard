@@ -26,7 +26,7 @@ import {
   getResourceIdentityPaths,
 } from '@/utils/resourceJsonSchema';
 
-test('uses one resource schema standard across raw JSON surfaces', () => {
+test('uses one resource schema standard across Admin API JSON surfaces', () => {
   expect(getResourceIdentityPaths('/consumers/alice')).toEqual(['username']);
   expect(getResourceIdentityPaths('/secrets/vault/demo')).toEqual(['manager', 'id']);
 
@@ -44,7 +44,7 @@ test('uses one resource schema standard across raw JSON surfaces', () => {
     .toEqual([['uri'], ['uris']]);
 });
 
-test('keeps resource identity outside editable raw JSON', () => {
+test('keeps resource identity outside editable Admin API JSON', () => {
   const resource = {
     id: 'route-1',
     create_time: 1,

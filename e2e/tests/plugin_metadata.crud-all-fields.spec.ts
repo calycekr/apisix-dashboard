@@ -73,7 +73,7 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       name: 'Add Plugin: http-logger',
     });
     await expect(addPluginDialog).toBeVisible();
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await page.evaluate(() => {
@@ -85,7 +85,7 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await pluginEditor.blur();
     await expect(pluginEditor.getByText('{')).toBeVisible();
     await expect(
-      addPluginDialog.getByText('Fix JSON syntax before saving.')
+      addPluginDialog.getByText('Fix Plugin JSON syntax before saving.')
     ).toBeVisible();
     await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
     const jsonErrorAlert = addPluginDialog.getByRole('alert').filter({
@@ -93,10 +93,10 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     });
     await expect(jsonErrorAlert).toBeVisible();
     await expect(
-      addPluginDialog.getByRole('button', { name: 'Format JSON after error' })
+      addPluginDialog.getByRole('button', { name: 'Format Plugin JSON after error' })
     ).toBeVisible();
     await addPluginDialog
-      .getByRole('button', { name: 'Reset JSON after error' })
+      .getByRole('button', { name: 'Reset Plugin JSON after error' })
       .click();
     await expect(jsonErrorAlert).toBeHidden();
 
@@ -118,16 +118,16 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       })
     );
     await expect(
-      addPluginDialog.getByRole('button', { name: 'Format plugin JSON' })
+      addPluginDialog.getByRole('button', { name: 'Format Plugin JSON' })
     ).toBeVisible();
     await expect(
-      addPluginDialog.getByRole('button', { name: 'Copy plugin JSON' })
+      addPluginDialog.getByRole('button', { name: 'Copy Plugin JSON' })
     ).toBeVisible();
     await expect(
-      addPluginDialog.getByRole('button', { name: 'Reset plugin JSON' })
+      addPluginDialog.getByRole('button', { name: 'Reset Plugin JSON' })
     ).toBeVisible();
     await addPluginDialog
-      .getByRole('button', { name: 'Format plugin JSON' })
+      .getByRole('button', { name: 'Format Plugin JSON' })
       .click();
     await expect(pluginEditor.getByText('"log_format": {')).toBeVisible();
 
@@ -185,7 +185,7 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       name: 'Edit Plugin: http-logger',
     });
     await expect(editPluginDialog).toBeVisible();
-    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await editPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog, false);
 
@@ -207,7 +207,7 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
       name: 'Edit Plugin: http-logger',
     });
     await expect(editPluginDialog).toBeVisible();
-    await editPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await editPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     const pluginEditor = await uiGetMonacoEditor(page, editPluginDialog);
     await uiFillMonacoEditor(

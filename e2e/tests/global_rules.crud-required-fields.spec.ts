@@ -69,7 +69,7 @@ test('should CRUD global rule with required fields only', async ({ page }) => {
       name: 'Add Plugin: response-rewrite',
     });
     await expect(pluginDialog).toBeVisible();
-    await pluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await pluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
 
     // Add minimal plugin configuration using Monaco editor
     const pluginEditor = await uiGetMonacoEditor(page, pluginDialog);

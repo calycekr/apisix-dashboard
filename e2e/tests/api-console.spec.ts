@@ -287,7 +287,7 @@ test('keeps blocked request body errors visible with recovery actions', async ({
   });
   await expect(requestBodyError).toBeVisible();
   await expect(
-    requestBodyError.getByRole('button', { name: 'Format JSON' })
+    requestBodyError.getByRole('button', { name: 'Format Request JSON' })
   ).toBeVisible();
   await expect(
     requestBodyError.getByRole('button', { name: 'Reset to template' })

@@ -25,7 +25,7 @@ import { API_ROUTES } from '@/config/constant';
 
 const routeId = randomId('route-payload-preserve');
 const routeUri = '/route-payload-preserve';
-const updatedDesc = 'updated through form while preserving raw payload';
+const updatedDesc = 'updated through form while preserving Admin API payload';
 const rawDraftDesc = 'raw json draft that will fail once';
 const rawLatestDesc = 'latest server value after failed raw save';
 
@@ -53,7 +53,7 @@ test.afterAll(async () => {
   await deleteAllRoutes(e2eReq);
 });
 
-test('route form save preserves raw payload and strips readonly fields', async ({
+test('route form save preserves Admin API payload and strips readonly fields', async ({
   page,
 }) => {
   await uiGoto(page, '/routes/detail/$id', { id: routeId });
@@ -113,13 +113,13 @@ test('route form save preserves raw payload and strips readonly fields', async (
   });
 });
 
-test('raw JSON save failure offers reset and reload recovery actions', async ({
+test('Admin API JSON save failure offers reset and reload recovery actions', async ({
   page,
 }) => {
   await uiGoto(page, '/routes/detail/$id', { id: routeId });
-  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+  await page.getByRole('tab', { name: 'Admin API JSON' }).click();
 
-  const rawJsonPanel = page.getByRole('tabpanel', { name: 'Raw JSON' });
+  const rawJsonPanel = page.getByRole('tabpanel', { name: 'Admin API JSON' });
   const editor = rawJsonPanel.locator('.monaco-editor').first();
   await expect(editor).toBeVisible();
   await uiFillMonacoEditor(

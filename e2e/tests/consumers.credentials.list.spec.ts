@@ -292,7 +292,7 @@ test('should create credential from the UI', async ({ page }) => {
     const addPluginDialog = page.getByRole('dialog', {
       name: 'Add Plugin: key-auth',
     });
-    await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+    await addPluginDialog.getByRole('tab', { name: 'Plugin JSON' }).click();
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
     await uiFillMonacoEditor(
       page,
