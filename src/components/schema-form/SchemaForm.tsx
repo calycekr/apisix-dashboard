@@ -31,6 +31,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 
 import { getSchemaControlKind } from '@/components/schema-form/schemaControls';
+import { placeholderForJsonSchema } from '@/components/schema-form/schemaTemplate';
 import {
   getActiveRequiredFields,
   getResolvedSchema,
@@ -255,29 +256,7 @@ const isSchemaValueCompatible = (
 const defaultForSchema = (
   schema: JSONSchemaProperty,
   rootSchema = schema
-): unknown => {
-  const resolvedSchema = getResolvedSchema(schema, rootSchema);
-  if (
-    'default' in resolvedSchema &&
-    isSchemaValueCompatible(resolvedSchema, resolvedSchema.default)
-  ) {
-    return resolvedSchema.default;
-  }
-  const type = schemaType(resolvedSchema);
-  if (type === 'object') {
-    return Object.fromEntries(
-      Object.entries(getSchemaProperties(resolvedSchema, rootSchema))
-        .map(([key, propertySchema]) => [
-          key,
-          defaultForSchema(propertySchema, rootSchema),
-        ])
-        .filter(([, value]) => value !== undefined)
-    );
-  }
-  if (type === 'array') return [];
-  if (type === 'boolean') return false;
-  return undefined;
-};
+): unknown => placeholderForJsonSchema(schema, rootSchema);
 
 const inputPlaceholder = (
   schema: JSONSchemaProperty,
