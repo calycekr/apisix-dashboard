@@ -1,6 +1,9 @@
 # APISIX Dashboard (Next-Gen)
 
-A decoupled, 100% client-side visual control plane for Apache APISIX. This project is a modern, lightweight, and type-safe rebuild of the official dashboard, eliminating the need for a custom Go backend and providing direct, browser-to-gateway administration.
+A static React admin console for operating Apache APISIX through the APISIX
+Admin API. The dashboard focuses on practical resource management: visual forms,
+schema-guided JSON editors, topology inspection, import/export, and a direct
+Admin API console without a separate dashboard backend.
 
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 [![React](https://img.shields.io/badge/React-19-blue?logo=react)](package.json)
@@ -14,7 +17,9 @@ A decoupled, 100% client-side visual control plane for Apache APISIX. This proje
 
 > [!IMPORTANT]
 > **Zero Dashboard Backend**  
-> This dashboard runs entirely in the client's browser and communicates directly with the APISIX Admin API. It completely bypasses the legacy Go backend (`manager-api`) and its etcd synchronization layer, eliminating synchronization latency, deployment overhead, and security/CVE audit risks.
+> This dashboard runs in the browser and communicates with APISIX through the
+> Admin API. It does not run `manager-api`, keep a dashboard database, or sync
+> APISIX state through a separate service.
 
 ---
 
@@ -24,67 +29,79 @@ A decoupled, 100% client-side visual control plane for Apache APISIX. This proje
 
 This is not a mockup. The dashboard above is a static React SPA connected
 directly to an APISIX Admin API, rendering live Routes, Services, Upstreams,
-plugin usage, health checks, and recent configuration changes without a custom
+plugin usage, operational status, and recent configuration changes without a custom
 backend.
 
 What usually surprises people:
 
 *   No `manager-api`: the browser talks to APISIX through the Admin API.
 *   No dashboard database: state lives in APISIX and local browser settings.
-*   Visual forms, topology, and raw JSON editing are available in one UI.
+*   Visual forms, topology, Payload JSON, Admin API JSON, and a direct API
+    console are available in one UI.
 
 Start with the [Getting Started guide](docs/en/getting-started.md) for a guided
 walkthrough of connection setup, route management, topology, and the API
 console.
 
-| Interactive topology | Route configuration | Direct Admin API console |
-| :---: | :---: | :---: |
-| ![Topology map](docs/en/assets/screenshots/topology-map-16x9.png) | ![Route detail](docs/en/assets/screenshots/route-detail-overview-16x9.png) | ![API console](docs/en/assets/screenshots/raw-api-console-16x9.png) |
+| Route list | Route detail |
+| :---: | :---: |
+| ![Routes list](docs/en/assets/screenshots/routes-list-16x9.png) | ![Route detail](docs/en/assets/screenshots/route-detail-overview-16x9.png) |
+
+| Interactive topology | Direct Admin API console |
+| :---: | :---: |
+| ![Topology map](docs/en/assets/screenshots/topology-map-16x9.png) | ![API console](docs/en/assets/screenshots/raw-api-console-16x9.png) |
 
 ---
 
-## Architecture Overview
+## Architecture
 
-The official dashboard requires a middleman server to proxy commands to etcd. The next-generation decoupled dashboard establishes a direct path, reducing infrastructure footprint and complexity.
+The dashboard is deployed as static files. At runtime, the browser sends Admin
+API requests through the same-origin `/apisix/admin` path, usually served by
+APISIX itself or by a reverse proxy in front of the Admin API.
 
-### Legacy Workflow (Official)
 ```
-[ Browser ] --REST--> [ Go Backend (manager-api) ] --Sync--> [ etcd ] --> [ APISIX Gateway ]
+[ Browser (Static SPA) ] --/apisix/admin--> [ APISIX Admin API ] --> [ etcd ]
 ```
-*   **Drawbacks**: Heavy resource consumption, synchronization lag, additional security exposure, and complex multi-container setup.
 
-### Next-Gen Workflow (Decoupled)
-```
-[ Browser (Static SPA) ] --Direct Admin API--> [ APISIX Gateway ] --> [ etcd ]
-```
-*   **Benefits**: Serverless deployment compatibility, instant configuration updates, and zero database dependencies.
+The UI does not write dashboard-only resource shapes. Resource forms, tables,
+JSON editors, import/export, and topology views are built around APISIX Admin
+API payloads.
 
----
+## Project Shape
 
-## Comparison Matrix
-
-| Capability | Official Dashboard | Next-Gen Dashboard (This Repo) |
-| :--- | :--- | :--- |
-| **Architecture** | Go Backend + etcd Syncer + React SPA | **100% Client-Side React SPA** (Direct Admin API) |
-| **Hosting** | Requires Go binary or Docker container | **Static Hosting** (Vercel, Netlify, Nginx, S3, etc.) |
-| **Frontend Stack** | React 17 / Webpack | **React 19 / Vite** (Fast HMR, optimized bundle sizing) |
-| **State & Sync** | React Router 5 / Redux | **TanStack Router (Type-Safe)** + **TanStack Query (Cached)** |
-| **State Storage** | Server-side database / etcd | **Local Browser Storage** (Zod-validated Jotai atoms) |
-| **Visual Topology** | Not supported | **Interactive Topology Map** (`@xyflow/react` + `dagre`) |
-| **AI Gateway support** | Not supported | **Dedicated AI plugin templates** (OpenAI, AWS Bedrock, etc.) |
-| **Editor System** | Rigid multi-step wizard / basic text inputs | **Side-by-Side Pro Forms & Monaco Editor** (Simultaneous visual & raw JSON co-editing) |
+| Area | Current implementation |
+| :--- | :--- |
+| **Runtime** | Static React SPA served from `/ui/` |
+| **Admin API access** | Same-origin `/apisix/admin` requests with `X-API-KEY` |
+| **Frontend stack** | React 19, Vite 8, TypeScript, Ant Design 6 |
+| **Routing and data** | TanStack Router and TanStack Query |
+| **Forms and validation** | React Hook Form and Zod schemas |
+| **JSON editing** | Monaco-based Payload JSON, Admin API JSON, Plugin JSON, and Request/Response JSON |
+| **Topology** | `@xyflow/react` and `dagre` |
+| **Testing** | Playwright E2E coverage |
 
 ---
 
 ## Key Features
 
-*   **Modern Enterprise UI**: Designed with Ant Design 6, Inter-based UI typography, and IBM Plex Mono for code, IDs, and JSON. Supports responsive layout grids and dynamic dark mode customization.
-*   **Interactive Topology Map**: Built using `@xyflow/react` and `dagre` graph layouts. Instantly renders the logical relationship: `Route -> Service -> Upstream -> Backend Targets`.
-*   **AI Gateway Presets**: Dedicated forms and validation schemas for APISIX AI plugins (e.g., `ai-proxy` and `ai-proxy-multi`) covering OpenAI, AWS Bedrock, and OpenAI-compatible models.
-*   **Visual & RAW JSON Co-Editing**: Bypasses the slow, multi-step wizards of the official dashboard. You can configure resources visually using forms, or write/paste raw JSON directly in a side-by-side Monaco Editor. Real-time Zod schema validation and autocomplete prevent syntax errors before saving.
-*   **Direct API Integration**: Safely authenticate directly to your gateway. Admin API keys are stored locally inside the browser's sandbox, while API traffic uses the same-origin `/apisix/admin` path.
-*   **Backup & Migration Engine**: Export and import gateway routing rules, services, upstreams, and SSL certificates in a unified JSON format in a single click.
-*   **Direct Admin API Console**: Build, send, and inspect APISIX Admin API requests from the dashboard UI without leaving the control plane.
+*   **Resource-first UI**: Manage Routes, Stream Routes, Services, Upstreams,
+    Consumers, Consumer Groups, SSLs, Global Rules, Plugin Configs, Plugin
+    Metadata, Secrets, and Protos from one static console.
+*   **Interactive Topology Map**: Built with `@xyflow/react` and `dagre` to show
+    the live relationship between Routes, Services, Upstreams, and backend
+    targets.
+*   **Schema-guided JSON Editing**: Use Payload JSON while creating resources,
+    Admin API JSON while patching saved resources, Plugin JSON inside plugin
+    drawers, and Request/Response JSON in the API Console.
+*   **Plugin Configuration Help**: Plugin forms and JSON templates prefill
+    required fields from APISIX schemas, with extra guidance for AI Gateway
+    plugins such as `ai-proxy` and `ai-proxy-multi`.
+*   **Direct API Integration**: Admin API keys are stored in local browser
+    storage, and API traffic uses the same-origin `/apisix/admin` path.
+*   **Backup & Migration Engine**: Export and import gateway resources in a
+    unified JSON format.
+*   **Direct Admin API Console**: Build, send, save, and inspect APISIX Admin API
+    requests without leaving the dashboard.
 
 ---
 

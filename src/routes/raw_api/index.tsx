@@ -816,7 +816,7 @@ function RawApiPage() {
         <div>
           <Typography.Text strong>Direct Admin API access</Typography.Text>
           <Typography.Paragraph type="secondary">
-            Requests are sent exactly as configured. Use resource RAW editors
+            Requests are sent exactly as configured. Use Admin API JSON editors
             when you want guided validation and safer payload handling.
           </Typography.Paragraph>
         </div>
