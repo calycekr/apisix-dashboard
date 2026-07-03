@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { test } from '@e2e/utils/test';
-import { uiSelectByLabel } from '@e2e/utils/ui';
+import { uiGetMonacoEditor, uiSelectByLabel } from '@e2e/utils/ui';
 import { expect, type Locator, type Page } from '@playwright/test';
 
 const requiredFields = (page: Page) =>
@@ -131,4 +131,50 @@ test('API Console switches required-only templates with the resource', async ({
       2
     )
   );
+});
+
+test('plugin add JSON prefills required fields from APISIX schema', async ({
+  page,
+}) => {
+  await page.goto('/ui/plugin_configs/add');
+  await expect(page.getByRole('heading', { name: 'Add Plugin Config' })).toBeVisible();
+
+  await page.getByRole('button', { name: 'Add Plugin' }).click();
+  const selectPluginsDialog = page.getByRole('dialog', {
+    name: 'Add Plugin',
+    exact: true,
+  });
+  await selectPluginsDialog
+    .getByPlaceholder('Search by name, capability, or description')
+    .fill('limit-count');
+  await selectPluginsDialog
+    .getByTestId('plugin-limit-count')
+    .getByRole('button', { name: 'Add' })
+    .click();
+
+  const addPluginDialog = page.getByRole('dialog', {
+    name: 'Add Plugin: limit-count',
+  });
+  await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
+  const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog, false);
+
+  await expect
+    .poll(async () => {
+      try {
+        const config = JSON.parse(await readMonacoValue(page, pluginEditor)) as Record<
+          string,
+          unknown
+        >;
+        return {
+          count: config.count,
+          time_window: config.time_window,
+        };
+      } catch {
+        return null;
+      }
+    })
+    .toEqual({
+      count: 1,
+      time_window: 1,
+    });
 });

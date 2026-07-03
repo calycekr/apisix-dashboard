@@ -66,7 +66,9 @@ export const schemaType = (schema: JSONSchema): string | undefined =>
   Array.isArray(schema.type)
     ? schema.type[0]
     : schema.type ??
-      (schema.properties ? 'object' : schema.items ? 'array' : undefined);
+      (schema.properties && Object.keys(schema.properties).length > 0
+        ? 'object'
+        : schema.items ? 'array' : undefined);
 
 const matchesType = (value: unknown, type: string): boolean => {
   if (type === 'object') return isRecord(value);
