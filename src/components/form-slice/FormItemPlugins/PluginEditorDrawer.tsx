@@ -23,9 +23,11 @@ import { FormSubmitBtn } from '@/components/form/Btn';
 import { FormItemEditor } from '@/components/form/Editor';
 import { SchemaForm } from '@/components/schema-form/SchemaForm';
 import {
+  getActiveRequiredFields,
   getResolvedSchema,
   getSchemaProperties,
   type JSONSchema,
+  schemaType,
   validateSchemaValue,
 } from '@/components/schema-form/schemaValidation';
 import IconContentCopy from '~icons/material-symbols/content-copy';
@@ -99,28 +101,35 @@ const isSchemaDefaultCompatible = (
 
 const applySchemaDefaults = (
   schema: object | undefined,
-  config: Record<string, unknown> | undefined
+  config: Record<string, unknown> | undefined,
+  rootSchema?: JSONSchema
 ): Record<string, unknown> => {
   const base = isRecord(config) ? { ...config } : {};
   if (!schema || !isRecord(schema)) return base;
   const typedSchema = schema as JSONSchema;
+  const root = rootSchema ?? typedSchema;
 
   for (const [key, propSchema] of Object.entries(typedSchema.properties ?? {})) {
     if (!isRecord(propSchema)) continue;
+    const resolvedPropSchema = getResolvedSchema(propSchema, root);
     if (
       base[key] === undefined &&
-      'default' in propSchema &&
-      isSchemaDefaultCompatible(propSchema, propSchema.default)
+      'default' in resolvedPropSchema &&
+      isSchemaDefaultCompatible(resolvedPropSchema, resolvedPropSchema.default)
     ) {
-      base[key] = cloneDefault(propSchema.default);
+      base[key] = cloneDefault(resolvedPropSchema.default);
     }
   }
 
-  const properties = getSchemaProperties(typedSchema, typedSchema, base);
+  const properties = getSchemaProperties(typedSchema, root, base);
   for (const [key, rawPropSchema] of Object.entries(properties)) {
-    const propSchema = getResolvedSchema(rawPropSchema, typedSchema);
+    const propSchema = getResolvedSchema(rawPropSchema, root);
     if (isRecord(base[key]) && isRecord(propSchema.properties)) {
-      base[key] = applySchemaDefaults(propSchema, base[key] as Record<string, unknown>);
+      base[key] = applySchemaDefaults(
+        propSchema,
+        base[key] as Record<string, unknown>,
+        root
+      );
     }
     if (
       base[key] === undefined &&
@@ -134,13 +143,143 @@ const applySchemaDefaults = (
   return base;
 };
 
+const collectTemplateRequiredFields = (
+  schema: JSONSchema,
+  value: Record<string, unknown>,
+  rootSchema: JSONSchema,
+  required: Set<string>
+) => {
+  const resolvedSchema = getResolvedSchema(schema, rootSchema);
+
+  const matchingVariants = [
+    ...(resolvedSchema.oneOf ?? []),
+    ...(resolvedSchema.anyOf ?? []),
+  ].filter(
+    (variant) => validateSchemaValue(variant, value, '', rootSchema).length === 0
+  );
+  const unionVariants = [
+    ...(resolvedSchema.oneOf ?? []),
+    ...(resolvedSchema.anyOf ?? []),
+  ];
+  if (matchingVariants.length === 0 && unionVariants[0]) {
+    for (const key of getActiveRequiredFields(unionVariants[0], value, rootSchema)) {
+      required.add(key);
+    }
+    collectTemplateRequiredFields(unionVariants[0], value, rootSchema, required);
+  }
+
+  for (const variant of resolvedSchema.allOf ?? []) {
+    collectTemplateRequiredFields(variant, value, rootSchema, required);
+  }
+};
+
+const placeholderForSchema = (
+  schema: JSONSchema,
+  rootSchema: JSONSchema
+): unknown => {
+  const resolvedSchema = getResolvedSchema(schema, rootSchema);
+
+  if (
+    'default' in resolvedSchema &&
+    isSchemaDefaultCompatible(resolvedSchema, resolvedSchema.default)
+  ) {
+    return cloneDefault(resolvedSchema.default);
+  }
+  if ('const' in resolvedSchema) return cloneDefault(resolvedSchema.const);
+  if (resolvedSchema.enum?.length) return cloneDefault(resolvedSchema.enum[0]);
+
+  const firstVariant = resolvedSchema.oneOf?.[0] ?? resolvedSchema.anyOf?.[0];
+  if (!schemaType(resolvedSchema) && firstVariant) {
+    return placeholderForSchema(firstVariant, rootSchema);
+  }
+
+  const type = schemaType(resolvedSchema);
+  const hasResolvedProperties =
+    Object.keys(resolvedSchema.properties ?? {}).length > 0;
+  if (type === 'object' || hasResolvedProperties) {
+    return buildSchemaTemplate(resolvedSchema, {}, rootSchema);
+  }
+  if (type === 'array') {
+    if (resolvedSchema.minItems && resolvedSchema.minItems > 0 && resolvedSchema.items) {
+      return [placeholderForSchema(resolvedSchema.items, rootSchema)];
+    }
+    return [];
+  }
+  if (type === 'integer') {
+    return resolvedSchema.minimum ?? (
+      resolvedSchema.exclusiveMinimum !== undefined
+        ? Math.floor(resolvedSchema.exclusiveMinimum) + 1
+        : 0
+    );
+  }
+  if (type === 'number') {
+    return resolvedSchema.minimum ?? (
+      resolvedSchema.exclusiveMinimum !== undefined
+        ? resolvedSchema.exclusiveMinimum + 1
+        : 0
+    );
+  }
+  if (type === 'boolean') return false;
+  if (type === 'null') return null;
+  if (resolvedSchema.format === 'uri' || resolvedSchema.format === 'uri-reference') {
+    return 'https://example.com';
+  }
+  if (resolvedSchema.format === 'hostname') return 'example.com';
+  if (resolvedSchema.format === 'ipv4') return '127.0.0.1';
+  if (resolvedSchema.format === 'ipv6') return '::1';
+  if (resolvedSchema.format === 'email') return 'user@example.com';
+  if (resolvedSchema.format === 'date-time') return '2026-01-01T00:00:00Z';
+  if (type === 'string' && resolvedSchema.minLength && resolvedSchema.minLength > 0) {
+    return 'value';
+  }
+  return '';
+};
+
+const buildSchemaTemplate = (
+  schema: object | undefined,
+  config: Record<string, unknown> | undefined,
+  rootSchema?: JSONSchema
+): Record<string, unknown> => {
+  const base = applySchemaDefaults(schema, config, rootSchema);
+  if (!schema || !isRecord(schema)) return base;
+
+  const sourceSchema = schema as JSONSchema;
+  const root = rootSchema ?? sourceSchema;
+  const typedSchema = getResolvedSchema(sourceSchema, root);
+  const properties = getSchemaProperties(typedSchema, root, base);
+  const required = new Set([
+    ...(typedSchema.required ?? []),
+    ...getActiveRequiredFields(typedSchema, base, root),
+  ]);
+  collectTemplateRequiredFields(typedSchema, base, root, required);
+  const requiredKeys = [...required];
+
+  for (const key of requiredKeys) {
+    if (base[key] !== undefined) continue;
+    const propSchema = properties[key] ?? typedSchema.properties?.[key];
+    base[key] = propSchema ? placeholderForSchema(propSchema, root) : '';
+  }
+
+  for (const [key, value] of Object.entries(base)) {
+    const propSchema = properties[key] ?? typedSchema.properties?.[key];
+    if (isRecord(value) && propSchema) {
+      const resolvedPropSchema = getResolvedSchema(propSchema, root);
+      if (resolvedPropSchema.properties) {
+        base[key] = buildSchemaTemplate(resolvedPropSchema, value, root);
+      }
+    }
+  }
+
+  return base;
+};
+
 const getEditableConfig = (
   schema: object | undefined,
   config: Record<string, unknown> | undefined,
   mode: PluginCardListProps['mode']
 ): Record<string, unknown> => {
   const base = isRecord(config) ? { ...config } : {};
-  return mode === 'add' ? applySchemaDefaults(schema, base) : base;
+  return mode === 'add' ? buildSchemaTemplate(schema, base) : base;
 };
 
 const MAX_LIVE_ISSUES = 5;
@@ -263,7 +402,9 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
   );
 
   const applyTemplate = (template: Record<string, unknown>) => {
-    const nextValue = applySchemaDefaults(schema, template);
+    const nextValue = mode === 'add'
+      ? buildSchemaTemplate(schema, template)
+      : applySchemaDefaults(schema, template);
     setFormValue(nextValue);
     methods.setValue('config', toConfigStr(nextValue));
     setActiveTab(canUseForm ? 'form' : 'json');
