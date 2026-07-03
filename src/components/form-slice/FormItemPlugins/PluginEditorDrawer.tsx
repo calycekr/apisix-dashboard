@@ -296,6 +296,27 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
     setFormValue(nextValue);
     setSaveError(null);
   }, [config, methods, mode, schema]);
+  const saveErrorActions =
+    activeTab === 'json' && mode !== 'view' ? (
+      <Space wrap>
+        <Button
+          size="small"
+          icon={<IconFormatAlignLeft />}
+          onClick={formatJsonConfig}
+          aria-label="Format JSON after error"
+        >
+          Format JSON
+        </Button>
+        <Button
+          size="small"
+          icon={<IconRefresh />}
+          onClick={resetJsonConfig}
+          aria-label="Reset JSON after error"
+        >
+          Reset JSON
+        </Button>
+      </Space>
+    ) : undefined;
 
   const handleSave = methods.handleSubmit(
     async () => {
@@ -444,6 +465,17 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             </Tooltip>
           </Space>
         )}
+        {mode !== 'view' && saveError && (
+          <Alert
+            type="error"
+            showIcon
+            message={saveError}
+            action={saveErrorActions}
+            closable
+            onClose={() => setSaveError(null)}
+            style={{ marginBottom: 12, whiteSpace: 'pre-wrap' }}
+          />
+        )}
         <form>
           {canUseForm ? (
             <Tabs
@@ -461,17 +493,6 @@ export const PluginEditorDrawer = (props: PluginEditorDrawerProps) => {
             />
           )}
         </form>
-
-        {mode !== 'view' && saveError && (
-          <Alert
-            type="error"
-            showIcon
-            message={saveError}
-            closable
-            onClose={() => setSaveError(null)}
-            style={{ marginTop: 8, whiteSpace: 'pre-wrap' }}
-          />
-        )}
       </Drawer>
     </FormProvider>
   );

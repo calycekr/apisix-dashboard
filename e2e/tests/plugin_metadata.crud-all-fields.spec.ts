@@ -75,8 +75,29 @@ test('should CRUD plugin metadata with all fields', async ({ page }) => {
     await expect(addPluginDialog).toBeVisible();
     await addPluginDialog.getByRole('tab', { name: 'JSON' }).click();
 
-    // Fill in comprehensive configuration with all available fields
     const pluginEditor = await uiGetMonacoEditor(page, addPluginDialog);
+    await page.evaluate(() => {
+      window.__monacoEditor__?.getModel()?.setValue('{');
+    });
+    await page.waitForFunction(
+      () => window.__monacoEditor__?.getModel()?.getValue() === '{'
+    );
+    await pluginEditor.blur();
+    await expect(pluginEditor.getByText('{')).toBeVisible();
+    await addPluginDialog.getByRole('button', { name: 'Add Plugin' }).click();
+    const jsonErrorAlert = addPluginDialog.getByRole('alert').filter({
+      hasText: /Invalid JSON:|JSON format is not valid/,
+    });
+    await expect(jsonErrorAlert).toBeVisible();
+    await expect(
+      addPluginDialog.getByRole('button', { name: 'Format JSON after error' })
+    ).toBeVisible();
+    await addPluginDialog
+      .getByRole('button', { name: 'Reset JSON after error' })
+      .click();
+    await expect(jsonErrorAlert).toBeHidden();
+
+    // Fill in comprehensive configuration with all available fields
     await uiFillMonacoEditor(
       page,
       pluginEditor,
