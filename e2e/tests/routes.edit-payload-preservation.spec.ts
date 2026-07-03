@@ -17,7 +17,7 @@
 import { randomId } from '@e2e/utils/common';
 import { e2eReq } from '@e2e/utils/req';
 import { test } from '@e2e/utils/test';
-import { uiGoto } from '@e2e/utils/ui';
+import { uiFillMonacoEditor, uiGoto } from '@e2e/utils/ui';
 import { expect, type Request } from '@playwright/test';
 
 import { deleteAllRoutes, getRouteReq } from '@/apis/routes';
@@ -26,6 +26,11 @@ import { API_ROUTES } from '@/config/constant';
 const routeId = randomId('route-payload-preserve');
 const routeUri = '/route-payload-preserve';
 const updatedDesc = 'updated through form while preserving raw payload';
+const rawDraftDesc = 'raw json draft that will fail once';
+const rawLatestDesc = 'latest server value after failed raw save';
+
+const readMonacoValue = async (page: Parameters<typeof uiGoto>[0]) =>
+  page.evaluate(() => window.__monacoEditor__?.getValue() ?? '');
 
 test.beforeAll(async () => {
   await deleteAllRoutes(e2eReq);
@@ -106,4 +111,62 @@ test('route form save preserves raw payload and strips readonly fields', async (
       'X-Preserved-Header': 'preserved-value',
     },
   });
+});
+
+test('raw JSON save failure offers reset and reload recovery actions', async ({
+  page,
+}) => {
+  await uiGoto(page, '/routes/detail/$id', { id: routeId });
+  await page.getByRole('tab', { name: 'Raw JSON' }).click();
+
+  const rawJsonPanel = page.getByRole('tabpanel', { name: 'Raw JSON' });
+  const editor = rawJsonPanel.locator('.monaco-editor').first();
+  await expect(editor).toBeVisible();
+  await uiFillMonacoEditor(
+    page,
+    editor,
+    JSON.stringify({
+      uri: routeUri,
+      desc: rawDraftDesc,
+    })
+  );
+
+  let patchAttempts = 0;
+  await page.route(`**${API_ROUTES}/${routeId}`, async (route) => {
+    if (route.request().method() === 'PATCH') {
+      patchAttempts += 1;
+      await route.fulfill({
+        status: 500,
+        contentType: 'application/json',
+        body: JSON.stringify({ error_msg: 'temporary raw save failure' }),
+      });
+      return;
+    }
+    await route.continue();
+  });
+
+  await page.getByRole('button', { name: 'Save Changes' }).click();
+
+  await expect(
+    page.getByRole('alert').filter({ hasText: 'Save failed' }).first()
+  ).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reset draft' })).toBeVisible();
+  await expect(page.getByRole('button', { name: 'Reload latest' })).toBeVisible();
+  expect(patchAttempts).toBe(1);
+
+  await e2eReq.put(`${API_ROUTES}/${routeId}`, {
+    uri: routeUri,
+    desc: rawLatestDesc,
+    methods: ['GET'],
+    plugins: {
+      'response-rewrite': {
+        body: 'latest response body',
+      },
+    },
+  });
+
+  await page.getByRole('button', { name: 'Reload latest' }).click();
+  await expect
+    .poll(() => readMonacoValue(page))
+    .toContain(`"desc": "${rawLatestDesc}"`);
 });
