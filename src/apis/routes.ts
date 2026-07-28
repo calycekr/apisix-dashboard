@@ -22,7 +22,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
-import { deleteAllResources } from './utils';
+import { createResourceReq, deleteAllResources } from './utils';
 
 export type WithServiceIdFilter = PageSearchType & {
   filter?: {
@@ -49,7 +49,7 @@ export const putRouteReq = (req: AxiosInstance, data: APISIXType['Route']) => {
 };
 
 export const postRouteReq = (req: AxiosInstance, data: RoutePostType) =>
-  req.post<unknown, APISIXType['RespRouteDetail']>(API_ROUTES, data);
+  createResourceReq<APISIXType['RespRouteDetail']>(req, API_ROUTES, data);
 
 export const deleteAllRoutes = (req: AxiosInstance) =>
   deleteAllResources(req, API_ROUTES, getRouteListReq, (d) => d.value.id);

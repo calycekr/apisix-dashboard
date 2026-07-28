@@ -23,7 +23,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import type { WithServiceIdFilter } from './routes';
-import { deleteAllResources } from './utils';
+import { createResourceReq, deleteAllResources } from './utils';
 
 export const getStreamRouteListReq = (
   req: AxiosInstance,
@@ -57,7 +57,8 @@ export const postStreamRouteReq = (
   req: AxiosInstance,
   data: StreamRoutePostType
 ) =>
-  req.post<unknown, APISIXType['RespStreamRouteDetail']>(
+  createResourceReq<APISIXType['RespStreamRouteDetail']>(
+    req,
     API_STREAM_ROUTES,
     data
   );

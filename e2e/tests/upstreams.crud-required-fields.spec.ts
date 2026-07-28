@@ -29,6 +29,7 @@ import { deleteAllUpstreams } from '@/apis/upstreams';
 import type { APISIXType } from '@/types/schema/apisix';
 
 const upstreamName = randomId('test-upstream');
+const upstreamId = randomId('test-upstream-id');
 const nodes: APISIXType['UpstreamNode'][] = [
   { host: 'test.com' },
   { host: 'test2.com', port: 80 },
@@ -46,6 +47,7 @@ test('should CRUD upstream with required fields', async ({ page }) => {
   await upstreamsPom.isAddPage(page);
 
   await test.step('submit with required fields', async () => {
+    await page.getByRole('textbox', { name: 'ID', exact: true }).fill(upstreamId);
     await uiFillUpstreamRequiredFields(page, {
       name: upstreamName,
       nodes,
@@ -55,10 +57,10 @@ test('should CRUD upstream with required fields', async ({ page }) => {
   });
 
   await test.step('verify upstream detail page', async () => {
-    // Verify ID exists
     const ID = page.getByRole('textbox', { name: 'ID', exact: true });
     await expect(ID).toBeVisible();
     await expect(ID).toBeDisabled();
+    await expect(ID).toHaveValue(upstreamId);
     await uiCheckUpstreamRequiredFields(page, {
       name: upstreamName,
       nodes,

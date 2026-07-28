@@ -22,7 +22,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
-import { deleteAllResources } from './utils';
+import { createResourceReq, deleteAllResources } from './utils';
 
 export const getUpstreamListReq = (
   req: AxiosInstance,
@@ -41,7 +41,8 @@ export const postUpstreamReq = (
   req: AxiosInstance,
   data: Partial<APISIXType['Upstream']>
 ) =>
-  req.post<APISIXType['Upstream'], APISIXType['RespUpstreamDetail']>(
+  createResourceReq<APISIXType['RespUpstreamDetail']>(
+    req,
     API_UPSTREAMS,
     data
   );
