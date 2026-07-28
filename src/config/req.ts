@@ -74,6 +74,19 @@ const matchSkipInterceptor = (err: AxiosError) => {
   return interceptors.some((v: string) => v === failureType);
 };
 
+const getErrorNotificationId = (
+  err: AxiosError<APISIXRespErr>,
+  message: string
+) => {
+  const status = err.response?.status;
+
+  // A gateway outage often makes several resource requests fail together.
+  // Present that as one incident instead of stacking one card per endpoint.
+  if (status && status >= 500) return `admin-api-server-error-${status}`;
+
+  return message;
+};
+
 /** Build a human-readable error message with context */
 function buildErrorMessage(err: AxiosError<APISIXRespErr>): string {
   const method = err.config?.method?.toUpperCase() ?? '';
@@ -140,7 +153,10 @@ req.interceptors.response.use(
         showRateLimitedError(
           res.status === HttpStatusCode.ServiceUnavailable
             ? 'admin-api-config-store-unavailable'
-            : message,
+            : getErrorNotificationId(
+                err as AxiosError<APISIXRespErr>,
+                message
+              ),
           message
         );
       }
