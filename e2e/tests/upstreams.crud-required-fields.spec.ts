@@ -45,6 +45,12 @@ test('should CRUD upstream with required fields', async ({ page }) => {
 
   await upstreamsPom.getAddUpstreamBtn(page).click();
   await upstreamsPom.isAddPage(page);
+  await expect(
+    page.getByRole('textbox', { name: 'Discovery Args', exact: true })
+  ).toBeVisible();
+  await expect(
+    page.getByRole('switch', { name: 'Enable health checks', exact: true })
+  ).toBeVisible();
 
   await test.step('submit with required fields', async () => {
     await page.getByRole('textbox', { name: 'ID', exact: true }).fill(upstreamId);

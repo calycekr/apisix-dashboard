@@ -27,7 +27,7 @@ import {
 import { APP_CODE_EDITOR_FONT_SIZE } from '@/config/typography';
 
 import { InputWrapper } from './InputWrapper';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
 
 export type FormItemJsonInputProps<T extends FieldValues> = UseControllerProps<T> &
   TextAreaProps & {
@@ -73,6 +73,8 @@ export const FormItemJsonInput = <T extends FieldValues>(
     field: { value: rawVal, onChange: fOnChange, onBlur: fOnBlur, ...restField },
     fieldState,
   } = useController<T>(controllerProps);
+  const accessibleLabel =
+    restProps['aria-label'] ?? getAccessibleFieldLabel(label);
   const value = useMemo(() => {
     if (!toObject) return rawVal;
     if (typeof rawVal === 'string') return rawVal;
@@ -137,6 +139,7 @@ export const FormItemJsonInput = <T extends FieldValues>(
         }}
         {...restField}
         {...(omit(['objValue'], restProps) as TextAreaProps)}
+        aria-label={accessibleLabel}
       />
     </InputWrapper>
   );
