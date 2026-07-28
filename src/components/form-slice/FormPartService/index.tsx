@@ -41,7 +41,11 @@ const FormSectionSettings = () => {
   return (
     <FormSection legend="Service Settings" collapsible defaultOpen>
       <InputWrapper label="Enable WebSocket">
-        <FormItemSwitch control={control} name="enable_websocket" />
+        <FormItemSwitch
+          control={control}
+          name="enable_websocket"
+          aria-label="Enable WebSocket"
+        />
       </InputWrapper>
       <FormItemTextInput
         control={control}

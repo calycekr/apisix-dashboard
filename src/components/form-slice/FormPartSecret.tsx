@@ -149,7 +149,11 @@ const GCPSecretForm = () => {
         />
       )}
       <InputWrapper label="SSL Verify">
-        <FormItemSwitch control={control} name="ssl_verify" />
+        <FormItemSwitch
+          control={control}
+          name="ssl_verify"
+          aria-label="SSL Verify"
+        />
       </InputWrapper>
       <FormSection legend="Auth" collapsible defaultOpen={true}>
         <FormItemTextInput

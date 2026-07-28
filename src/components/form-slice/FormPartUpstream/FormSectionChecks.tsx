@@ -163,6 +163,7 @@ const FormItemChecksPassiveEnabled = () => {
       name="__checksPassiveEnabled"
       data-testid="checksPassiveEnabled"
       shouldUnregister={false}
+      aria-label="Enable passive health checks"
     />
   );
 };
@@ -261,6 +262,7 @@ const FormItemChecksEnabled = () => {
       name="__checksEnabled"
       data-testid="checksEnabled"
       shouldUnregister={false}
+      aria-label="Enable health checks"
     />
   );
 };

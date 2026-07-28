@@ -38,7 +38,13 @@ const FormSectionClient = () => {
   return (
     <FormSection
       legend="Client"
-      extra={<FormItemSwitch control={control} name="__clientEnabled" />}
+      extra={(
+        <FormItemSwitch
+          control={control}
+          name="__clientEnabled"
+          aria-label="Enable client certificate verification"
+        />
+      )}
       collapsible
       defaultOpen
     >

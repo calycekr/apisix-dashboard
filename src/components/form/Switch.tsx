@@ -23,10 +23,14 @@ import {
 } from 'react-hook-form';
 
 import classes from './Switch.module.css';
-import { genControllerProps } from './util';
+import { genControllerProps, getAccessibleFieldLabel } from './util';
+
+type AccessibleSwitchProps = SwitchProps & {
+  'aria-label'?: string;
+};
 
 export type FormItemSwitchProps<T extends FieldValues> = Omit<
-  UseControllerProps<T> & SwitchProps,
+  UseControllerProps<T> & AccessibleSwitchProps,
   'defaultValue'
 > & {
   label?: ReactNode;
@@ -38,6 +42,8 @@ export const FormItemSwitch = <T extends FieldValues>(
 ) => {
   const { controllerProps, restProps } = genControllerProps(props);
   const { label, description, ...switchProps } = restProps;
+  const accessibleLabel =
+    switchProps['aria-label'] ?? getAccessibleFieldLabel(label);
   const {
     field: { value, onChange: fOnChange, ...restField },
   } = useController<T>(controllerProps);
@@ -52,6 +58,7 @@ export const FormItemSwitch = <T extends FieldValues>(
           }}
           {...restField}
           {...switchProps}
+          aria-label={accessibleLabel}
         />
         {label && <span className={classes.switchLabel}>{label}</span>}
       </div>
