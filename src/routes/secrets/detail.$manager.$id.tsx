@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Skeleton, Space } from 'antd';
+import { Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -49,13 +49,13 @@ const SecretDetailForm = (props: Props) => {
   const { readOnly } = props;
   const { manager, id } = useParams({ from: '/secrets/detail/$manager/$id' });
 
-  const secretQuery = useQuery(
+  const secretQuery = useSuspenseQuery(
     getSecretQueryOptions({
       id,
       manager: manager as APISIXType['Secret']['manager'],
     })
   );
-  const { data: secretData, isLoading, refetch } = secretQuery;
+  const { data: secretData, refetch } = secretQuery;
 
   const form = useForm({
     resolver: zodResolver(APISIX.Secret),
@@ -66,11 +66,11 @@ const SecretDetailForm = (props: Props) => {
   });
 
   useEffect(() => {
-    if (secretData?.value && !isLoading) {
+    if (secretData.value) {
       form.reset(secretData.value);
     }
     // readonly is used as a dep to ensure that it can be reset correctly when switching states.
-  }, [secretData, form, isLoading, readOnly]);
+  }, [secretData, form, readOnly]);
 
   const putSecret = useMutation({
     mutationFn: (d: APISIXType['Secret']) =>
@@ -84,10 +84,6 @@ const SecretDetailForm = (props: Props) => {
     },
   });
 
-  if (isLoading) {
-    return <Skeleton active />;
-  }
-
   return (
     <FormProvider {...form}>
       <FormJsonTabs
@@ -95,7 +91,7 @@ const SecretDetailForm = (props: Props) => {
         onSubmit={(d) => putSecret.mutateAsync(d)}
         submitLabel="Save"
         disabled={readOnly}
-        rawData={secretData?.value}
+        rawData={secretData.value}
         adminApi={`${API_SECRETS}/${manager}/${id}`}
       >
         <FormSectionGeneral readOnly />

@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 
-import axios, { AxiosError, type AxiosResponse, HttpStatusCode } from 'axios';
+import axios, { AxiosError, HttpStatusCode } from 'axios';
 import { getDefaultStore } from 'jotai';
 import { stringify } from 'qs';
 
@@ -71,49 +71,39 @@ const matchSkipInterceptor = (err: AxiosError) => {
   const interceptors = err.config?.headers?.[SKIP_INTERCEPTOR_HEADER] || [];
   const status = err.response?.status;
   const failureType = status === undefined ? 'network' : String(status);
-  return interceptors.some((v: string) => v === failureType);
+  return interceptors.some((value: string) => value === failureType);
 };
 
-const getErrorNotificationId = (
-  err: AxiosError<APISIXRespErr>,
-  message: string
-) => {
-  const status = err.response?.status;
-
-  // A gateway outage often makes several resource requests fail together.
-  // Present that as one incident instead of stacking one card per endpoint.
-  if (status && status >= 500) return `admin-api-server-error-${status}`;
-
-  return message;
-};
-
-/** Build a human-readable error message with context */
-function buildErrorMessage(err: AxiosError<APISIXRespErr>): string {
+/** Build a human-readable error message with request context. */
+export function getRequestErrorMessage(
+  err: AxiosError<APISIXRespErr>
+): string {
   const method = err.config?.method?.toUpperCase() ?? '';
   const path = err.config?.url ?? '';
   const status = err.response?.status;
   const apisixMsg = err.response?.data?.error_msg || err.response?.data?.message;
 
-  // Network error (server unreachable)
   if (!err.response) {
     return `Network error: Cannot reach APISIX (${method} ${path}). Check that APISIX is running.`;
   }
 
-  if (status === 503) {
+  if (status === HttpStatusCode.ServiceUnavailable) {
     return apisixMsg
       ? `APISIX Admin API is reachable but its configuration store is unavailable: ${apisixMsg}`
       : 'APISIX Admin API is reachable but its configuration store is unavailable. Check APISIX-to-etcd connectivity and etcd health.';
   }
 
   const statusLabel =
-    status === 400 ? 'Bad Request' :
-    status === 404 ? 'Not Found' :
-    status === 409 ? 'Conflict' :
-    status === 500 ? 'Server Error' :
-    status === 503 ? 'Service Unavailable' :
-    `Error ${status}`;
+    status === HttpStatusCode.BadRequest
+      ? 'Bad Request'
+      : status === HttpStatusCode.NotFound
+        ? 'Not Found'
+        : status === HttpStatusCode.Conflict
+          ? 'Conflict'
+          : status === HttpStatusCode.InternalServerError
+            ? 'Server Error'
+            : `Error ${status}`;
 
-  // APISIX returned an error message
   if (apisixMsg) {
     return `${statusLabel}: ${apisixMsg} (${method} ${path})`;
   }
@@ -133,37 +123,24 @@ req.interceptors.response.use(
     return res;
   },
   (err) => {
-    // Don't show error for cancelled requests (e.g., Admin Key not configured)
-    if (axios.isCancel(err)) {
+    // Cancelled requests and explicitly skipped failures are handled by the
+    // screen that initiated them.
+    if (axios.isCancel(err) || matchSkipInterceptor(err)) {
       return Promise.reject(err);
     }
 
-    if (err.response) {
-      if (matchSkipInterceptor(err)) return Promise.reject(err);
-      const res = err.response as AxiosResponse<APISIXRespErr>;
-
-      if (res.status === HttpStatusCode.Unauthorized) {
-        showRateLimitedError(
-          'auth-error',
-          'Authentication failed — check your Admin Key in Settings'
-        );
-        getDefaultStore().set(isSettingsOpenAtom, true);
-      } else {
-        const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
-        showRateLimitedError(
-          res.status === HttpStatusCode.ServiceUnavailable
-            ? 'admin-api-config-store-unavailable'
-            : getErrorNotificationId(
-                err as AxiosError<APISIXRespErr>,
-                message
-              ),
-          message
-        );
-      }
-    } else {
-      // Network error — no response at all
-      const message = buildErrorMessage(err as AxiosError<APISIXRespErr>);
-      showRateLimitedError('network-error', message);
+    // Authentication is the one cross-screen failure that needs a central
+    // response because recovery always happens in Settings.
+    const status = err.response?.status;
+    if (
+      status === HttpStatusCode.Unauthorized ||
+      status === HttpStatusCode.Forbidden
+    ) {
+      showRateLimitedError(
+        'auth-error',
+        'Authentication failed — check your Admin Key in Settings'
+      );
+      getDefaultStore().set(isSettingsOpenAtom, true);
     }
 
     return Promise.reject(err);

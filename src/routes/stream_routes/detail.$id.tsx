@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Skeleton, Space } from 'antd';
+import { Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 import { useBoolean } from 'react-use';
@@ -50,8 +50,8 @@ type Props = {
 const StreamRouteDetailForm = (props: Props) => {
   const { readOnly, id } = props;
 
-  const streamRouteQuery = useQuery(getStreamRouteQueryOptions(id));
-  const { data: streamRouteData, isLoading, refetch } = streamRouteQuery;
+  const streamRouteQuery = useSuspenseQuery(getStreamRouteQueryOptions(id));
+  const { data: streamRouteData, refetch } = streamRouteQuery;
 
   const form = useForm({
     resolver: zodResolver(APISIX.StreamRoute),
@@ -62,10 +62,10 @@ const StreamRouteDetailForm = (props: Props) => {
   });
 
   useEffect(() => {
-    if (streamRouteData?.value && !isLoading) {
+    if (streamRouteData.value) {
       form.reset(streamRouteData.value);
     }
-  }, [streamRouteData, form, isLoading]);
+  }, [streamRouteData, form]);
 
   const putStreamRoute = useMutation({
     mutationFn: (d: APISIXType['StreamRoute']) =>
@@ -78,10 +78,6 @@ const StreamRouteDetailForm = (props: Props) => {
       });
     },
   });
-
-  if (isLoading) {
-    return <Skeleton active />;
-  }
 
   return (
     <FormProvider {...form}>

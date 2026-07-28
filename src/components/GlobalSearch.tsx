@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useNavigate } from '@tanstack/react-router';
-import { Input, Modal, Spin, Tag, Typography } from 'antd';
+import { Alert, Button, Input, Modal, Spin, Tag, Typography } from 'antd';
 import { useCallback, useEffect, useRef, useState } from 'react';
 
 import {
@@ -23,7 +23,7 @@ import {
   getResourceId,
   RESOURCES,
 } from '@/apis/dashboard';
-import { PAGE_SIZE_MAX, SKIP_INTERCEPTOR_HEADER } from '@/config/constant';
+import { PAGE_SIZE_MAX } from '@/config/constant';
 import { req } from '@/config/req';
 import IconSearch from '~icons/material-symbols/search';
 
@@ -95,6 +95,7 @@ export const GlobalSearch = () => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
+  const [unavailableCount, setUnavailableCount] = useState(0);
   const [selectedIndex, setSelectedIndex] = useState(0);
   const navigate = useNavigate();
   const inputRef = useRef<HTMLInputElement>(null);
@@ -123,6 +124,7 @@ export const GlobalSearch = () => {
       setResults([]);
       setSelectedIndex(0);
       setLoading(false);
+      setUnavailableCount(0);
     }
   }, [open]);
 
@@ -140,15 +142,18 @@ export const GlobalSearch = () => {
     const controller = new AbortController();
     abortRef.current = controller;
 
+    setResults([]);
+    setSelectedIndex(0);
+    setUnavailableCount(0);
     setLoading(true);
     const searchResults: SearchResult[] = [];
+    let failedResources = 0;
 
     const promises = RESOURCES.map(async (r) => {
       try {
         const res = await req.get(r.api, {
           params: { page: 1, page_size: PAGE_SIZE_MAX },
           signal: controller.signal,
-          headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
         });
         const list = Array.isArray(res.data?.list) ? [...res.data.list] : [];
         const totalPages = Math.ceil((res.data?.total ?? 0) / PAGE_SIZE_MAX);
@@ -158,7 +163,6 @@ export const GlobalSearch = () => {
               req.get(r.api, {
                 params: { page: index + 2, page_size: PAGE_SIZE_MAX },
                 signal: controller.signal,
-                headers: { [SKIP_INTERCEPTOR_HEADER]: ['400', '404'] },
               })
             )
           );
@@ -183,7 +187,7 @@ export const GlobalSearch = () => {
           });
         }
       } catch {
-        // skip failed/cancelled resources
+        if (!controller.signal.aborted) failedResources += 1;
       }
     });
 
@@ -193,6 +197,7 @@ export const GlobalSearch = () => {
     if (controller.signal.aborted) return;
 
     setResults(searchResults.slice(0, 20));
+    setUnavailableCount(failedResources);
     setSelectedIndex(0);
     setLoading(false);
   }, []);
@@ -261,18 +266,56 @@ export const GlobalSearch = () => {
             autoFocus
           />
         </div>
-        <div className={classes.results}>
+        <div className={classes.results} aria-live="polite">
           {loading && (
             <div className={classes.emptyState}>
               <Spin />
             </div>
           )}
-          {!loading && query && results.length === 0 && (
+          {!loading && query && unavailableCount === RESOURCES.length && (
+            <Alert
+              className={classes.searchAlert}
+              type="warning"
+              showIcon
+              message="Search unavailable"
+              description="Resource collections could not be loaded. Check the APISIX connection and try again."
+              action={
+                <Button size="small" onClick={() => void doSearch(query)}>
+                  Retry
+                </Button>
+              }
+            />
+          )}
+          {!loading &&
+            query &&
+            unavailableCount > 0 &&
+            unavailableCount < RESOURCES.length && (
+              <Alert
+                className={classes.searchAlert}
+                type="warning"
+                showIcon
+                message="Results may be incomplete"
+                description={`${unavailableCount} of ${RESOURCES.length} resource collections could not be searched.`}
+                action={
+                  <Button size="small" onClick={() => void doSearch(query)}>
+                    Retry
+                  </Button>
+                }
+              />
+            )}
+          {!loading &&
+            query &&
+            results.length === 0 &&
+            unavailableCount < RESOURCES.length && (
             <div className={classes.emptyState}>
-              <Typography.Text type="secondary">No results found</Typography.Text>
+              <Typography.Text type="secondary">
+                {unavailableCount > 0
+                  ? 'No results found in the available collections'
+                  : 'No results found'}
+              </Typography.Text>
             </div>
           )}
-          {results.map((result, idx) => (
+          {!loading && results.map((result, idx) => (
             <button
               type="button"
               key={`${result.resourceType}-${result.id}`}

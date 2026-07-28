@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useQuery } from '@tanstack/react-query';
-import { Select, type SelectProps, Typography } from 'antd';
+import { Button, Select, type SelectProps, Space, Typography } from 'antd';
 import { type ReactNode, useMemo, useState } from 'react';
 import {
   type FieldValues,
@@ -53,7 +53,12 @@ export const ResourceSelect = <T extends FieldValues>(
   const [open, setOpen] = useState(false);
   const fieldLabel = label ?? `${resourceLabel} ID`;
 
-  const { data: options, isLoading } = useQuery({
+  const {
+    data: options,
+    isError: optionsError,
+    isFetching: optionsFetching,
+    refetch: refetchOptions,
+  } = useQuery({
     queryKey: ['resource-select', resourceApi],
     queryFn: async () => {
       const pageSize = PAGE_SIZE_MAX;
@@ -156,7 +161,24 @@ export const ResourceSelect = <T extends FieldValues>(
           const optionText = ((option as { searchText?: string } | undefined)?.searchText ?? '');
           return !!valueMatch || optionText.includes(q);
         }}
-        loading={isLoading}
+        loading={optionsFetching}
+        notFoundContent={
+          optionsError ? (
+            <Space direction="vertical" size={4} align="center">
+              <Typography.Text type="danger">
+                {resourceLabel} options unavailable
+              </Typography.Text>
+              <Button
+                type="link"
+                size="small"
+                loading={optionsFetching}
+                onClick={() => void refetchOptions()}
+              >
+                Retry
+              </Button>
+            </Space>
+          ) : undefined
+        }
         placeholder={`Select ${resourceLabel}...`}
         style={{ width: '100%' }}
       />

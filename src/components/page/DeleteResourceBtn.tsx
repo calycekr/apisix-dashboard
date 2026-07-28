@@ -15,10 +15,10 @@
  * limitations under the License.
  */
 import { Button, type ButtonProps, Modal, Typography } from 'antd';
-import type { AxiosResponse } from 'axios';
+import axios, { type AxiosResponse } from 'axios';
 
 import { queryClient } from '@/config/global';
-import { req } from '@/config/req';
+import { getRequestErrorMessage, req } from '@/config/req';
 import { checkDependencies } from '@/utils/checkDependencies';
 import { useCallbackRef } from '@/utils/hooks';
 import { showNotification } from '@/utils/notification';
@@ -99,7 +99,21 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
       okText: 'Delete',
       cancelText: 'Cancel',
       onOk: async () => {
-        const response: AxiosResponse<unknown, unknown> = await req.delete(api);
+        let response: AxiosResponse<unknown, unknown>;
+        try {
+          response = await req.delete(api);
+        } catch (error) {
+          const detail = axios.isAxiosError(error)
+            ? getRequestErrorMessage(error)
+            : error instanceof Error
+              ? error.message
+              : String(error);
+          showNotification({
+            message: `${name} could not be deleted. ${detail}`,
+            type: 'error',
+          });
+          throw error;
+        }
 
         showNotification({
           message: `${name} deleted successfully`,
