@@ -173,17 +173,20 @@ const ArrayOfObjectsField = ({
             style={{ background: token.colorFillAlter }}
             extra={
               !disabled && (
-                <Button
-                  type="text"
-                  danger
-                  size="small"
-                  icon={<IconDelete />}
-                  onClick={() => handleRemove(index)}
-                  disabled={
-                    schema.minItems !== undefined &&
-                    items.length <= schema.minItems
-                  }
-                />
+                <Tooltip title={`Remove item ${index + 1}`}>
+                  <Button
+                    type="text"
+                    danger
+                    size="small"
+                    icon={<IconDelete />}
+                    aria-label={`Remove item ${index + 1}`}
+                    onClick={() => handleRemove(index)}
+                    disabled={
+                      schema.minItems !== undefined &&
+                      items.length <= schema.minItems
+                    }
+                  />
+                </Tooltip>
               )
             }
           >
@@ -418,20 +421,23 @@ const ArrayOfScalarsField = ({
               />
             )}
             {!disabled && (
-              <Button
-                type="text"
-                danger
-                size="small"
-                icon={<IconDelete />}
-                onClick={() => {
-                  setItemKeys((prev) => prev.filter((_, i) => i !== index));
-                  onChange(items.filter((_, itemIndex) => itemIndex !== index));
-                }}
-                disabled={
-                  schema.minItems !== undefined &&
-                  items.length <= schema.minItems
-                }
-              />
+              <Tooltip title={`Remove item ${index + 1}`}>
+                <Button
+                  type="text"
+                  danger
+                  size="small"
+                  icon={<IconDelete />}
+                  aria-label={`Remove item ${index + 1}`}
+                  onClick={() => {
+                    setItemKeys((prev) => prev.filter((_, i) => i !== index));
+                    onChange(items.filter((_, itemIndex) => itemIndex !== index));
+                  }}
+                  disabled={
+                    schema.minItems !== undefined &&
+                    items.length <= schema.minItems
+                  }
+                />
+              </Tooltip>
             )}
           </Space>
         ))}

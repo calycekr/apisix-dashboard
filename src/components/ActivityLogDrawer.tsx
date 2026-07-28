@@ -60,6 +60,7 @@ export const ActivityLogButton = () => {
           size="small"
           icon={<IconHistory />}
           onClick={handleOpen}
+          aria-label="Activity Log"
           title="Activity Log"
         />
       </Badge>

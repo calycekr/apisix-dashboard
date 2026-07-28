@@ -14,7 +14,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import { Button, Input, Select, Space, theme } from 'antd';
+import { Button, Input, Select, Space, theme, Tooltip } from 'antd';
 import { useCallback, useEffect, useState } from 'react';
 import { useController, useFormContext } from 'react-hook-form';
 
@@ -183,12 +183,15 @@ export const FormItemVars = () => {
               value={stringifyVarValue(v[2])}
               onChange={(e) => updateCondition(i, 2, e.target.value)}
             />
-            <Button
-              type="text"
-              danger
-              icon={<IconDelete />}
-              onClick={() => removeCondition(i)}
-            />
+            <Tooltip title={`Remove condition ${i + 1}`}>
+              <Button
+                type="text"
+                danger
+                icon={<IconDelete />}
+                aria-label={`Remove condition ${i + 1}`}
+                onClick={() => removeCondition(i)}
+              />
+            </Tooltip>
           </Space>
         ))}
         <Button
