@@ -103,6 +103,7 @@ function RouteComponent() {
   const { data: sourceData, isLoading } = useQuery({
     ...getUpstreamQueryOptions(clone_from ?? ''),
     enabled: !!clone_from,
+    throwOnError: true,
   });
 
   const cloneValues = sourceData?.value

@@ -59,6 +59,10 @@
   text-align: center;
 }
 
+.searchAlert {
+  margin: 4px 4px 8px;
+}
+
 .result {
   display: flex;
   gap: 10px;

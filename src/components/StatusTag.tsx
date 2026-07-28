@@ -15,7 +15,7 @@
  * limitations under the License.
  */
 import { useQuery } from '@tanstack/react-query';
-import { Switch, Tag } from 'antd';
+import { Button, Switch, Tag } from 'antd';
 import { useEffect, useState } from 'react';
 
 import { queryClient } from '@/config/global';
@@ -55,7 +55,12 @@ export const StatusSwitch = ({ status: statusProp, api }: StatusSwitchProps) => 
     statusProp
   );
 
-  const { data: fetchedStatus } = useQuery({
+  const {
+    data: fetchedStatus,
+    isError: statusError,
+    isFetching: statusFetching,
+    refetch: refetchStatus,
+  } = useQuery({
     queryKey: ['status', api],
     queryFn: () =>
       req
@@ -76,6 +81,20 @@ export const StatusSwitch = ({ status: statusProp, api }: StatusSwitchProps) => 
       setConfirmedStatus(1);
     }
   }, [fetchedStatus, statusProp]);
+
+  if (confirmedStatus === undefined && statusError) {
+    return (
+      <Button
+        type="link"
+        danger
+        size="small"
+        loading={statusFetching}
+        onClick={() => void refetchStatus()}
+      >
+        Status unavailable · Retry
+      </Button>
+    );
+  }
 
   if (confirmedStatus === undefined) return <Tag>Loading status...</Tag>;
 

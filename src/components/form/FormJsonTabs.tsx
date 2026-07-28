@@ -18,6 +18,7 @@ import { DiffEditor } from '@monaco-editor/react';
 import { useRouter } from '@tanstack/react-router';
 import type { TabsProps } from 'antd';
 import { Alert, Button, Modal, Space, Tabs } from 'antd';
+import axios from 'axios';
 import { clsx } from 'clsx';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import type { UseFormReturn } from 'react-hook-form';
@@ -27,6 +28,7 @@ import { JsonCodeEditor } from '@/components/form/JsonCodeEditor';
 import { AdminApiJsonEditor } from '@/components/page/AdminApiJsonEditor';
 import { ResourceOverview } from '@/components/page/ResourceOverview';
 import { queryClient } from '@/config/global';
+import { getRequestErrorMessage } from '@/config/req';
 import {
   APP_CODE_EDITOR_FONT_SIZE,
   APP_MONOSPACE_FONT_FAMILY,
@@ -378,7 +380,11 @@ export const FormJsonTabs = (props: FormJsonTabsProps) => {
         );
         setJsonTabDirty(false);
       } catch (e) {
-        const msg = e instanceof Error ? e.message : String(e);
+        const msg = axios.isAxiosError(e)
+          ? getRequestErrorMessage(e)
+          : e instanceof Error
+            ? e.message
+            : String(e);
         setApiError(`Save or verification failed: ${msg}`);
       } finally {
         setIsSaving(false);

@@ -15,14 +15,14 @@
  * limitations under the License.
  */
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useMutation, useQuery } from '@tanstack/react-query';
+import { useMutation, useSuspenseQuery } from '@tanstack/react-query';
 import {
   createFileRoute,
   Link,
   useNavigate,
   useParams,
 } from '@tanstack/react-router';
-import { Button, Skeleton, Space } from 'antd';
+import { Button, Space } from 'antd';
 import { useEffect } from 'react';
 import { FormProvider, useForm } from 'react-hook-form';
 
@@ -57,8 +57,8 @@ type Props = {
 const RouteDetailForm = (props: Props) => {
   const { id, enforcedValues } = props;
 
-  const routeQuery = useQuery(getRouteQueryOptions(id));
-  const { data: routeData, isLoading, refetch } = routeQuery;
+  const routeQuery = useSuspenseQuery(getRouteQueryOptions(id));
+  const { data: routeData, refetch } = routeQuery;
 
   const form = useForm({
     resolver: zodResolver(RoutePutSchema),
@@ -68,7 +68,7 @@ const RouteDetailForm = (props: Props) => {
   });
 
   useEffect(() => {
-    if (routeData?.value && !isLoading) {
+    if (routeData.value) {
       const upstreamProduced = produceToUpstreamForm(
         routeData.value.upstream || {},
         routeData.value
@@ -80,7 +80,7 @@ const RouteDetailForm = (props: Props) => {
         }) as RoutePutType
       );
     }
-  }, [enforcedValues, routeData, form, isLoading]);
+  }, [enforcedValues, routeData, form]);
 
   const putRoute = useMutation({
     mutationFn: (d: RoutePutType) =>
@@ -96,10 +96,6 @@ const RouteDetailForm = (props: Props) => {
       });
     },
   });
-
-  if (isLoading) {
-    return <Skeleton active />;
-  }
 
   return (
     <>
@@ -125,12 +121,12 @@ type RouteDetailProps = Pick<Props, 'id'> & {
 };
 export const RouteDetail = (props: RouteDetailProps) => {
   const { id, onDeleteSuccess, enforcedValues } = props;
-  const { data: routeData } = useQuery(getRouteQueryOptions(id));
+  const { data: routeData } = useSuspenseQuery(getRouteQueryOptions(id));
 
   return (
     <>
       <PageHeader showBackBtn
-        title={`Route: ${routeData?.value.name || id}`}
+        title={`Route: ${routeData.value.name || id}`}
         desc={`ID: ${id} - Matches incoming traffic and resolves it through a Service or directly to an Upstream.`}
         extra={(
           <Space>
