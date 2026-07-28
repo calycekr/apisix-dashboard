@@ -23,7 +23,7 @@ import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 import { deleteAllRoutes } from './routes';
 import { deleteAllStreamRoutes } from './stream_routes';
-import { deleteAllResources } from './utils';
+import { createResourceReq, deleteAllResources } from './utils';
 
 export type ServicePostType = APISIXType['ServicePost'];
 
@@ -51,10 +51,7 @@ export const putServiceReq = (
 };
 
 export const postServiceReq = (req: AxiosInstance, data: ServicePostType) =>
-  req.post<ServicePostType, APISIXType['RespServiceDetail']>(
-    API_SERVICES,
-    data
-  );
+  createResourceReq<APISIXType['RespServiceDetail']>(req, API_SERVICES, data);
 
 export const deleteAllServices = async (req: AxiosInstance) => {
   // Delete all routes and stream routes first to avoid foreign key constraints

@@ -18,10 +18,30 @@ import type { AxiosInstance } from 'axios';
 
 import { PAGE_SIZE_MAX, PAGE_SIZE_MIN } from '@/config/constant';
 import type { PageSearchType } from '@/types/schema/pageSearch';
+import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
 type ListResponse<T> = {
   total: number;
   list: T[];
+};
+
+type CreateResourceOptions = {
+  sanitize?: (data: Record<string, unknown>) => Record<string, unknown>;
+};
+
+export const createResourceReq = <TResponse>(
+  req: AxiosInstance,
+  apiPath: string,
+  data: Record<string, unknown>,
+  options: CreateResourceOptions = {}
+) => {
+  const id = typeof data.id === 'string' ? data.id.trim() : '';
+  const sanitize = options.sanitize ?? stripSystemReadonlyFields;
+  const payload = sanitize(data);
+
+  return id
+    ? req.put<unknown, TResponse>(`${apiPath}/${id}`, payload)
+    : req.post<unknown, TResponse>(apiPath, payload);
 };
 
 export const deleteAllResources = async <T>(

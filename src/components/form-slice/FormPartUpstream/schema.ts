@@ -70,8 +70,8 @@ const validateUpstreamTarget = (
   }
 };
 
-export const UpstreamPostSchema = APISIX.Upstream.omit({
-  id: true,
+export const UpstreamPostSchema = APISIX.Upstream.extend({
+  id: z.string().optional(),
 })
   .extend(formFlags)
   .superRefine(validateUpstreamTarget);

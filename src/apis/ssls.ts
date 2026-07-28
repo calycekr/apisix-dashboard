@@ -22,7 +22,7 @@ import type { APISIXType } from '@/types/schema/apisix';
 import type { PageSearchType } from '@/types/schema/pageSearch';
 import { stripSystemReadonlyFields } from '@/utils/apisixEditable';
 
-import { deleteAllResources } from './utils';
+import { createResourceReq, deleteAllResources } from './utils';
 
 const stripSSLReadonlyFields = (data: Record<string, unknown>) => {
   const payload = stripSystemReadonlyFields(data);
@@ -52,7 +52,9 @@ export const putSSLReq = (req: AxiosInstance, data: APISIXType['SSL']) => {
 };
 
 export const postSSLReq = (req: AxiosInstance, data: SSLPostType) =>
-  req.post<APISIXType['SSL'], APISIXType['RespSSLDetail']>(API_SSLS, data);
+  createResourceReq<APISIXType['RespSSLDetail']>(req, API_SSLS, data, {
+    sanitize: stripSSLReadonlyFields,
+  });
 
 export const deleteAllSSLs = (req: AxiosInstance) =>
   deleteAllResources(req, API_SSLS, getSSLListReq, (d) => d.value.id);
