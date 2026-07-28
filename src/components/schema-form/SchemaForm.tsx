@@ -112,6 +112,9 @@ const FieldWrapper = ({
   );
 };
 
+const getFieldLabel = (fieldKey: string, schema: JSONSchemaProperty) =>
+  schema.title || fieldKey;
+
 const ArrayOfObjectsField = ({
   fieldKey,
   schema,
@@ -204,6 +207,7 @@ const ArrayOfObjectsField = ({
               />
             ) : (
               <Input
+                aria-label={`${getFieldLabel(fieldKey, schema)} item ${index + 1}`}
                 value={String(item ?? '')}
                 disabled={disabled}
                 onChange={(e) => {
@@ -328,6 +332,7 @@ const FreeFormJsonField = ({
   return (
     <FieldWrapper fieldKey={fieldKey} schema={schema} required={required}>
       <Input.TextArea
+        aria-label={getFieldLabel(fieldKey, schema)}
         value={text}
         onChange={(event) => handleChange(event.target.value)}
         disabled={disabled}
@@ -358,6 +363,7 @@ const ArrayOfScalarsField = ({
   const items = Array.isArray(value) ? value : [];
   const itemSchema = schema.items ?? {};
   const itemType = schemaType(itemSchema);
+  const fieldLabel = getFieldLabel(fieldKey, schema);
 
   const updateItem = (index: number, itemValue: unknown) => {
     onChange(items.map((item, itemIndex) =>
@@ -386,6 +392,7 @@ const ArrayOfScalarsField = ({
           <Space key={itemKeys[index] ?? index} style={{ width: '100%' }}>
             {itemSchema.enum ? (
               <Select
+                aria-label={`${fieldLabel} item ${index + 1}`}
                 options={itemSchema.enum.map((option) => ({
                   label: String(option),
                   value: option as string | number | boolean,
@@ -397,6 +404,7 @@ const ArrayOfScalarsField = ({
               />
             ) : itemType === 'number' || itemType === 'integer' ? (
               <InputNumber
+                aria-label={`${fieldLabel} item ${index + 1}`}
                 value={item as number}
                 onChange={(nextValue) => updateItem(index, nextValue)}
                 min={itemSchema.minimum}
@@ -407,12 +415,14 @@ const ArrayOfScalarsField = ({
               />
             ) : itemType === 'boolean' ? (
               <Switch
+                aria-label={`${fieldLabel} item ${index + 1}`}
                 checked={Boolean(item)}
                 onChange={(nextValue) => updateItem(index, nextValue)}
                 disabled={disabled}
               />
             ) : (
               <Input
+                aria-label={`${fieldLabel} item ${index + 1}`}
                 value={String(item ?? '')}
                 onChange={(event) => updateItem(index, event.target.value)}
                 maxLength={itemSchema.maxLength}
@@ -527,6 +537,7 @@ const OneOfField = ({
   return (
     <FieldWrapper fieldKey={fieldKey} schema={schema} required={required}>
       <Select
+        aria-label={`${getFieldLabel(fieldKey, schema)} variant`}
         options={options}
         value={selectedIndex}
         onChange={handleVariantChange}
@@ -568,6 +579,7 @@ const FieldRenderer = ({
     resolvedSchema,
     rootSchema
   );
+  const fieldLabel = getFieldLabel(fieldKey, resolvedSchema);
 
   // oneOf / anyOf
   if (controlKind === 'union') {
@@ -672,6 +684,7 @@ const FieldRenderer = ({
         required={required}
       >
         <Select
+          aria-label={fieldLabel}
           mode={controlKind === 'multi-select' ? 'multiple' : 'tags'}
           options={itemEnum?.map((item) => ({
             label: String(item),
@@ -700,6 +713,7 @@ const FieldRenderer = ({
         required={required}
       >
         <Select
+          aria-label={fieldLabel}
           options={options}
           value={value as string | number | undefined}
           onChange={onChange}
@@ -720,6 +734,7 @@ const FieldRenderer = ({
         required={required}
       >
         <InputNumber
+          aria-label={fieldLabel}
           value={value as number | undefined}
           onChange={onChange}
           min={resolvedSchema.minimum}
@@ -741,6 +756,7 @@ const FieldRenderer = ({
         required={required}
       >
         <Switch
+          aria-label={fieldLabel}
           checked={!!value}
           onChange={onChange}
           disabled={disabled}
@@ -761,6 +777,7 @@ const FieldRenderer = ({
     >
       {controlKind === 'textarea' ? (
         <Input.TextArea
+          aria-label={fieldLabel}
           value={value as string | undefined}
           onChange={(e) => onChange(e.target.value)}
           maxLength={maxLength}
@@ -771,6 +788,7 @@ const FieldRenderer = ({
         />
       ) : controlKind === 'password' ? (
         <Input.Password
+          aria-label={fieldLabel}
           value={value as string | undefined}
           onChange={(e) => onChange(e.target.value)}
           maxLength={maxLength}
@@ -779,6 +797,7 @@ const FieldRenderer = ({
         />
       ) : (
         <Input
+          aria-label={fieldLabel}
           type={controlKind === 'email' ? 'email' : controlKind === 'url' ? 'url' : 'text'}
           value={value as string | undefined}
           onChange={(e) => onChange(e.target.value)}
