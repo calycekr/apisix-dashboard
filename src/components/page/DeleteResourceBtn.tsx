@@ -119,7 +119,6 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
           message: `${name} deleted successfully`,
           type: 'success',
         });
-        await queryClient.invalidateQueries();
 
         try {
           await onSuccess?.(response);
@@ -129,6 +128,8 @@ export const DeleteResourceBtn = (props: DeleteResourceProps) => {
             type: 'warning',
           });
         }
+
+        await queryClient.invalidateQueries();
       },
     });
   });

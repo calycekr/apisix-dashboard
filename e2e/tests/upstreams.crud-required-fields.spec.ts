@@ -175,6 +175,9 @@ test('should CRUD upstream with required fields', async ({ page }) => {
     await uiHasToastMsg(page, {
       hasText: 'Upstream deleted successfully',
     });
+    await expect(
+      page.getByText('Refresh failed. Showing the last available data.')
+    ).toBeHidden();
     await expect(page.getByRole('cell', { name: upstreamName })).toBeHidden();
   });
 });
