@@ -172,10 +172,12 @@ export async function uiFillUpstreamAllFields(
     const hostInputs = ctx.getByRole('textbox', { name: 'Host', exact: true });
     const portInputs = ctx.getByRole('spinbutton', { name: 'Port', exact: true });
     const weightInputs = ctx.getByRole('spinbutton', { name: 'Weight', exact: true });
-    const priorityInputs = ctx.getByRole('spinbutton', { name: 'Priority', exact: true });
-    await expect(hostInputs.first()).toBeVisible();
+  const priorityInputs = ctx.getByRole('spinbutton', { name: 'Priority', exact: true });
+  await expect(hostInputs.first()).toBeVisible();
+  await expect(portInputs.first()).toHaveValue('80');
+  await expect(weightInputs.first()).toHaveValue('100');
 
-    // Fill in the Host for the first node - click first then fill
+  // Fill in the Host for the first node - click first then fill
     const hostInput = hostInputs.first();
     await hostInput.click();
     await hostInput.fill('node1.example.com');
