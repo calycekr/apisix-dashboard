@@ -30,7 +30,6 @@ import { InputWrapper } from '@/components/form/InputWrapper';
 import { AntdConfigProvider } from '@/config/antdConfigProvider';
 import type { InputWrapperProps } from '@/types/input-wrapper';
 import { APISIX, type APISIXType } from '@/types/schema/apisix';
-import { zGetDefault } from '@/utils/zod';
 
 import { genControllerProps } from '../../form/util';
 
@@ -51,7 +50,12 @@ const zValidateField = <T extends ZodRawShape, R extends keyof T>(
 };
 
 const genRecord = (data?: DataSource | APISIXType['UpstreamNode']) => {
-  const d = data || zGetDefault(APISIX.UpstreamNode);
+  const d = data ?? {
+    host: '',
+    port: 80,
+    weight: 100,
+    priority: 0,
+  };
   return {
     id: nanoid(),
     ...d,
@@ -63,7 +67,7 @@ const objToUpstreamNodes = (data: APISIXType['UpstreamNodeObj']) => {
     const [host, port] = key.split(':');
     const d: APISIXType['UpstreamNode'] = {
       host,
-      port: Number(port) || 1,
+      port: Number(port) || 80,
       weight: val,
       priority: 0,
     };
@@ -160,6 +164,7 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Host',
         dataIndex: 'host',
         valueType: 'text',
+        width: 200,
         fieldProps: (_, config) => ({
           'aria-label': 'Host',
           onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
@@ -171,6 +176,7 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Port',
         dataIndex: 'port',
         valueType: 'digit',
+        width: 90,
         fieldProps: (_, config) => ({
           'aria-label': 'Port',
           onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
@@ -185,6 +191,7 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Weight',
         dataIndex: 'weight',
         valueType: 'digit',
+        width: 90,
         fieldProps: (_, config) => ({
           'aria-label': 'Weight',
           onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
@@ -199,6 +206,7 @@ const FormItemNodesInner = <T extends FieldValues>(
         title: 'Priority',
         dataIndex: 'priority',
         valueType: 'digit',
+        width: 90,
         fieldProps: (_, config) => ({
           'aria-label': 'Priority',
           onBlur: (event: React.FocusEvent<HTMLInputElement>) =>
@@ -212,7 +220,7 @@ const FormItemNodesInner = <T extends FieldValues>(
       {
         title: 'Action',
         valueType: 'option',
-        width: 100,
+        width: 72,
         hidden: disabled,
         render: () => null,
       },
@@ -259,6 +267,7 @@ const FormItemNodesInner = <T extends FieldValues>(
           rowKey="id"
           bordered
           controlled
+          scroll={{ x: 560 }}
           value={values}
           onChange={(dataSource) => {
             const next = [...dataSource];
