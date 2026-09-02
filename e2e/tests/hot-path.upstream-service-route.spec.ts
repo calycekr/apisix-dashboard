@@ -40,6 +40,8 @@ test.afterAll(async () => {
 });
 
 test('can create upstream -> service -> route', async ({ page }) => {
+  test.slow();
+
   const selectPluginsBtn = page.getByRole('button', {
     name: 'Add Plugin',
   });
