@@ -44,9 +44,11 @@ const UpstreamSchemeL7 = z.union([
   z.literal('grpc'),
   z.literal('grpcs'),
 ]);
+const UpstreamSchemeMessaging = z.literal('kafka');
 const UpstreamScheme = z.union([
   ...UpstreamSchemeL4.options,
   ...UpstreamSchemeL7.options,
+  UpstreamSchemeMessaging,
 ]);
 
 // keep the order, unless apisix change the order
@@ -183,6 +185,7 @@ export const APISIXUpstreams = {
   UpstreamHashOn,
   UpstreamSchemeL4,
   UpstreamSchemeL7,
+  UpstreamSchemeMessaging,
   UpstreamScheme,
   UpstreamPassHost,
   UpstreamNode,
